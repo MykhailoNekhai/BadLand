@@ -2,6 +2,8 @@ package ua.uni.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -13,7 +15,7 @@ import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
@@ -42,6 +44,9 @@ public class MenuScreen implements Screen {
     private Texture vignette;
     private Texture midFog;
     private Texture transitionBlack;
+    private Music music;
+    private Sound uiHover;
+    private Sound uiSelect;
 
     private float elapsed;
     private float uiAlpha = 0f;
@@ -59,7 +64,7 @@ public class MenuScreen implements Screen {
         Gdx.input.setInputProcessor(stage);
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
-                Gdx.files.internal("assets/fonts/american_captain.ttf"));
+                Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter p = new FreeTypeFontGenerator.FreeTypeFontParameter();
         p.size = 86;
         p.color = new Color(0.95f, 0.96f, 0.98f, 1f);
@@ -80,15 +85,15 @@ public class MenuScreen implements Screen {
         iconFont = new BitmapFont();
         iconFont.getData().setScale(1.45f);
 
-        bg = new Texture(Gdx.files.internal("assets/menu/2b3aa97f-1bf0-480c-8a7f-055b791148a9.png"));
-        fg = new Texture(Gdx.files.internal("assets/menu/mainmenu_fg_generated.png"));
+        bg = new Texture(Gdx.files.internal("game-resourses/menu/2b3aa97f-1bf0-480c-8a7f-055b791148a9.png"));
+        fg = new Texture(Gdx.files.internal("game-resourses/menu/mainmenu_fg_generated.png"));
         buttonUp = roundedRect(470, 108, 46, new Color(0f, 0f, 0f, 1f));
         buttonOver = roundedRect(470, 108, 46, new Color(0f, 0f, 0f, 1f));
         buttonDown = roundedRect(470, 108, 46, new Color(0f, 0f, 0f, 1f));
         iconUp = roundedRect(84, 84, 42, new Color(0.04f, 0.04f, 0.05f, 0.90f));
         iconOver = roundedRect(84, 84, 42, new Color(0.10f, 0.10f, 0.12f, 0.96f));
-        settingsIcon = new Texture(Gdx.files.internal("assets/menu/gear.png"));
-        profileIcon = new Texture(Gdx.files.internal("assets/menu/user-profile.png"));
+        settingsIcon = new Texture(Gdx.files.internal("game-resourses/menu/gear.png"));
+        profileIcon = new Texture(Gdx.files.internal("game-resourses/menu/user-profile.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         fg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         buttonUp.setFilter(TextureFilter.Linear, TextureFilter.Linear);
@@ -102,6 +107,12 @@ public class MenuScreen implements Screen {
         vignette = makeVignette(1280, 720);
         midFog = makeMidFog(1280, 720);
         transitionBlack = solidTexture(2, 2, Color.BLACK);
+        music = Gdx.audio.newMusic(Gdx.files.internal("game-resourses/audio/menu_music.mp3"));
+        music.setLooping(true);
+        music.setVolume(0.65f);
+        music.play();
+        uiHover = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/ui_hover.wav"));
+        uiSelect = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/ui_select.wav"));
 
         buildUi();
     }
@@ -133,24 +144,28 @@ public class MenuScreen implements Screen {
         single.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                uiSelect.play(0.8f);
                 triggerGameTransition(single, coop, options, exit);
             }
         });
         coop.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                triggerGameTransition(single, coop, options, exit);
+                uiSelect.play(0.7f);
+                Gdx.app.log("Menu", "COOP MODE SOON");
             }
         });
         options.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                triggerGameTransition(single, coop, options, exit);
+                uiSelect.play(0.7f);
+                game.setScreen(new SettingsScreen(game));
             }
         });
         exit.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                uiSelect.play(0.7f);
                 Gdx.app.exit();
             }
         });
@@ -164,28 +179,21 @@ public class MenuScreen implements Screen {
         menuTable.add(exit).width(470).height(108);
         stage.addActor(menuTable);
 
-        ImageButton.ImageButtonStyle settingsStyle = new ImageButton.ImageButtonStyle();
-        settingsStyle.up = new TextureRegionDrawable(settingsIcon);
-        settingsStyle.over = new TextureRegionDrawable(settingsIcon);
-        settingsStyle.down = new TextureRegionDrawable(settingsIcon);
-        ImageButton settings = new ImageButton(settingsStyle);
+        Image settings = new Image(settingsIcon);
+        Image profile = new Image(profileIcon);
 
-        ImageButton.ImageButtonStyle profileStyle = new ImageButton.ImageButtonStyle();
-        profileStyle.up = new TextureRegionDrawable(profileIcon);
-        profileStyle.over = new TextureRegionDrawable(profileIcon);
-        profileStyle.down = new TextureRegionDrawable(profileIcon);
-        ImageButton profile = new ImageButton(profileStyle);
-
-        settings.addListener(new ChangeListener() {
+        settings.addListener(new ClickListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                triggerGameTransition(single, coop, options, exit);
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                uiSelect.play(0.7f);
+                game.setScreen(new SettingsScreen(game));
             }
         });
-        profile.addListener(new ChangeListener() {
+        profile.addListener(new ClickListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                triggerGameTransition(single, coop, options, exit);
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                uiSelect.play(0.7f);
+                Gdx.app.log("Menu", "PROFILE SOON");
             }
         });
         setupIconHoverFx(settings);
@@ -352,6 +360,7 @@ public class MenuScreen implements Screen {
         button.addListener(new ClickListener() {
             @Override
             public void enter(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                uiHover.play(0.35f);
                 button.clearActions();
                 button.addAction(Actions.parallel(
                         Actions.color(new Color(1f, 1f, 1f, 1f), 0.14f),
@@ -380,10 +389,11 @@ public class MenuScreen implements Screen {
         });
     }
 
-    private void setupIconHoverFx(ImageButton button) {
+    private void setupIconHoverFx(Actor button) {
         button.addListener(new ClickListener() {
             @Override
             public void enter(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                uiHover.play(0.35f);
                 button.clearActions();
                 button.addAction(Actions.scaleTo(1.08f, 1.08f, 0.14f, Interpolation.smooth));
             }
@@ -422,6 +432,7 @@ public class MenuScreen implements Screen {
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
+        if (music != null) music.stop();
     }
 
     @Override
@@ -442,5 +453,8 @@ public class MenuScreen implements Screen {
         vignette.dispose();
         midFog.dispose();
         transitionBlack.dispose();
+        if (music != null) music.dispose();
+        if (uiHover != null) uiHover.dispose();
+        if (uiSelect != null) uiSelect.dispose();
     }
 }

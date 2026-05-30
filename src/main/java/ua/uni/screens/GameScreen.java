@@ -1,33 +1,48 @@
 package ua.uni.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.MainGame;
+import ua.uni.music.LevelPlayScreen;
 
 public class GameScreen implements Screen {
     private final MainGame game;
     private Stage stage;
     private Texture bg;
-    private Texture cardBody;
-    private Texture[] levelThumbs;
+    private Texture levelCard;
+    private Texture exitButtonBg;
     private Texture vignette;
+    private Texture transitionBlack;
     private BitmapFont titleFont;
-    private BitmapFont levelFont;
-    private BitmapFont nameFont;
+    private BitmapFont cardFont;
+    private Sound uiHover;
+    private Sound uiSelect;
+    private Music music;
     private float elapsed;
+    private float transitionAlpha;
+    private boolean startTransition;
+    private int selectedLevel = -1;
 
     public GameScreen(MainGame game) {
         this.game = game;
@@ -38,39 +53,35 @@ public class GameScreen implements Screen {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
-        bg = new Texture(Gdx.files.internal("assets/menu/levels_bg_generated_hq.png"));
+        bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        cardBody = splitPanelCard(276, 252, new Color(0f, 0f, 0f, 0.96f));
-        levelThumbs = new Texture[10];
+        levelCard = makeLevelCardTexture(230, 300);
+        exitButtonBg = roundedRect(220, 86, 30, new Color(0f, 0f, 0f, 0.95f));
         vignette = makeVignette(1280, 720);
+        transitionBlack = solidTexture(2, 2, Color.BLACK);
+        uiHover = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/ui_hover.wav"));
+        uiSelect = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/ui_select.wav"));
+        music = Gdx.audio.newMusic(Gdx.files.internal("game-resourses/audio/menu_music.mp3"));
+        music.setLooping(true);
+        music.setVolume(0.62f);
+        music.play();
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
-                Gdx.files.internal("assets/fonts/american_captain.ttf"));
+                Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter pTitle = new FreeTypeFontGenerator.FreeTypeFontParameter();
         pTitle.size = 110;
         pTitle.color = Color.WHITE;
         pTitle.borderWidth = 2f;
         pTitle.borderColor = new Color(0.1f, 0.1f, 0.1f, 1f);
         titleFont = generator.generateFont(pTitle);
+        FreeTypeFontGenerator.FreeTypeFontParameter pCard = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        pCard.size = 44;
+        pCard.color = new Color(1f, 0.86f, 0.36f, 1f);
+        pCard.borderWidth = 1.4f;
+        pCard.borderColor = new Color(0f, 0f, 0f, 1f);
+        cardFont = generator.generateFont(pCard);
 
-        FreeTypeFontGenerator.FreeTypeFontParameter pLevel = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        pLevel.size = 56;
-        pLevel.color = Color.WHITE;
-        pLevel.borderWidth = 1.8f;
-        pLevel.borderColor = new Color(0.1f, 0.1f, 0.1f, 1f);
-        levelFont = generator.generateFont(pLevel);
-
-        FreeTypeFontGenerator.FreeTypeFontParameter pName = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        pName.size = 48;
-        pName.color = Color.WHITE;
-        pName.borderWidth = 1.6f;
-        pName.borderColor = new Color(0.08f, 0.08f, 0.08f, 1f);
-        nameFont = generator.generateFont(pName);
         generator.dispose();
-
-        for (int i = 0; i < levelThumbs.length; i++) {
-            levelThumbs[i] = makeYellowThumb(i);
-        }
 
         buildUi();
     }
@@ -85,16 +96,33 @@ public class GameScreen implements Screen {
         titleTable.add(title);
         stage.addActor(titleTable);
 
+        TextButton.TextButtonStyle exitStyle = new TextButton.TextButtonStyle();
+        exitStyle.up = new TextureRegionDrawable(exitButtonBg);
+        exitStyle.over = new TextureRegionDrawable(exitButtonBg);
+        exitStyle.down = new TextureRegionDrawable(exitButtonBg);
+        exitStyle.font = cardFont;
+        TextButton exit = new TextButton("EXIT", exitStyle);
+        exit.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                uiSelect.play(0.75f);
+                game.setScreen(new MenuScreen(game));
+            }
+        });
+        Table exitTable = new Table();
+        exitTable.setFillParent(true);
+        exitTable.top().left().padTop(20).padLeft(20);
+        exitTable.add(exit).width(220).height(86);
+        stage.addActor(exitTable);
+
         Table grid = new Table();
         grid.setFillParent(true);
-        grid.center().padTop(40);
+        grid.center().padTop(180);
 
         int level = 1;
         for (int row = 0; row < 2; row++) {
             for (int col = 0; col < 5; col++) {
-                boolean unlocked = level <= 2;
-                Stack card = buildLevelCard(level, unlocked);
-                grid.add(card).width(276).height(252).pad(18);
+                grid.add(buildCard(level)).width(230).height(300).pad(16);
                 level++;
             }
             grid.row();
@@ -102,34 +130,52 @@ public class GameScreen implements Screen {
         stage.addActor(grid);
     }
 
-    private Stack buildLevelCard(int levelNum, boolean unlocked) {
-        Texture thumb = levelThumbs[levelNum - 1];
-        String[] names = {"SPIRAL", "SUNROOT", "EMBER", "GLOW", "DUNE", "VINES", "MIRAGE", "NEST", "BURST", "BLOOM"};
+    private Stack buildCard(int level) {
+        Image base = new Image(new TextureRegionDrawable(levelCard));
+        Label.LabelStyle ls = new Label.LabelStyle(cardFont, cardFont.getColor());
+        Label num = new Label(String.format("%02d", level), ls);
+        Table overlay = new Table();
+        overlay.setFillParent(true);
+        overlay.bottom().padBottom(20);
+        overlay.add(num);
+        Stack s = new Stack();
+        s.add(base);
+        s.add(overlay);
+        s.addListener(new ClickListener() {
+            @Override
+            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+                if (startTransition) return;
+                uiSelect.play(0.85f);
+                s.addAction(Actions.sequence(
+                        Actions.scaleTo(0.96f, 0.96f, 0.05f, Interpolation.fade),
+                        Actions.scaleTo(1f, 1f, 0.10f, Interpolation.sineOut)
+                ));
+                selectedLevel = level;
+                startTransition = true;
+            }
 
-        Image body = new Image(new TextureRegionDrawable(cardBody));
-        Image topShot = new Image(new TextureRegionDrawable(thumb));
-
-        Label.LabelStyle nameStyle = new Label.LabelStyle(nameFont, unlocked ? Color.WHITE : new Color(0.80f, 0.80f, 0.80f, 1f));
-        Label nameLabel = new Label(names[levelNum - 1], nameStyle);
-        Label.LabelStyle levelStyle = new Label.LabelStyle(levelFont, Color.WHITE);
-        Label levelLabel = new Label(unlocked ? String.valueOf(levelNum) : "LOCK", levelStyle);
-
-        Table inside = new Table();
-        inside.setFillParent(true);
-        inside.top().padTop(16);
-        inside.add(topShot).width(242).height(138).padBottom(8).row();
-        inside.add(nameLabel).padBottom(2).row();
-        inside.add(levelLabel);
-
-        Stack stack = new Stack();
-        stack.add(body);
-        stack.add(inside);
-        return stack;
+            @Override
+            public void enter(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y, int pointer, com.badlogic.gdx.scenes.scene2d.Actor fromActor) {
+                if (!startTransition) uiHover.play(0.35f);
+            }
+        });
+        return s;
     }
 
     @Override
     public void render(float delta) {
         elapsed += delta;
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            game.setScreen(new MenuScreen(game));
+            return;
+        }
+        if (startTransition) {
+            transitionAlpha = Math.min(1f, transitionAlpha + (delta / 0.45f));
+            if (transitionAlpha >= 1f && selectedLevel > 0) {
+                game.setScreen(new LevelPlayScreen(game, selectedLevel));
+                return;
+            }
+        }
         drawBackground();
         stage.act(delta);
         stage.draw();
@@ -148,59 +194,15 @@ public class GameScreen implements Screen {
 
         batch.setColor(0f, 0f, 0f, 0.30f);
         batch.draw(vignette, 0f, 0f, w, h);
+        if (transitionAlpha > 0f) {
+            batch.setColor(0f, 0f, 0f, transitionAlpha);
+            batch.draw(transitionBlack, 0f, 0f, w, h);
+        }
         batch.setColor(1f, 1f, 1f, 1f);
 
         batch.end();
     }
 
-    private Texture roundedRect(int w, int h, int r, Color color) {
-        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0f, 0f, 0f, 0f);
-        pixmap.fill();
-        pixmap.setColor(color);
-        pixmap.fillRectangle(r, 0, w - (r * 2), h);
-        pixmap.fillRectangle(0, r, w, h - (r * 2));
-        pixmap.fillCircle(r, r, r);
-        pixmap.fillCircle(w - r - 1, r, r);
-        pixmap.fillCircle(r, h - r - 1, r);
-        pixmap.fillCircle(w - r - 1, h - r - 1, r);
-        Texture t = new Texture(pixmap);
-        t.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        pixmap.dispose();
-        return t;
-    }
-
-    private Texture splitPanelCard(int w, int h, Color color) {
-        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0f, 0f, 0f, 0f);
-        pixmap.fill();
-        pixmap.setColor(color);
-
-        // Top and bottom panels (variant 05 split panel).
-        fillRoundedRect(pixmap, 14, 84, w - 28, h - 92, 34);
-        fillRoundedRect(pixmap, 8, 0, w - 16, 118, 46);
-        pixmap.fillCircle(58, 30, 34);
-        pixmap.fillCircle(w - 59, 30, 35);
-
-        // Irregular divider band between top and bottom panels.
-        pixmap.fillTriangle(24, 104, w / 2 - 16, 118, 24, 84);
-        pixmap.fillTriangle(w - 24, 106, w / 2 + 22, 120, w - 24, 86);
-        fillRoundedRect(pixmap, 24, 84, w - 48, 32, 16);
-
-        Texture t = new Texture(pixmap);
-        t.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        pixmap.dispose();
-        return t;
-    }
-
-    private void fillRoundedRect(Pixmap pixmap, int x, int y, int w, int h, int r) {
-        pixmap.fillRectangle(x + r, y, w - (r * 2), h);
-        pixmap.fillRectangle(x, y + r, w, h - (r * 2));
-        pixmap.fillCircle(x + r, y + r, r);
-        pixmap.fillCircle(x + w - r - 1, y + r, r);
-        pixmap.fillCircle(x + r, y + h - r - 1, r);
-        pixmap.fillCircle(x + w - r - 1, y + h - r - 1, r);
-    }
 
     private Texture makeVignette(int w, int h) {
         Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
@@ -223,41 +225,76 @@ public class GameScreen implements Screen {
         return texture;
     }
 
-    private Texture makeYellowThumb(int index) {
-        Color[] palette = new Color[] {
-                new Color(0.98f, 0.90f, 0.47f, 1f),
-                new Color(0.97f, 0.84f, 0.38f, 1f),
-                new Color(0.94f, 0.78f, 0.34f, 1f),
-                new Color(0.96f, 0.87f, 0.42f, 1f),
-                new Color(0.92f, 0.74f, 0.31f, 1f),
-                new Color(0.99f, 0.86f, 0.36f, 1f),
-                new Color(0.95f, 0.81f, 0.29f, 1f),
-                new Color(0.97f, 0.88f, 0.52f, 1f),
-                new Color(0.93f, 0.76f, 0.33f, 1f),
-                new Color(0.98f, 0.83f, 0.41f, 1f)
-        };
+    private Texture roundedRect(int w, int h, int r, Color color) {
+        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0f, 0f, 0f, 0f);
+        pixmap.fill();
+        pixmap.setColor(color);
+        pixmap.fillRectangle(r, 0, w - (r * 2), h);
+        pixmap.fillRectangle(0, r, w, h - (r * 2));
+        pixmap.fillCircle(r, r, r);
+        pixmap.fillCircle(w - r - 1, r, r);
+        pixmap.fillCircle(r, h - r - 1, r);
+        pixmap.fillCircle(w - r - 1, h - r - 1, r);
+        Texture t = new Texture(pixmap);
+        t.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        pixmap.dispose();
+        return t;
+    }
 
-        Pixmap p = new Pixmap(242, 138, Pixmap.Format.RGBA8888);
-        Color c = palette[index % palette.length];
-        for (int y = 0; y < 138; y++) {
-            float t = y / 137f;
-            float r = c.r * (0.9f + (0.14f * (1f - t)));
-            float g = c.g * (0.92f + (0.12f * (1f - t)));
-            float b = c.b * (0.86f + (0.10f * (1f - t)));
-            p.setColor(r, g, b, 1f);
-            p.drawLine(0, y, 241, y);
+    private Texture solidTexture(int w, int h, Color color) {
+        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        pixmap.setColor(color);
+        pixmap.fill();
+        Texture t = new Texture(pixmap);
+        t.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        pixmap.dispose();
+        return t;
+    }
+
+    private Texture makeLevelCardTexture(int w, int h) {
+        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0f, 0f, 0f, 0f);
+        pixmap.fill();
+
+        // Main elongated black card body.
+        pixmap.setColor(0f, 0f, 0f, 0.98f);
+        fillRoundedRect(pixmap, 6, 0, w - 12, h - 8, 32);
+        pixmap.fillCircle(36, 20, 22);
+        pixmap.fillCircle(w - 37, 20, 22);
+
+        // Top preview window area (warm yellow, in upper half).
+        int previewBottom = h - 176;
+        int previewTop = h - 24;
+        for (int y = previewBottom; y < previewTop; y++) {
+            float t = (y - previewBottom) / (float) (previewTop - previewBottom);
+            float r = 0.95f - (0.10f * t);
+            float g = 0.84f - (0.08f * t);
+            float b = 0.42f - (0.16f * t);
+            pixmap.setColor(r, g, b, 1f);
+            pixmap.drawLine(18, y, w - 19, y);
         }
 
-        p.setColor(0f, 0f, 0f, 0.28f);
-        p.fillCircle(38 + (index * 11) % 160, 120, 42);
-        p.fillCircle(170 + (index * 7) % 52, 18, 34);
-        p.fillRectangle(0, 18 + (index % 5) * 8, 242, 4);
-        p.fillRectangle(0, 88 + (index % 4) * 7, 242, 5);
+        // Simple dark silhouettes inside preview.
+        pixmap.setColor(0f, 0f, 0f, 0.34f);
+        pixmap.fillCircle(42, previewBottom + 20, 22);
+        pixmap.fillCircle(w - 45, previewTop - 18, 18);
+        pixmap.fillRectangle(18, previewBottom + 30, w - 36, 4);
+        pixmap.fillRectangle(18, previewBottom + 68, w - 36, 5);
 
-        Texture raw = new Texture(p);
-        raw.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        p.dispose();
-        return raw;
+        Texture texture = new Texture(pixmap);
+        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        pixmap.dispose();
+        return texture;
+    }
+
+    private void fillRoundedRect(Pixmap pixmap, int x, int y, int w, int h, int r) {
+        pixmap.fillRectangle(x + r, y, w - (r * 2), h);
+        pixmap.fillRectangle(x, y + r, w, h - (r * 2));
+        pixmap.fillCircle(x + r, y + r, r);
+        pixmap.fillCircle(x + w - r - 1, y + r, r);
+        pixmap.fillCircle(x + r, y + h - r - 1, r);
+        pixmap.fillCircle(x + w - r - 1, y + h - r - 1, r);
     }
 
     @Override
@@ -274,19 +311,21 @@ public class GameScreen implements Screen {
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
+        if (music != null) music.stop();
     }
 
     @Override
     public void dispose() {
         stage.dispose();
         bg.dispose();
-        cardBody.dispose();
-        for (Texture thumb : levelThumbs) {
-            thumb.dispose();
-        }
+        levelCard.dispose();
+        exitButtonBg.dispose();
         vignette.dispose();
+        transitionBlack.dispose();
         titleFont.dispose();
-        levelFont.dispose();
-        nameFont.dispose();
+        cardFont.dispose();
+        if (uiHover != null) uiHover.dispose();
+        if (uiSelect != null) uiSelect.dispose();
+        if (music != null) music.dispose();
     }
 }
