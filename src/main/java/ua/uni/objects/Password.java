@@ -1,7 +1,7 @@
 package ua.uni.objects;
 
 
-import ua.uni.exceptions.ValidationException;
+import ua.uni.exceptions.app.ValidationException;
 import org.mindrot.jbcrypt.BCrypt;
 
 public final class Password {

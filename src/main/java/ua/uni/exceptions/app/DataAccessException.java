@@ -1,4 +1,4 @@
-package ua.uni.exceptions;
+package ua.uni.exceptions.app;
 
 public class DataAccessException extends AppException {
     public DataAccessException(String message) {

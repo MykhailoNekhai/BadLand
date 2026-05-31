@@ -16,7 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.MainGame;
+import ua.uni.game.MainGame;
 import ua.uni.auth.FirebaseAuthService;
 import ua.uni.logging.AppLogger;
 

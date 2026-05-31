@@ -1,4 +1,4 @@
-package ua.uni.exceptions;
+package ua.uni.exceptions.app;
 
 public class NotFoundException extends AppException {
     public NotFoundException(String message) {

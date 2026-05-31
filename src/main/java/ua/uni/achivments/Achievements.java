@@ -1,4 +1,4 @@
-package ua.uni.achivments.domain;
+package ua.uni.achivments;
 
 import ua.uni.objects.ID;
 

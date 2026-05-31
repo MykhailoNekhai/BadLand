@@ -2,8 +2,6 @@ package ua.uni.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -12,6 +10,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
@@ -23,7 +23,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.MainGame;
+import ua.uni.audio.AudioManager;
+import ua.uni.game.MainGame;
+import ua.uni.language.language;
 
 public class MenuScreen implements Screen {
     private final MainGame game;
@@ -44,9 +46,21 @@ public class MenuScreen implements Screen {
     private Texture vignette;
     private Texture midFog;
     private Texture transitionBlack;
-    private Music music;
-    private Sound uiHover;
-    private Sound uiSelect;
+    private Texture particleTex;
+    private Texture dotTex;
+
+    private static final int PARTICLE_COUNT = 32;
+    private final float[] partX = new float[PARTICLE_COUNT];
+    private final float[] partY = new float[PARTICLE_COUNT];
+    private final float[] partLife = new float[PARTICLE_COUNT];
+    private final float[] partMaxLife = new float[PARTICLE_COUNT];
+    private final float[] partSize = new float[PARTICLE_COUNT];
+
+    private static final int TRAIL_LEN = 10;
+    private final float[] trailX = new float[TRAIL_LEN];
+    private final float[] trailY = new float[TRAIL_LEN];
+    private int trailHead;
+    private final Vector2 mouseTmp = new Vector2();
 
     private float elapsed;
     private float uiAlpha = 0f;
@@ -73,6 +87,7 @@ public class MenuScreen implements Screen {
         p.shadowOffsetX = 0;
         p.shadowOffsetY = 5;
         p.shadowColor = new Color(0f, 0f, 0f, 0.62f);
+        p.characters = language.FONT_CHARACTERS;
         menuFont = generator.generateFont(p);
         FreeTypeFontGenerator.FreeTypeFontParameter titleParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         titleParams.size = 110;
@@ -107,12 +122,17 @@ public class MenuScreen implements Screen {
         vignette = makeVignette(1280, 720);
         midFog = makeMidFog(1280, 720);
         transitionBlack = solidTexture(2, 2, Color.BLACK);
-        music = Gdx.audio.newMusic(Gdx.files.internal("game-resourses/audio/menu_music.mp3"));
-        music.setLooping(true);
-        music.setVolume(0.65f);
-        music.play();
-        uiHover = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/ui_hover.wav"));
-        uiSelect = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/ui_select.wav"));
+        particleTex = softCircleTexture(12);
+        dotTex = softCircleTexture(14);
+        AudioManager.get().playMenuMusic();
+
+        for (int i = 0; i < PARTICLE_COUNT; i++) {
+            partX[i] = MathUtils.random(0f, 1280f);
+            partY[i] = MathUtils.random(0f, 720f);
+            partMaxLife[i] = MathUtils.random(7f, 14f);
+            partLife[i] = MathUtils.random(0f, partMaxLife[i]);
+            partSize[i] = MathUtils.random(3f, 7f);
+        }
 
         buildUi();
     }
@@ -124,13 +144,13 @@ public class MenuScreen implements Screen {
         menuStyle.down = new TextureRegionDrawable(buttonDown);
         menuStyle.font = menuFont;
         menuStyle.fontColor = new Color(0.95f, 0.96f, 0.97f, 1f);
-        menuStyle.overFontColor = Color.WHITE;
-        menuStyle.downFontColor = new Color(0.80f, 0.84f, 0.90f, 1f);
+        menuStyle.overFontColor = new Color(1f, 0.92f, 0.55f, 1f);
+        menuStyle.downFontColor = new Color(1f, 0.92f, 0.55f, 1f);
 
-        TextButton single = new TextButton("SINGLE PLAYER", menuStyle);
-        TextButton coop = new TextButton("COOP", menuStyle);
-        TextButton options = new TextButton("OPTIONS", menuStyle);
-        TextButton exit = new TextButton("EXIT", menuStyle);
+        TextButton single = new TextButton(language.t("SINGLE_PLAYER"), menuStyle);
+        TextButton coop = new TextButton(language.t("COOP"), menuStyle);
+        TextButton options = new TextButton(language.t("OPTIONS"), menuStyle);
+        TextButton exit = new TextButton(language.t("EXIT"), menuStyle);
 
         setupMenuButtonFx(single);
         setupMenuButtonFx(coop);
@@ -144,28 +164,28 @@ public class MenuScreen implements Screen {
         single.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                uiSelect.play(0.8f);
+                AudioManager.get().playSelect(0.8f);
                 triggerGameTransition(single, coop, options, exit);
             }
         });
         coop.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                uiSelect.play(0.7f);
+                AudioManager.get().playSelect(0.7f);
                 Gdx.app.log("Menu", "COOP MODE SOON");
             }
         });
         options.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                uiSelect.play(0.7f);
+                AudioManager.get().playSelect(0.7f);
                 game.setScreen(new SettingsScreen(game));
             }
         });
         exit.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                uiSelect.play(0.7f);
+                AudioManager.get().playSelect(0.7f);
                 Gdx.app.exit();
             }
         });
@@ -185,14 +205,14 @@ public class MenuScreen implements Screen {
         settings.addListener(new ClickListener() {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
-                uiSelect.play(0.7f);
+                AudioManager.get().playSelect(0.7f);
                 game.setScreen(new SettingsScreen(game));
             }
         });
         profile.addListener(new ClickListener() {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
-                uiSelect.play(0.7f);
+                AudioManager.get().playSelect(0.7f);
                 Gdx.app.log("Menu", "PROFILE SOON");
             }
         });
@@ -242,9 +262,55 @@ public class MenuScreen implements Screen {
                 return;
             }
         }
+        updateParticles(delta);
+        updateTrail();
         drawBackground();
         stage.act(delta);
         stage.draw();
+        drawTrail();
+    }
+
+    private void drawTrail() {
+        var batch = stage.getBatch();
+        batch.setProjectionMatrix(stage.getCamera().combined);
+        batch.begin();
+        for (int i = 0; i < TRAIL_LEN; i++) {
+            int idx = (trailHead - 1 - i + TRAIL_LEN) % TRAIL_LEN;
+            float ta = (TRAIL_LEN - i) / (float) TRAIL_LEN * 0.45f;
+            float ts = 8f - i * 0.4f;
+            batch.setColor(1f, 0.85f, 0.40f, ta);
+            batch.draw(dotTex, trailX[idx] - ts, trailY[idx] - ts, ts * 2f, ts * 2f);
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.end();
+    }
+
+    private void updateParticles(float delta) {
+        float w = stage.getViewport().getWorldWidth();
+        float h = stage.getViewport().getWorldHeight();
+        for (int i = 0; i < PARTICLE_COUNT; i++) {
+            partLife[i] -= delta;
+            if (partLife[i] <= 0f) {
+                partX[i] = MathUtils.random(0f, w);
+                partY[i] = -10f;
+                partMaxLife[i] = MathUtils.random(7f, 14f);
+                partLife[i] = partMaxLife[i];
+                partSize[i] = MathUtils.random(3f, 7f);
+            } else {
+                float vy = 14f + ((i * 11) % 17);
+                partY[i] += vy * delta;
+                partX[i] += MathUtils.sin(elapsed * 0.6f + i * 0.7f) * 14f * delta;
+                if (partY[i] > h + 20f) partLife[i] = 0f;
+            }
+        }
+    }
+
+    private void updateTrail() {
+        mouseTmp.set(Gdx.input.getX(), Gdx.input.getY());
+        stage.screenToStageCoordinates(mouseTmp);
+        trailX[trailHead] = mouseTmp.x;
+        trailY[trailHead] = mouseTmp.y;
+        trailHead = (trailHead + 1) % TRAIL_LEN;
     }
 
     private void drawBackground() {
@@ -271,10 +337,22 @@ public class MenuScreen implements Screen {
         batch.draw(fg, -32f, -8f, w + 96f, h + 16f);
         batch.setColor(1f, 1f, 1f, 1f);
 
-        batch.setColor(0f, 0f, 0f, 0.25f);
+        float vPulse = 0.23f + 0.06f * (float) Math.sin(elapsed * 0.7f);
+        batch.setColor(0f, 0f, 0f, vPulse);
         batch.draw(vignette, 0f, 0f, w, h);
         batch.setColor(0f, 0f, 0f, 0.20f);
         batch.draw(vignette, 0f, 0f, w, h);
+
+        for (int i = 0; i < PARTICLE_COUNT; i++) {
+            float lt = partLife[i] / partMaxLife[i];
+            float pa = (float) Math.sin(lt * Math.PI) * 0.45f;
+            if (pa > 0f) {
+                batch.setColor(1f, 0.94f, 0.72f, pa);
+                float s = partSize[i];
+                batch.draw(particleTex, partX[i] - s, partY[i] - s, s * 2f, s * 2f);
+            }
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
 
         titleLayout.setText(titleFont, "Shadow Flight");
         float titleX = (w - titleLayout.width) * 0.5f;
@@ -282,6 +360,7 @@ public class MenuScreen implements Screen {
         titleFont.getColor().a = uiAlpha;
         titleFont.draw(batch, titleLayout, titleX, titleY);
         titleFont.getColor().a = 1f;
+
 
         if (transitionAlpha > 0f) {
             batch.setColor(0f, 0f, 0f, transitionAlpha);
@@ -346,6 +425,33 @@ public class MenuScreen implements Screen {
         return texture;
     }
 
+    private Texture softCircleTexture(int diameter) {
+        Pixmap p = new Pixmap(diameter, diameter, Pixmap.Format.RGBA8888);
+        p.setColor(0f, 0f, 0f, 0f);
+        p.fill();
+        float cx = diameter / 2f;
+        float cy = diameter / 2f;
+        float maxR = diameter / 2f;
+        for (int y = 0; y < diameter; y++) {
+            for (int x = 0; x < diameter; x++) {
+                float dx = x - cx;
+                float dy = y - cy;
+                float d = (float) Math.sqrt(dx * dx + dy * dy);
+                float t = Math.min(1f, d / maxR);
+                float a = (1f - t);
+                a = a * a;
+                if (a > 0f) {
+                    p.setColor(1f, 1f, 1f, a);
+                    p.drawPixel(x, y);
+                }
+            }
+        }
+        Texture tex = new Texture(p);
+        tex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        p.dispose();
+        return tex;
+    }
+
     private Texture solidTexture(int w, int h, Color color) {
         Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
         pixmap.setColor(color);
@@ -360,26 +466,18 @@ public class MenuScreen implements Screen {
         button.addListener(new ClickListener() {
             @Override
             public void enter(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y, int pointer, Actor fromActor) {
-                uiHover.play(0.35f);
-                button.clearActions();
-                button.addAction(Actions.parallel(
-                        Actions.color(new Color(1f, 1f, 1f, 1f), 0.14f),
-                        Actions.scaleTo(1.02f, 1.02f, 0.14f, Interpolation.smooth)
-                ));
+                AudioManager.get().playHover();
+                button.addAction(Actions.scaleTo(1.02f, 1.02f, 0.14f, Interpolation.smooth));
             }
 
             @Override
             public void exit(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y, int pointer, Actor toActor) {
-                button.clearActions();
-                button.addAction(Actions.parallel(
-                        Actions.color(new Color(1f, 1f, 1f, 1f), 0.14f),
-                        Actions.scaleTo(1f, 1f, 0.14f, Interpolation.smooth)
-                ));
+                button.addAction(Actions.scaleTo(1f, 1f, 0.14f, Interpolation.smooth));
             }
 
             @Override
             public boolean touchDown(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y, int pointer, int buttonCode) {
-                button.clearActions();
+                spawnRipple(button, x, y);
                 button.addAction(Actions.sequence(
                         Actions.scaleTo(0.96f, 0.96f, 0.06f, Interpolation.fade),
                         Actions.scaleTo(1f, 1f, 0.12f, Interpolation.swingOut)
@@ -389,11 +487,29 @@ public class MenuScreen implements Screen {
         });
     }
 
+    private void spawnRipple(TextButton button, float localX, float localY) {
+        Vector2 worldPos = new Vector2(localX, localY);
+        button.localToStageCoordinates(worldPos);
+        Image ripple = new Image(new TextureRegionDrawable(dotTex));
+        ripple.setSize(20f, 20f);
+        ripple.setOrigin(10f, 10f);
+        ripple.setPosition(worldPos.x - 10f, worldPos.y - 10f);
+        ripple.setColor(1f, 0.85f, 0.40f, 0.55f);
+        ripple.addAction(Actions.sequence(
+                Actions.parallel(
+                        Actions.scaleTo(14f, 14f, 0.55f, Interpolation.sineOut),
+                        Actions.fadeOut(0.55f, Interpolation.fade)
+                ),
+                Actions.removeActor()
+        ));
+        stage.addActor(ripple);
+    }
+
     private void setupIconHoverFx(Actor button) {
         button.addListener(new ClickListener() {
             @Override
             public void enter(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y, int pointer, Actor fromActor) {
-                uiHover.play(0.35f);
+                AudioManager.get().playHover();
                 button.clearActions();
                 button.addAction(Actions.scaleTo(1.08f, 1.08f, 0.14f, Interpolation.smooth));
             }
@@ -432,7 +548,6 @@ public class MenuScreen implements Screen {
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
-        if (music != null) music.stop();
     }
 
     @Override
@@ -453,8 +568,7 @@ public class MenuScreen implements Screen {
         vignette.dispose();
         midFog.dispose();
         transitionBlack.dispose();
-        if (music != null) music.dispose();
-        if (uiHover != null) uiHover.dispose();
-        if (uiSelect != null) uiSelect.dispose();
+        particleTex.dispose();
+        dotTex.dispose();
     }
 }

@@ -1,4 +1,4 @@
-package ua.uni.exceptions;
+package ua.uni.exceptions.app;
 
 public class AuthorizationException extends AppException {
     public AuthorizationException(String message) {

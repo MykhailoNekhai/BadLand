@@ -1,6 +1,6 @@
 package ua.uni.objects;
 
-import ua.uni.exceptions.ValidationException;
+import ua.uni.exceptions.app.ValidationException;
 
 import java.util.Objects;
 

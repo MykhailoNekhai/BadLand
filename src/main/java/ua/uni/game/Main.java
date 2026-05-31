@@ -1,4 +1,4 @@
-package ua.uni;
+package ua.uni.game;
 
 public class Main {
     public static void main(String[] args) {

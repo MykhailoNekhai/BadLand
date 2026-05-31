@@ -8,8 +8,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import java.io.IOException;
-
 public class FirestoreService {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private final OkHttpClient client = new OkHttpClient();
@@ -20,8 +18,7 @@ public class FirestoreService {
         this.config = config;
     }
 
-    public void createUserProfile(String idToken, String uid, String nickname, String email, String language)
-            throws IOException {
+    public void createUserProfile(String idToken, String uid, String nickname, String email, String language) {
         JsonObject fields = new JsonObject();
         fields.add("nickname", stringValue(nickname));
         fields.add("email", stringValue(email));
@@ -34,7 +31,7 @@ public class FirestoreService {
         executeAuthorizedPost(url, idToken, body.toString());
     }
 
-    public JsonObject getUserProfile(String idToken, String uid) throws IOException {
+    public JsonObject getUserProfile(String idToken, String uid) {
         String url = baseDocumentsUrl() + "/users/" + uid;
         Request request = new Request.Builder()
                 .url(url)
@@ -43,14 +40,20 @@ public class FirestoreService {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful() || response.body() == null) {
-                throw new IOException("Firestore get profile failed: HTTP " + response.code());
+            String rawBody = response.body() != null ? response.body().string() : "";
+            if (!response.isSuccessful()) {
+                throw FirebaseErrorMapper.toException(response.code(), rawBody, null);
             }
-            return gson.fromJson(response.body().string(), JsonObject.class);
+            return gson.fromJson(rawBody, JsonObject.class);
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            throw FirebaseErrorMapper.toException(0, null, e);
         }
     }
 
-    private void executeAuthorizedPost(String url, String idToken, String body) throws IOException {
+    private void executeAuthorizedPost(String url, String idToken, String body) {
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Bearer " + idToken)
@@ -58,9 +61,15 @@ public class FirestoreService {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
+            String rawBody = response.body() != null ? response.body().string() : "";
             if (!response.isSuccessful()) {
-                throw new IOException("Firestore write failed: HTTP " + response.code());
+                throw FirebaseErrorMapper.toException(response.code(), rawBody, null);
             }
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            throw FirebaseErrorMapper.toException(0, null, e);
         }
     }
 

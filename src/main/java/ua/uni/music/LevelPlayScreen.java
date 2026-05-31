@@ -13,7 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.MainGame;
+import ua.uni.game.MainGame;
 import ua.uni.screens.GameScreen;
 
 public class LevelPlayScreen implements Screen {
@@ -22,6 +22,7 @@ public class LevelPlayScreen implements Screen {
     private Stage stage;
     private Texture bg;
     private BitmapFont font;
+    private BitmapFont hintFont;
 
     public LevelPlayScreen(MainGame game, int level) {
         this.game = game;
@@ -46,11 +47,26 @@ public class LevelPlayScreen implements Screen {
         generator.dispose();
 
         Label label = new Label("LEVEL " + String.format("%02d", level), new Label.LabelStyle(font, Color.WHITE));
+        FreeTypeFontGenerator hintGen = new FreeTypeFontGenerator(
+                Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter hp = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        hp.size = 34;
+        hp.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+        hintFont = hintGen.generateFont(hp);
+        hintGen.dispose();
+        Label hint = new Label("Press ENTER to complete level", new Label.LabelStyle(hintFont, Color.WHITE));
+        Label hint2 = new Label("Press K to simulate death", new Label.LabelStyle(hintFont, Color.WHITE));
+
         Table table = new Table();
         table.setFillParent(true);
         table.center();
-        table.add(label);
+        table.add(label).row();
+        table.add(hint).padTop(18);
+        table.row();
+        table.add(hint2).padTop(10);
         stage.addActor(table);
+
+        game.getAchievementManager().onLevelStart(level);
     }
 
     @Override
@@ -58,6 +74,14 @@ public class LevelPlayScreen implements Screen {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new GameScreen(game));
             return;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            game.getAchievementManager().onLevelComplete(level);
+            game.setScreen(new GameScreen(game));
+            return;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.K)) {
+            game.getAchievementManager().onDeath();
         }
         var batch = stage.getBatch();
         batch.setProjectionMatrix(stage.getCamera().combined);
@@ -100,5 +124,6 @@ public class LevelPlayScreen implements Screen {
         stage.dispose();
         bg.dispose();
         font.dispose();
+        hintFont.dispose();
     }
 }
