@@ -1,4 +1,4 @@
-package ua.uni.music;
+package ua.uni.audio.music;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -14,7 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.game.MainGame;
-import ua.uni.screens.GameScreen;
+import ua.uni.web.main_menu.single_player_menu.SinglePlayerMenu;
 
 public class LevelPlayScreen implements Screen {
     private final MainGame game;
@@ -72,12 +72,12 @@ public class LevelPlayScreen implements Screen {
     @Override
     public void render(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new GameScreen(game));
+            game.setScreen(new SinglePlayerMenu(game));
             return;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
             game.getAchievementManager().onLevelComplete(level);
-            game.setScreen(new GameScreen(game));
+            game.setScreen(new SinglePlayerMenu(game));
             return;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.K)) {

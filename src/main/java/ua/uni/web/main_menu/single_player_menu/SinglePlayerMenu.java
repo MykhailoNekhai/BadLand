@@ -1,4 +1,4 @@
-package ua.uni.screens;
+package ua.uni.web.main_menu.single_player_menu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -23,11 +23,12 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.audio.AudioManager;
+import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
-import ua.uni.music.LevelPlayScreen;
+import ua.uni.web.main_menu.Menu;
+import ua.uni.audio.music.LevelPlayScreen;
 
-public class GameScreen implements Screen {
+public class SinglePlayerMenu implements Screen {
     private final MainGame game;
     private Stage stage;
     private Texture bg;
@@ -45,7 +46,7 @@ public class GameScreen implements Screen {
     private boolean startTransition;
     private int selectedLevel = -1;
 
-    public GameScreen(MainGame game) {
+    public SinglePlayerMenu(MainGame game) {
         this.game = game;
     }
 
@@ -108,7 +109,7 @@ public class GameScreen implements Screen {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                 uiSelect.play(0.75f);
-                game.setScreen(new MenuScreen(game));
+                game.setScreen(new Menu(game));
             }
         });
         Table exitTable = new Table();
@@ -168,7 +169,7 @@ public class GameScreen implements Screen {
     public void render(float delta) {
         elapsed += delta;
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new MenuScreen(game));
+            game.setScreen(new Menu(game));
             return;
         }
         if (startTransition) {

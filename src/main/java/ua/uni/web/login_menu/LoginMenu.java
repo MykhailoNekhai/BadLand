@@ -1,4 +1,4 @@
-package ua.uni.screens;
+package ua.uni.web.login_menu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -19,8 +19,9 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.game.MainGame;
 import ua.uni.auth.FirebaseAuthService;
 import ua.uni.logging.AppLogger;
+import ua.uni.web.main_menu.Menu;
 
-public class LoginScreen implements Screen {
+public class LoginMenu implements Screen {
     private final MainGame game;
     private Stage stage;
     private BitmapFont titleFont;
@@ -33,7 +34,7 @@ public class LoginScreen implements Screen {
     private TextField nicknameField;
     private Label statusLabel;
 
-    public LoginScreen(MainGame game) {
+    public LoginMenu(MainGame game) {
         this.game = game;
     }
 
@@ -131,7 +132,7 @@ public class LoginScreen implements Screen {
             }
             game.getSessionManager().save(result);
             AppLogger.info("Auth", "Login success. uid=" + result.uid());
-            game.setScreen(new MenuScreen(game));
+            game.setScreen(new Menu(game));
         } catch (Exception e) {
             statusLabel.setText("Login failed: " + e.getMessage());
             AppLogger.error("Auth", "Login failed", e);

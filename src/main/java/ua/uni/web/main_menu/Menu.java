@@ -1,8 +1,9 @@
-package ua.uni.screens;
+package ua.uni.web.main_menu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
@@ -23,11 +24,13 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.audio.AudioManager;
+import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
-import ua.uni.language.language;
+import ua.uni.web.main_menu.settings_menu.LanguageButton;
+import ua.uni.web.main_menu.single_player_menu.SinglePlayerMenu;
+import ua.uni.web.main_menu.settings_menu.SettingsMenu;
 
-public class MenuScreen implements Screen {
+public class Menu implements Screen {
     private final MainGame game;
     private Stage stage;
     private BitmapFont menuFont;
@@ -48,6 +51,7 @@ public class MenuScreen implements Screen {
     private Texture transitionBlack;
     private Texture particleTex;
     private Texture dotTex;
+    private Texture titleGlow;
 
     private static final int PARTICLE_COUNT = 32;
     private final float[] partX = new float[PARTICLE_COUNT];
@@ -68,7 +72,7 @@ public class MenuScreen implements Screen {
     private boolean startTransition;
     private final GlyphLayout titleLayout = new GlyphLayout();
 
-    public MenuScreen(MainGame game) {
+    public Menu(MainGame game) {
         this.game = game;
     }
 
@@ -87,7 +91,7 @@ public class MenuScreen implements Screen {
         p.shadowOffsetX = 0;
         p.shadowOffsetY = 5;
         p.shadowColor = new Color(0f, 0f, 0f, 0.62f);
-        p.characters = language.FONT_CHARACTERS;
+        p.characters = LanguageButton.FONT_CHARACTERS;
         menuFont = generator.generateFont(p);
         FreeTypeFontGenerator.FreeTypeFontParameter titleParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         titleParams.size = 110;
@@ -124,6 +128,7 @@ public class MenuScreen implements Screen {
         transitionBlack = solidTexture(2, 2, Color.BLACK);
         particleTex = softCircleTexture(12);
         dotTex = softCircleTexture(14);
+        titleGlow = warmGlowTexture(512);
         AudioManager.get().playMenuMusic();
 
         for (int i = 0; i < PARTICLE_COUNT; i++) {
@@ -147,10 +152,10 @@ public class MenuScreen implements Screen {
         menuStyle.overFontColor = new Color(1f, 0.92f, 0.55f, 1f);
         menuStyle.downFontColor = new Color(1f, 0.92f, 0.55f, 1f);
 
-        TextButton single = new TextButton(language.t("SINGLE_PLAYER"), menuStyle);
-        TextButton coop = new TextButton(language.t("COOP"), menuStyle);
-        TextButton options = new TextButton(language.t("OPTIONS"), menuStyle);
-        TextButton exit = new TextButton(language.t("EXIT"), menuStyle);
+        TextButton single = new TextButton(LanguageButton.t("SINGLE_PLAYER"), menuStyle);
+        TextButton coop = new TextButton(LanguageButton.t("COOP"), menuStyle);
+        TextButton options = new TextButton(LanguageButton.t("OPTIONS"), menuStyle);
+        TextButton exit = new TextButton(LanguageButton.t("EXIT"), menuStyle);
 
         setupMenuButtonFx(single);
         setupMenuButtonFx(coop);
@@ -179,7 +184,7 @@ public class MenuScreen implements Screen {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.7f);
-                game.setScreen(new SettingsScreen(game));
+                game.setScreen(new SettingsMenu(game));
             }
         });
         exit.addListener(new ChangeListener() {
@@ -206,7 +211,7 @@ public class MenuScreen implements Screen {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 AudioManager.get().playSelect(0.7f);
-                game.setScreen(new SettingsScreen(game));
+                game.setScreen(new SettingsMenu(game));
             }
         });
         profile.addListener(new ClickListener() {
@@ -258,7 +263,7 @@ public class MenuScreen implements Screen {
         if (startTransition) {
             transitionAlpha = Math.min(1f, transitionAlpha + (delta / 0.45f));
             if (transitionAlpha >= 1f) {
-                game.setScreen(new GameScreen(game));
+                game.setScreen(new SinglePlayerMenu(game));
                 return;
             }
         }
@@ -357,6 +362,16 @@ public class MenuScreen implements Screen {
         titleLayout.setText(titleFont, "Shadow Flight");
         float titleX = (w - titleLayout.width) * 0.5f;
         float titleY = h - 16f;
+        float glowSize = Math.max(titleLayout.width + 320f, 760f);
+        float glowCenterX = titleX + titleLayout.width * 0.5f;
+        float glowCenterY = titleY - titleLayout.height * 0.5f;
+        batch.flush();
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        batch.setColor(1f, 1f, 1f, uiAlpha);
+        batch.draw(titleGlow, glowCenterX - glowSize * 0.5f, glowCenterY - glowSize * 0.5f, glowSize, glowSize);
+        batch.flush();
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        batch.setColor(1f, 1f, 1f, 1f);
         titleFont.getColor().a = uiAlpha;
         titleFont.draw(batch, titleLayout, titleX, titleY);
         titleFont.getColor().a = 1f;
@@ -423,6 +438,35 @@ public class MenuScreen implements Screen {
         texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         pixmap.dispose();
         return texture;
+    }
+
+    private Texture warmGlowTexture(int size) {
+        Pixmap p = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        p.setColor(0f, 0f, 0f, 0f);
+        p.fill();
+        float cx = size / 2f;
+        float cy = size / 2f;
+        float maxR = size / 2f;
+        for (int yy = 0; yy < size; yy++) {
+            for (int xx = 0; xx < size; xx++) {
+                float dx = xx - cx;
+                float dy = yy - cy;
+                float d = (float) Math.sqrt(dx * dx + dy * dy);
+                float t = Math.min(1f, d / maxR);
+                if (t < 1f) {
+                    float core = (float) Math.pow(1f - t, 1.6f);
+                    float a = core;
+                    if (a > 0f) {
+                        p.setColor(1f, 0.72f, 0.30f, a);
+                        p.drawPixel(xx, yy);
+                    }
+                }
+            }
+        }
+        Texture tex = new Texture(p);
+        tex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        p.dispose();
+        return tex;
     }
 
     private Texture softCircleTexture(int diameter) {
@@ -570,5 +614,6 @@ public class MenuScreen implements Screen {
         transitionBlack.dispose();
         particleTex.dispose();
         dotTex.dispose();
+        titleGlow.dispose();
     }
 }

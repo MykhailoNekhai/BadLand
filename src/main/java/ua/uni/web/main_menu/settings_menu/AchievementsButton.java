@@ -1,4 +1,4 @@
-package ua.uni.screens;
+package ua.uni.web.main_menu.settings_menu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -18,14 +18,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.achivments.Achievements;
-import ua.uni.audio.AudioManager;
+import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
-import ua.uni.language.language;
 
 import java.util.List;
 
-public class AchievementsScreen implements Screen {
+public class AchievementsButton implements Screen {
     private final MainGame game;
     private Stage stage;
     private Texture bg;
@@ -35,7 +33,7 @@ public class AchievementsScreen implements Screen {
     private BitmapFont cardFont;
     private float elapsed;
 
-    public AchievementsScreen(MainGame game) {
+    public AchievementsButton(MainGame game) {
         this.game = game;
     }
 
@@ -57,14 +55,14 @@ public class AchievementsScreen implements Screen {
         pTitle.color = Color.WHITE;
         pTitle.borderWidth = 2f;
         pTitle.borderColor = Color.BLACK;
-        pTitle.characters = language.FONT_CHARACTERS;
+        pTitle.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(pTitle);
         FreeTypeFontGenerator.FreeTypeFontParameter pCard = new FreeTypeFontGenerator.FreeTypeFontParameter();
         pCard.size = 30;
         pCard.color = new Color(1f, 0.86f, 0.36f, 1f);
         pCard.borderWidth = 1.2f;
         pCard.borderColor = Color.BLACK;
-        pCard.characters = language.FONT_CHARACTERS;
+        pCard.characters = LanguageButton.FONT_CHARACTERS;
         cardFont = generator.generateFont(pCard);
         generator.dispose();
 
@@ -72,7 +70,7 @@ public class AchievementsScreen implements Screen {
     }
 
     private void buildUi() {
-        Label title = new Label(language.t("ACHIEVEMENTS"), new Label.LabelStyle(titleFont, Color.WHITE));
+        Label title = new Label(LanguageButton.t("ACHIEVEMENTS"), new Label.LabelStyle(titleFont, Color.WHITE));
         Table titleTable = new Table();
         titleTable.setFillParent(true);
         titleTable.top().center().padTop(18);
@@ -84,11 +82,11 @@ public class AchievementsScreen implements Screen {
         backStyle.over = new TextureRegionDrawable(backBtn);
         backStyle.down = new TextureRegionDrawable(backBtn);
         backStyle.font = cardFont;
-        TextButton back = new TextButton(language.t("BACK"), backStyle);
+        TextButton back = new TextButton(LanguageButton.t("BACK"), backStyle);
         back.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                game.setScreen(new SettingsScreen(game));
+                game.setScreen(new SettingsMenu(game));
             }
         });
         Table backTable = new Table();
@@ -97,13 +95,13 @@ public class AchievementsScreen implements Screen {
         backTable.add(back).width(220).height(86);
         stage.addActor(backTable);
 
-        List<Achievements> all = game.getAchievementManager().getCatalog().getAll();
+        List<ua.uni.achivments.Achievements> all = game.getAchievementManager().getCatalog().getAll();
         Table grid = new Table();
         grid.setFillParent(true);
         grid.center().padTop(160);
 
         int col = 0;
-        for (Achievements achievement : all) {
+        for (ua.uni.achivments.Achievements achievement : all) {
             grid.add(buildCard(achievement)).width(260).height(190).pad(10);
             col++;
             if (col == 4) {
@@ -114,13 +112,13 @@ public class AchievementsScreen implements Screen {
         stage.addActor(grid);
     }
 
-    private Stack buildCard(Achievements achievement) {
+    private Stack buildCard(ua.uni.achivments.Achievements achievement) {
         boolean unlocked = game.getAchievementManager().isUnlocked(achievement.getCode());
         Image base = new Image(new TextureRegionDrawable(card));
         Label.LabelStyle style = new Label.LabelStyle(cardFont, unlocked
                 ? new Color(1f, 0.86f, 0.36f, 1f)
                 : new Color(0.58f, 0.58f, 0.58f, 1f));
-        Label label = new Label(achievement.getCode() + "\n" + (unlocked ? language.t("UNLOCKED") : language.t("LOCKED")), style);
+        Label label = new Label(achievement.getCode() + "\n" + (unlocked ? LanguageButton.t("UNLOCKED") : LanguageButton.t("LOCKED")), style);
         label.setAlignment(com.badlogic.gdx.utils.Align.center);
         Table wrap = new Table();
         wrap.setFillParent(true);
@@ -136,7 +134,7 @@ public class AchievementsScreen implements Screen {
     public void render(float delta) {
         elapsed += delta;
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new SettingsScreen(game));
+            game.setScreen(new SettingsMenu(game));
             return;
         }
         float w = stage.getViewport().getWorldWidth();

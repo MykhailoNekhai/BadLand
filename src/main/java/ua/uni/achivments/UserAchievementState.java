@@ -37,6 +37,10 @@ public class UserAchievementState {
         return true;
     }
 
+    public int getTotalDeaths() {
+        return preferences.getInteger(KEY_TOTAL_DEATHS, 0);
+    }
+
     public int incrementTotalDeaths() {
         int total = preferences.getInteger(KEY_TOTAL_DEATHS, 0) + 1;
         preferences.putInteger(KEY_TOTAL_DEATHS, total);

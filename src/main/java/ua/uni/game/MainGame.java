@@ -7,8 +7,8 @@ import ua.uni.auth.FirebaseConfig;
 import ua.uni.auth.FirestoreService;
 import ua.uni.auth.SessionManager;
 import ua.uni.config.GameSettings;
-import ua.uni.screens.LoginScreen;
-import ua.uni.screens.MenuScreen;
+import ua.uni.web.login_menu.LoginMenu;
+import ua.uni.web.main_menu.Menu;
 
 public class MainGame extends Game {
     private FirebaseConfig firebaseConfig;
@@ -26,9 +26,9 @@ public class MainGame extends Game {
         sessionManager = new SessionManager();
         achievementManager = new AchievementManager();
         if (sessionManager.hasSession()) {
-            setScreen(new MenuScreen(this));
+            setScreen(new Menu(this));
         } else {
-            setScreen(new LoginScreen(this));
+            setScreen(new LoginMenu(this));
         }
     }
 

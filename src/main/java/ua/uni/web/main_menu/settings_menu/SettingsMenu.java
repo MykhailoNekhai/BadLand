@@ -1,4 +1,4 @@
-package ua.uni.screens;
+package ua.uni.web.main_menu.settings_menu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -20,17 +20,17 @@ import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.audio.AudioManager;
+import ua.uni.audio.services.AudioManager;
 import ua.uni.config.GameSettings;
 import ua.uni.game.MainGame;
-import ua.uni.language.language;
 import ua.uni.logging.AppLogger;
+import ua.uni.web.login_menu.LoginMenu;
+import ua.uni.web.main_menu.Menu;
 
-public class SettingsScreen implements Screen {
+public class SettingsMenu implements Screen {
     private final MainGame game;
     private Stage stage;
 
@@ -42,6 +42,10 @@ public class SettingsScreen implements Screen {
     private Texture sliderTrack;
     private Texture sliderKnob;
     private Texture dotTex;
+    private Texture sidePanelBg;
+
+    private Actor activeLeftPanel;
+    private Actor activeRightPanel;
 
     private static final int TRAIL_LEN = 10;
     private final float[] trailX = new float[TRAIL_LEN];
@@ -57,9 +61,9 @@ public class SettingsScreen implements Screen {
     private float elapsed;
 
     private Label titleLabel;
-    private Label statusLabel;
     private Label soundsLabel;
     private Slider volumeSlider;
+    private TextButton readyButton;
 
     private int languageIndex;
 
@@ -68,10 +72,9 @@ public class SettingsScreen implements Screen {
     private TextButton languageButton;
     private TextButton creditsButton;
     private TextButton keybindButton;
-    private TextButton backButton;
     private TextButton logoutButton;
 
-    public SettingsScreen(MainGame game) {
+    public SettingsMenu(MainGame game) {
         this.game = game;
     }
 
@@ -80,7 +83,7 @@ public class SettingsScreen implements Screen {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
-        languageIndex = Math.max(0, indexOf(language.LANGUAGES, GameSettings.getLanguage()));
+        languageIndex = Math.max(0, indexOf(LanguageButton.LANGUAGES, GameSettings.getLanguage()));
         AudioManager.get().playMenuMusic();
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
@@ -99,6 +102,9 @@ public class SettingsScreen implements Screen {
                 new Color(1f, 0.93f, 0.62f, 1f),
                 new Color(1f, 0.85f, 0.40f, 0.55f));
         dotTex = softDotTexture(14);
+        sidePanelBg = gradientPanel(380, 640, 38, 14, 12,
+                new Color(0.08f, 0.10f, 0.15f, 0.98f),
+                new Color(0.16f, 0.10f, 0.05f, 0.98f));
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
@@ -108,7 +114,7 @@ public class SettingsScreen implements Screen {
         items.color = new Color(0.98f, 0.95f, 0.88f, 1f);
         items.borderWidth = 1.6f;
         items.borderColor = new Color(0.06f, 0.05f, 0.03f, 1f);
-        items.characters = language.FONT_CHARACTERS;
+        items.characters = LanguageButton.FONT_CHARACTERS;
         itemFont = generator.generateFont(items);
 
         FreeTypeFontGenerator.FreeTypeFontParameter back = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -116,7 +122,7 @@ public class SettingsScreen implements Screen {
         back.color = Color.WHITE;
         back.borderWidth = 1.2f;
         back.borderColor = Color.BLACK;
-        back.characters = language.FONT_CHARACTERS;
+        back.characters = LanguageButton.FONT_CHARACTERS;
         backFont = generator.generateFont(back);
 
         FreeTypeFontGenerator.FreeTypeFontParameter small = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -124,7 +130,7 @@ public class SettingsScreen implements Screen {
         small.color = Color.WHITE;
         small.borderWidth = 1.0f;
         small.borderColor = Color.BLACK;
-        small.characters = language.FONT_CHARACTERS;
+        small.characters = LanguageButton.FONT_CHARACTERS;
         smallFont = generator.generateFont(small);
 
         FreeTypeFontGenerator.FreeTypeFontParameter title = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -132,7 +138,7 @@ public class SettingsScreen implements Screen {
         title.color = new Color(1f, 0.86f, 0.36f, 1f);
         title.borderWidth = 1.8f;
         title.borderColor = new Color(0.10f, 0.05f, 0.02f, 1f);
-        title.characters = language.FONT_CHARACTERS;
+        title.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(title);
 
         generator.dispose();
@@ -156,14 +162,25 @@ public class SettingsScreen implements Screen {
         itemStyle.overFontColor = new Color(1f, 0.92f, 0.55f, 1f);
         itemStyle.downFontColor = new Color(1f, 0.92f, 0.55f, 1f);
 
-        titleLabel = new Label(language.t("OPTIONS"), titleLs);
-        statisticsButton = new TextButton(language.t("STATISTICS"), itemStyle);
-        achievementsButton = new TextButton(language.t("ACHIEVEMENTS"), itemStyle);
-        languageButton = new TextButton(language.t("LANGUAGE") + ": " + language.LANGUAGES[languageIndex], itemStyle);
-        creditsButton = new TextButton(language.t("CREDITS"), itemStyle);
-        keybindButton = new TextButton(language.t("KEY_BINDINGS"), itemStyle);
-        statusLabel = new Label(language.t("READY"), ls);
-        statusLabel.setColor(new Color(0.95f, 0.90f, 0.65f, 1f));
+        titleLabel = new Label(LanguageButton.t("OPTIONS"), titleLs);
+        statisticsButton = new TextButton(LanguageButton.t("STATISTICS"), itemStyle);
+        achievementsButton = new TextButton(LanguageButton.t("ACHIEVEMENTS"), itemStyle);
+        languageButton = new TextButton(LanguageButton.t("LANGUAGE") + ": " + LanguageButton.LANGUAGES[languageIndex], itemStyle);
+        creditsButton = new TextButton(LanguageButton.t("CREDITS"), itemStyle);
+        keybindButton = new TextButton(LanguageButton.t("KEY_BINDINGS"), itemStyle);
+
+        TextButton.TextButtonStyle readyStyle = new TextButton.TextButtonStyle();
+        readyStyle.font = itemFont;
+        readyStyle.fontColor = new Color(0.95f, 0.90f, 0.65f, 1f);
+        readyStyle.overFontColor = new Color(1f, 0.92f, 0.55f, 1f);
+        readyStyle.downFontColor = new Color(1f, 0.92f, 0.55f, 1f);
+        readyButton = new TextButton(LanguageButton.t("READY"), readyStyle);
+        readyButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                game.setScreen(new Menu(game));
+            }
+        });
 
         Slider.SliderStyle sliderStyle = new Slider.SliderStyle();
         sliderStyle.background = new TextureRegionDrawable(sliderTrack);
@@ -198,7 +215,7 @@ public class SettingsScreen implements Screen {
         panelContent.add(languageButton).width(560).height(80).padBottom(10).row();
         panelContent.add(creditsButton).width(560).height(80).padBottom(10).row();
         panelContent.add(keybindButton).width(560).height(80).padBottom(14).row();
-        panelContent.add(statusLabel).padBottom(14).row();
+        panelContent.add(readyButton).padBottom(14).row();
 
         Stack panelStack = new Stack();
         panelStack.add(new Image(new TextureRegionDrawable(panel)));
@@ -213,7 +230,7 @@ public class SettingsScreen implements Screen {
         stage.addActor(panelWrap);
 
         Actor[] revealList = {titleLabel, soundsStack, statisticsButton, achievementsButton,
-                languageButton, creditsButton, keybindButton, statusLabel};
+                languageButton, creditsButton, keybindButton, readyButton};
         for (int i = 0; i < revealList.length; i++) {
             Actor a = revealList[i];
             a.getColor().a = 0f;
@@ -234,37 +251,18 @@ public class SettingsScreen implements Screen {
                 ))
         ));
 
-        TextButtonStyle backStyle = new TextButtonStyle();
-        backStyle.up = new TextureRegionDrawable(backBtn);
-        backStyle.down = new TextureRegionDrawable(backBtn);
-        backStyle.over = new TextureRegionDrawable(backBtn);
-        backStyle.font = backFont;
-        backButton = new TextButton(language.t("BACK"), backStyle);
-        backButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                game.setScreen(new MenuScreen(game));
-            }
-        });
-
-        Table backTable = new Table();
-        backTable.setFillParent(true);
-        backTable.top().left().padTop(20).padLeft(20);
-        backTable.add(backButton).width(180).height(72);
-        stage.addActor(backTable);
-
         TextButton.TextButtonStyle logoutStyle = new TextButton.TextButtonStyle();
         logoutStyle.up = new TextureRegionDrawable(backBtn);
         logoutStyle.down = new TextureRegionDrawable(backBtn);
         logoutStyle.over = new TextureRegionDrawable(backBtn);
         logoutStyle.font = smallFont;
-        logoutButton = new TextButton(language.t("LOG_OUT"), logoutStyle);
+        logoutButton = new TextButton(LanguageButton.t("LOG_OUT"), logoutStyle);
         logoutButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                 AppLogger.info("Auth", "Logout");
                 game.getSessionManager().clear();
-                game.setScreen(new LoginScreen(game));
+                game.setScreen(new LoginMenu(game));
             }
         });
         Table logoutTable = new Table();
@@ -276,50 +274,133 @@ public class SettingsScreen implements Screen {
         statisticsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                statusLabel.setText(language.t("STATISTICS"));
+                if (activeRightPanel != null) closeSidePanel(false);
+                else openSidePanel(false, LanguageButton.t("STATISTICS"), buildStatisticsContent());
             }
         });
         achievementsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                game.setScreen(new AchievementsScreen(game));
+                game.setScreen(new AchievementsButton(game));
             }
         });
         languageButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                languageIndex = (languageIndex + 1) % language.LANGUAGES.length;
-                GameSettings.setLanguage(language.LANGUAGES[languageIndex]);
-                AppLogger.info("Settings", "Language -> " + language.LANGUAGES[languageIndex]);
+                languageIndex = (languageIndex + 1) % LanguageButton.LANGUAGES.length;
+                GameSettings.setLanguage(LanguageButton.LANGUAGES[languageIndex]);
+                AppLogger.info("Settings", "Language -> " + LanguageButton.LANGUAGES[languageIndex]);
                 refreshLabels();
             }
         });
         creditsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                statusLabel.setText(language.t("CREDITS_TEAM"));
+                if (activeLeftPanel != null) closeSidePanel(true);
+                else openSidePanel(true, LanguageButton.t("CREDITS_TEAM"), buildCreditsContent());
             }
         });
         keybindButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                game.setScreen(new KeyBindingsScreen(game));
+                game.setScreen(new KeyBindingsButton(game));
             }
         });
 
     }
 
+    private Table buildStatisticsContent() {
+        Label.LabelStyle rowStyle = new Label.LabelStyle(smallFont, smallFont.getColor());
+        Label.LabelStyle valueStyle = new Label.LabelStyle(itemFont, new Color(1f, 0.86f, 0.36f, 1f));
+
+        int deaths = game.getAchievementManager().getTotalDeaths();
+        int unlocked = game.getAchievementManager().getUnlockedCount();
+        int total = game.getAchievementManager().getTotalCount();
+
+        Table t = new Table();
+        t.center().padTop(30);
+        t.add(new Label(LanguageButton.t("TOTAL_DEATHS"), rowStyle)).padBottom(6).row();
+        t.add(new Label(String.valueOf(deaths), valueStyle)).padBottom(28).row();
+        t.add(new Label(LanguageButton.t("ACHIEVEMENTS_PROGRESS"), rowStyle)).padBottom(6).row();
+        t.add(new Label(unlocked + " / " + total, valueStyle)).padBottom(20).row();
+        return t;
+    }
+
+    private Table buildCreditsContent() {
+        Label.LabelStyle sectionStyle = new Label.LabelStyle(smallFont, new Color(1f, 0.86f, 0.36f, 1f));
+        Label.LabelStyle nameStyle = new Label.LabelStyle(smallFont, new Color(0.98f, 0.95f, 0.88f, 1f));
+
+        Table t = new Table();
+        t.center().padTop(20);
+        t.add(new Label(LanguageButton.t("DEVELOPED_BY"), sectionStyle)).padBottom(4).row();
+        t.add(new Label("KIRILL AMRAN", nameStyle)).padBottom(18).row();
+        t.add(new Label(LanguageButton.t("CODE"), sectionStyle)).padBottom(4).row();
+        t.add(new Label("KIRILL AMRAN", nameStyle)).padBottom(18).row();
+        t.add(new Label(LanguageButton.t("ART"), sectionStyle)).padBottom(4).row();
+        t.add(new Label("KIRILL AMRAN", nameStyle)).padBottom(18).row();
+        t.add(new Label(LanguageButton.t("MUSIC"), sectionStyle)).padBottom(4).row();
+        t.add(new Label("KIRILL AMRAN", nameStyle)).padBottom(24).row();
+        t.add(new Label(LanguageButton.t("YEAR"), nameStyle)).row();
+        return t;
+    }
+
+    private void openSidePanel(boolean fromLeft, String titleText, Table contentTable) {
+        if (fromLeft && activeLeftPanel != null) return;
+        if (!fromLeft && activeRightPanel != null) return;
+
+        float screenW = stage.getViewport().getWorldWidth();
+        float screenH = stage.getViewport().getWorldHeight();
+        int panelW = 380;
+        int panelH = 640;
+        float y = (screenH - panelH) / 2f;
+        float startX = fromLeft ? -panelW - 20f : screenW + 20f;
+        float endX = fromLeft ? 40f : screenW - panelW - 40f;
+
+        Label.LabelStyle titleStyle = new Label.LabelStyle(itemFont, new Color(1f, 0.86f, 0.36f, 1f));
+        Label titleLbl = new Label(titleText, titleStyle);
+
+        Table inner = new Table();
+        inner.top().padTop(28).padLeft(20).padRight(20).padBottom(20);
+        inner.add(titleLbl).center().padBottom(12).row();
+        inner.add(contentTable).expand().fill().row();
+
+        Stack panelStack = new Stack();
+        panelStack.add(new Image(new TextureRegionDrawable(sidePanelBg)));
+        panelStack.add(inner);
+
+        panelStack.setSize(panelW, panelH);
+        panelStack.setPosition(startX, y);
+        panelStack.addAction(Actions.moveTo(endX, y, 0.30f, Interpolation.sineOut));
+
+        stage.addActor(panelStack);
+        if (fromLeft) activeLeftPanel = panelStack;
+        else activeRightPanel = panelStack;
+    }
+
+    private void closeSidePanel(boolean fromLeft) {
+        Actor panel = fromLeft ? activeLeftPanel : activeRightPanel;
+        if (panel == null) return;
+        float screenW = stage.getViewport().getWorldWidth();
+        int panelW = 380;
+        float exitX = fromLeft ? -panelW - 20f : screenW + 20f;
+        panel.addAction(Actions.sequence(
+                Actions.moveTo(exitX, panel.getY(), 0.22f, Interpolation.sineIn),
+                Actions.removeActor()
+        ));
+        if (fromLeft) activeLeftPanel = null;
+        else activeRightPanel = null;
+    }
+
     private void refreshLabels() {
-        titleLabel.setText(language.t("OPTIONS"));
+        titleLabel.setText(LanguageButton.t("OPTIONS"));
         soundsLabel.setText(soundsRowText());
-        statisticsButton.setText(language.t("STATISTICS"));
-        achievementsButton.setText(language.t("ACHIEVEMENTS"));
-        languageButton.setText(language.t("LANGUAGE") + ": " + language.LANGUAGES[languageIndex]);
-        creditsButton.setText(language.t("CREDITS"));
-        keybindButton.setText(language.t("KEY_BINDINGS"));
-        statusLabel.setText(language.t("READY"));
-        backButton.setText(language.t("BACK"));
-        logoutButton.setText(language.t("LOG_OUT"));
+        statisticsButton.setText(LanguageButton.t("STATISTICS"));
+        achievementsButton.setText(LanguageButton.t("ACHIEVEMENTS"));
+        languageButton.setText(LanguageButton.t("LANGUAGE") + ": " + LanguageButton.LANGUAGES[languageIndex]);
+        creditsButton.setText(LanguageButton.t("CREDITS"));
+        keybindButton.setText(LanguageButton.t("KEY_BINDINGS"));
+        readyButton.setText(LanguageButton.t("READY"));
+        logoutButton.setText(LanguageButton.t("LOG_OUT"));
     }
 
     private static int indexOf(String[] arr, String value) {
@@ -330,15 +411,20 @@ public class SettingsScreen implements Screen {
     }
 
     private String soundsRowText() {
-        return language.t("SOUNDS") + ": " + Math.round(GameSettings.getMusicVolume() * 100f) + "%";
+        return LanguageButton.t("SOUNDS") + ": " + Math.round(GameSettings.getMusicVolume() * 100f) + "%";
     }
 
     @Override
     public void render(float delta) {
         elapsed += delta;
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new MenuScreen(game));
-            return;
+            if (activeLeftPanel != null || activeRightPanel != null) {
+                if (activeRightPanel != null) closeSidePanel(false);
+                if (activeLeftPanel != null) closeSidePanel(true);
+            } else {
+                game.setScreen(new Menu(game));
+                return;
+            }
         }
 
         updateTrail();
@@ -603,6 +689,7 @@ public class SettingsScreen implements Screen {
         sliderTrack.dispose();
         sliderKnob.dispose();
         dotTex.dispose();
+        sidePanelBg.dispose();
         itemFont.dispose();
         backFont.dispose();
         smallFont.dispose();

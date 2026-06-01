@@ -1,4 +1,4 @@
-package ua.uni.screens;
+package ua.uni.web.main_menu.settings_menu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -17,12 +17,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.audio.AudioManager;
+import ua.uni.audio.services.AudioManager;
 import ua.uni.config.GameSettings;
 import ua.uni.game.MainGame;
-import ua.uni.language.language;
 
-public class KeyBindingsScreen implements Screen {
+public class KeyBindingsButton implements Screen {
     private final MainGame game;
     private Stage stage;
     private Texture bg;
@@ -44,7 +43,7 @@ public class KeyBindingsScreen implements Screen {
     private TextButton jumpBtn;
     private TextButton interactBtn;
 
-    public KeyBindingsScreen(MainGame game) {
+    public KeyBindingsButton(MainGame game) {
         this.game = game;
     }
 
@@ -72,7 +71,7 @@ public class KeyBindingsScreen implements Screen {
         p.color = new Color(1f, 0.86f, 0.36f, 1f);
         p.borderWidth = 1.2f;
         p.borderColor = Color.BLACK;
-        p.characters = language.FONT_CHARACTERS;
+        p.characters = LanguageButton.FONT_CHARACTERS;
         font = generator.generateFont(p);
 
         FreeTypeFontGenerator.FreeTypeFontParameter ps = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -80,7 +79,7 @@ public class KeyBindingsScreen implements Screen {
         ps.color = new Color(0.75f, 0.75f, 0.75f, 1f);
         ps.borderWidth = 1.0f;
         ps.borderColor = Color.BLACK;
-        ps.characters = language.FONT_CHARACTERS;
+        ps.characters = LanguageButton.FONT_CHARACTERS;
         smallFont = generator.generateFont(ps);
 
         FreeTypeFontGenerator.FreeTypeFontParameter pt = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -88,7 +87,7 @@ public class KeyBindingsScreen implements Screen {
         pt.color = Color.WHITE;
         pt.borderWidth = 2f;
         pt.borderColor = Color.BLACK;
-        pt.characters = language.FONT_CHARACTERS;
+        pt.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(pt);
         generator.dispose();
 
@@ -147,10 +146,10 @@ public class KeyBindingsScreen implements Screen {
             }
         });
 
-        TextButton pauseBtn = new TextButton(language.t("PAUSE") + ": ESC   (" + language.t("COMING_SOON") + ")", futureStyle);
-        TextButton sprintBtn = new TextButton(language.t("SPRINT") + ": SHIFT   (" + language.t("COMING_SOON") + ")", futureStyle);
-        TextButton attackBtn = new TextButton(language.t("ATTACK") + ": LMB   (" + language.t("COMING_SOON") + ")", futureStyle);
-        TextButton invBtn = new TextButton(language.t("INVENTORY") + ": TAB   (" + language.t("COMING_SOON") + ")", futureStyle);
+        TextButton pauseBtn = new TextButton(LanguageButton.t("PAUSE") + ": ESC   (" + LanguageButton.t("COMING_SOON") + ")", futureStyle);
+        TextButton sprintBtn = new TextButton(LanguageButton.t("SPRINT") + ": SHIFT   (" + LanguageButton.t("COMING_SOON") + ")", futureStyle);
+        TextButton attackBtn = new TextButton(LanguageButton.t("ATTACK") + ": LMB   (" + LanguageButton.t("COMING_SOON") + ")", futureStyle);
+        TextButton invBtn = new TextButton(LanguageButton.t("INVENTORY") + ": TAB   (" + LanguageButton.t("COMING_SOON") + ")", futureStyle);
         pauseBtn.setDisabled(true);
         sprintBtn.setDisabled(true);
         attackBtn.setDisabled(true);
@@ -159,7 +158,7 @@ public class KeyBindingsScreen implements Screen {
         Table titleTable = new Table();
         titleTable.setFillParent(true);
         titleTable.top().center().padTop(14);
-        titleTable.add(new Label(language.t("KEY_BINDINGS"),
+        titleTable.add(new Label(LanguageButton.t("KEY_BINDINGS"),
                 new Label.LabelStyle(titleFont, Color.WHITE)));
         stage.addActor(titleTable);
 
@@ -189,11 +188,11 @@ public class KeyBindingsScreen implements Screen {
         backStyle.over = new TextureRegionDrawable(backBtn);
         backStyle.down = new TextureRegionDrawable(backBtn);
         backStyle.font = font;
-        TextButton back = new TextButton(language.t("BACK"), backStyle);
+        TextButton back = new TextButton(LanguageButton.t("BACK"), backStyle);
         back.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                game.setScreen(new SettingsScreen(game));
+                game.setScreen(new SettingsMenu(game));
             }
         });
         Table backTable = new Table();
@@ -204,18 +203,18 @@ public class KeyBindingsScreen implements Screen {
     }
 
     private void refreshBindingLabels() {
-        String hint = "(" + language.t("CLICK_TO_TOGGLE") + ")";
-        leftBtn.setText(language.t("MOVE_LEFT") + ": " + Input.Keys.toString(moveLeft) + "   " + hint);
-        rightBtn.setText(language.t("MOVE_RIGHT") + ": " + Input.Keys.toString(moveRight) + "   " + hint);
-        jumpBtn.setText(language.t("JUMP") + ": " + Input.Keys.toString(jump) + "   " + hint);
-        interactBtn.setText(language.t("INTERACT") + ": " + Input.Keys.toString(interact) + "   " + hint);
+        String hint = "(" + LanguageButton.t("CLICK_TO_TOGGLE") + ")";
+        leftBtn.setText(LanguageButton.t("MOVE_LEFT") + ": " + Input.Keys.toString(moveLeft) + "   " + hint);
+        rightBtn.setText(LanguageButton.t("MOVE_RIGHT") + ": " + Input.Keys.toString(moveRight) + "   " + hint);
+        jumpBtn.setText(LanguageButton.t("JUMP") + ": " + Input.Keys.toString(jump) + "   " + hint);
+        interactBtn.setText(LanguageButton.t("INTERACT") + ": " + Input.Keys.toString(interact) + "   " + hint);
     }
 
     @Override
     public void render(float delta) {
         elapsed += delta;
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new SettingsScreen(game));
+            game.setScreen(new SettingsMenu(game));
             return;
         }
         float w = stage.getViewport().getWorldWidth();

@@ -14,7 +14,6 @@ public class AchievementsList {
     private final Map<String, Achievements> byCode = new HashMap<>();
 
     public AchievementsList() {
-        // Hardcoded "mini DB"
         register(new Achievements(new ID(1), "LEVEL_01", "Level 01", AchievementsRarity.Common, "Complete level 1"));
         register(new Achievements(new ID(2), "LEVEL_02", "Level 02", AchievementsRarity.Common, "Complete level 2"));
         register(new Achievements(new ID(3), "LEVEL_03", "Level 03", AchievementsRarity.Common, "Complete level 3"));

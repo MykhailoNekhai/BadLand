@@ -55,4 +55,20 @@ public class AchievementManager {
     public AchievementsList getCatalog() {
         return catalog;
     }
+
+    public int getUnlockedCount() {
+        int count = 0;
+        for (Achievements a : catalog.getAll()) {
+            if (userState.isUnlocked(a.getCode())) count++;
+        }
+        return count;
+    }
+
+    public int getTotalCount() {
+        return catalog.getAll().size();
+    }
+
+    public int getTotalDeaths() {
+        return userState.getTotalDeaths();
+    }
 }

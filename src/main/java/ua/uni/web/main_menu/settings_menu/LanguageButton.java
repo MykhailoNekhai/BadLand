@@ -1,11 +1,11 @@
-package ua.uni.language;
+package ua.uni.web.main_menu.settings_menu;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import ua.uni.config.GameSettings;
 
-public final class language {
+public final class LanguageButton {
     public static final String[] LANGUAGES = {"EN", "UK"};
     public static final String FONT_CHARACTERS =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -44,6 +44,13 @@ public final class language {
         en.put("COMING_SOON", "COMING SOON");
         en.put("UNLOCKED", "UNLOCKED");
         en.put("LOCKED", "LOCKED");
+        en.put("TOTAL_DEATHS", "TOTAL DEATHS");
+        en.put("ACHIEVEMENTS_PROGRESS", "ACHIEVEMENTS");
+        en.put("DEVELOPED_BY", "DEVELOPED BY");
+        en.put("CODE", "CODE");
+        en.put("ART", "ART");
+        en.put("MUSIC", "MUSIC");
+        en.put("YEAR", "2026");
         TRANSLATIONS.put("EN", en);
 
         Map<String, String> uk = new HashMap<>();
@@ -73,10 +80,17 @@ public final class language {
         uk.put("COMING_SOON", "СКОРО");
         uk.put("UNLOCKED", "ВІДКРИТО");
         uk.put("LOCKED", "ЗАКРИТО");
+        uk.put("TOTAL_DEATHS", "СМЕРТЕЙ ВСЬОГО");
+        uk.put("ACHIEVEMENTS_PROGRESS", "ДОСЯГНЕННЯ");
+        uk.put("DEVELOPED_BY", "РОЗРОБЛЕНО");
+        uk.put("CODE", "КОД");
+        uk.put("ART", "АРТ");
+        uk.put("MUSIC", "МУЗИКА");
+        uk.put("YEAR", "2026");
         TRANSLATIONS.put("UK", uk);
     }
 
-    private language() {}
+    private LanguageButton() {}
 
     public static String t(String key) {
         Map<String, String> table = TRANSLATIONS.get(GameSettings.getLanguage());

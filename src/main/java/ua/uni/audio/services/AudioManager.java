@@ -1,4 +1,4 @@
-package ua.uni.audio;
+package ua.uni.audio.services;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
