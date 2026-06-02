@@ -10,6 +10,7 @@ public class UserAchievementState {
     private static final String PREFS_NAME = "shadowflight_achievements";
     private static final String KEY_PREFIX = "ach_";
     private static final String KEY_TOTAL_DEATHS = "total_deaths";
+    private static final String KEY_TOTAL_PLAY_SECONDS = "total_play_seconds";
     private static final String KEY_LEVEL_ATTEMPTS_PREFIX = "level_attempts_";
     private static final String KEY_LEVEL_COMPLETED_PREFIX = "level_completed_";
 
@@ -70,6 +71,21 @@ public class UserAchievementState {
 
     public void markLevelCompleted(int level) {
         preferences.putBoolean(KEY_LEVEL_COMPLETED_PREFIX + level, true);
+        preferences.flush();
+    }
+
+    public int getTotalPlaySeconds() {
+        return preferences.getInteger(KEY_TOTAL_PLAY_SECONDS, 0);
+    }
+
+    public void setTotalPlaySeconds(int totalSeconds) {
+        preferences.putInteger(KEY_TOTAL_PLAY_SECONDS, Math.max(0, totalSeconds));
+        preferences.flush();
+    }
+
+    public void resetAll() {
+        unlocked.clear();
+        preferences.clear();
         preferences.flush();
     }
 

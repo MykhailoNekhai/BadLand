@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -29,6 +30,7 @@ public class LoginMenu implements Screen {
     private Texture bg;
     private Texture btnTex;
     private Texture fieldTex;
+    private final GlyphLayout titleLayout = new GlyphLayout();
     private TextField emailField;
     private TextField passwordField;
     private TextField nicknameField;
@@ -47,10 +49,11 @@ public class LoginMenu implements Screen {
         fieldTex = roundedRect(560, 78, 20, new Color(0.07f, 0.07f, 0.08f, 0.95f));
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
-        FreeTypeFontGenerator.FreeTypeFontParameter tp = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        tp.size = 96;
-        tp.color = Color.BLACK;
-        titleFont = generator.generateFont(tp);
+        FreeTypeFontGenerator.FreeTypeFontParameter titleParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        titleParams.size = 114;
+        titleParams.color = Color.BLACK;
+        titleParams.borderWidth = 0f;
+        titleFont = generator.generateFont(titleParams);
         FreeTypeFontGenerator.FreeTypeFontParameter up = new FreeTypeFontGenerator.FreeTypeFontParameter();
         up.size = 44;
         up.color = Color.WHITE;
@@ -73,7 +76,6 @@ public class LoginMenu implements Screen {
         btnStyle.font = uiFont;
 
         Label.LabelStyle labelStyle = new Label.LabelStyle(uiFont, Color.WHITE);
-        Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, Color.BLACK);
 
         emailField = new TextField("", fieldStyle);
         emailField.setMessageText("Email");
@@ -87,7 +89,6 @@ public class LoginMenu implements Screen {
         TextButton loginBtn = new TextButton("LOGIN", btnStyle);
         TextButton registerBtn = new TextButton("REGISTER", btnStyle);
         statusLabel = new Label("", labelStyle);
-        Label title = new Label("Shadow Flight", titleStyle);
 
         loginBtn.addListener(new ChangeListener() {
             @Override
@@ -105,7 +106,7 @@ public class LoginMenu implements Screen {
         Table root = new Table();
         root.setFillParent(true);
         root.center();
-        root.add(title).padBottom(24).row();
+        root.add().height(180f).padBottom(24).row();
         root.add(emailField).width(560).height(78).padBottom(12).row();
         root.add(passwordField).width(560).height(78).padBottom(12).row();
         root.add(nicknameField).width(560).height(78).padBottom(20).row();
@@ -188,6 +189,7 @@ public class LoginMenu implements Screen {
         batch.setColor(0f, 0f, 0f, 0.35f);
         batch.draw(bg, 0, 0, w, h);
         batch.setColor(1f, 1f, 1f, 1f);
+        drawTitle(batch, w, h - 72f, 1f);
         batch.end();
         stage.act(delta);
         stage.draw();
@@ -203,6 +205,15 @@ public class LoginMenu implements Screen {
 
     @Override
     public void resume() {}
+
+    private void drawTitle(com.badlogic.gdx.graphics.g2d.Batch batch, float viewportWidth, float topY, float alpha) {
+        titleLayout.setText(titleFont, "SHADOW FLIGHT");
+        float titleX = (viewportWidth - titleLayout.width) * 0.5f;
+        Color color = titleFont.getColor();
+        color.set(0f, 0f, 0f, alpha);
+        titleFont.draw(batch, titleLayout, titleX, topY);
+        color.set(0f, 0f, 0f, 1f);
+    }
 
     @Override
     public void hide() {

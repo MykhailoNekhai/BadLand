@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -40,7 +39,6 @@ public class SinglePlayerMenu implements Screen {
     private BitmapFont cardFont;
     private Sound uiHover;
     private Sound uiSelect;
-    private Music music;
     private float elapsed;
     private float transitionAlpha;
     private boolean startTransition;
@@ -54,7 +52,7 @@ public class SinglePlayerMenu implements Screen {
     public void show() {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
-        AudioManager.get().stopMenuMusic();
+        AudioManager.get().playMenuMusic();
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
@@ -64,10 +62,6 @@ public class SinglePlayerMenu implements Screen {
         transitionBlack = solidTexture(2, 2, Color.BLACK);
         uiHover = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/ui_hover.wav"));
         uiSelect = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/ui_select.wav"));
-        music = Gdx.audio.newMusic(Gdx.files.internal("game-resourses/audio/menu_music.mp3"));
-        music.setLooping(true);
-        music.setVolume(0.62f);
-        music.play();
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
@@ -314,7 +308,6 @@ public class SinglePlayerMenu implements Screen {
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
-        if (music != null) music.stop();
     }
 
     @Override
@@ -329,6 +322,5 @@ public class SinglePlayerMenu implements Screen {
         cardFont.dispose();
         if (uiHover != null) uiHover.dispose();
         if (uiSelect != null) uiSelect.dispose();
-        if (music != null) music.dispose();
     }
 }

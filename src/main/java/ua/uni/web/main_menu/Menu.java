@@ -3,7 +3,6 @@ package ua.uni.web.main_menu;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
@@ -36,6 +35,7 @@ public class Menu implements Screen {
     private BitmapFont menuFont;
     private BitmapFont titleFont;
     private BitmapFont iconFont;
+    private final GlyphLayout titleLayout = new GlyphLayout();
 
     private Texture bg;
     private Texture fg;
@@ -51,7 +51,6 @@ public class Menu implements Screen {
     private Texture transitionBlack;
     private Texture particleTex;
     private Texture dotTex;
-    private Texture titleGlow;
 
     private static final int PARTICLE_COUNT = 32;
     private final float[] partX = new float[PARTICLE_COUNT];
@@ -70,7 +69,6 @@ public class Menu implements Screen {
     private float uiAlpha = 0f;
     private float transitionAlpha = 0f;
     private boolean startTransition;
-    private final GlyphLayout titleLayout = new GlyphLayout();
 
     public Menu(MainGame game) {
         this.game = game;
@@ -94,11 +92,9 @@ public class Menu implements Screen {
         p.characters = LanguageButton.FONT_CHARACTERS;
         menuFont = generator.generateFont(p);
         FreeTypeFontGenerator.FreeTypeFontParameter titleParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        titleParams.size = 110;
+        titleParams.size = 114;
         titleParams.color = Color.BLACK;
         titleParams.borderWidth = 0f;
-        titleParams.shadowOffsetX = 0;
-        titleParams.shadowOffsetY = 0;
         titleFont = generator.generateFont(titleParams);
         generator.dispose();
         iconFont = new BitmapFont();
@@ -128,7 +124,6 @@ public class Menu implements Screen {
         transitionBlack = solidTexture(2, 2, Color.BLACK);
         particleTex = softCircleTexture(12);
         dotTex = softCircleTexture(14);
-        titleGlow = warmGlowTexture(512);
         AudioManager.get().playMenuMusic();
 
         for (int i = 0; i < PARTICLE_COUNT; i++) {
@@ -359,22 +354,7 @@ public class Menu implements Screen {
         }
         batch.setColor(1f, 1f, 1f, 1f);
 
-        titleLayout.setText(titleFont, "Shadow Flight");
-        float titleX = (w - titleLayout.width) * 0.5f;
-        float titleY = h - 16f;
-        float glowSize = Math.max(titleLayout.width + 320f, 760f);
-        float glowCenterX = titleX + titleLayout.width * 0.5f;
-        float glowCenterY = titleY - titleLayout.height * 0.5f;
-        batch.flush();
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
-        batch.setColor(1f, 1f, 1f, uiAlpha);
-        batch.draw(titleGlow, glowCenterX - glowSize * 0.5f, glowCenterY - glowSize * 0.5f, glowSize, glowSize);
-        batch.flush();
-        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        batch.setColor(1f, 1f, 1f, 1f);
-        titleFont.getColor().a = uiAlpha;
-        titleFont.draw(batch, titleLayout, titleX, titleY);
-        titleFont.getColor().a = 1f;
+        drawTitle(batch, w, h - 14f, uiAlpha);
 
 
         if (transitionAlpha > 0f) {
@@ -440,35 +420,6 @@ public class Menu implements Screen {
         return texture;
     }
 
-    private Texture warmGlowTexture(int size) {
-        Pixmap p = new Pixmap(size, size, Pixmap.Format.RGBA8888);
-        p.setColor(0f, 0f, 0f, 0f);
-        p.fill();
-        float cx = size / 2f;
-        float cy = size / 2f;
-        float maxR = size / 2f;
-        for (int yy = 0; yy < size; yy++) {
-            for (int xx = 0; xx < size; xx++) {
-                float dx = xx - cx;
-                float dy = yy - cy;
-                float d = (float) Math.sqrt(dx * dx + dy * dy);
-                float t = Math.min(1f, d / maxR);
-                if (t < 1f) {
-                    float core = (float) Math.pow(1f - t, 1.6f);
-                    float a = core;
-                    if (a > 0f) {
-                        p.setColor(1f, 0.72f, 0.30f, a);
-                        p.drawPixel(xx, yy);
-                    }
-                }
-            }
-        }
-        Texture tex = new Texture(p);
-        tex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        p.dispose();
-        return tex;
-    }
-
     private Texture softCircleTexture(int diameter) {
         Pixmap p = new Pixmap(diameter, diameter, Pixmap.Format.RGBA8888);
         p.setColor(0f, 0f, 0f, 0f);
@@ -494,6 +445,15 @@ public class Menu implements Screen {
         tex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         p.dispose();
         return tex;
+    }
+
+    private void drawTitle(com.badlogic.gdx.graphics.g2d.Batch batch, float viewportWidth, float topY, float alpha) {
+        titleLayout.setText(titleFont, "SHADOW FLIGHT");
+        float titleX = (viewportWidth - titleLayout.width) * 0.5f;
+        Color color = titleFont.getColor();
+        color.set(0f, 0f, 0f, alpha);
+        titleFont.draw(batch, titleLayout, titleX, topY);
+        color.set(0f, 0f, 0f, 1f);
     }
 
     private Texture solidTexture(int w, int h, Color color) {
@@ -614,6 +574,5 @@ public class Menu implements Screen {
         transitionBlack.dispose();
         particleTex.dispose();
         dotTex.dispose();
-        titleGlow.dispose();
     }
 }

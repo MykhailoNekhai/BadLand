@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
 import ua.uni.web.main_menu.single_player_menu.SinglePlayerMenu;
 
@@ -33,6 +34,7 @@ public class LevelPlayScreen implements Screen {
     public void show() {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
+        AudioManager.get().stopMenuMusic();
 
         bg = solidTexture(2, 2, new Color(0.03f, 0.03f, 0.04f, 1f));
 
