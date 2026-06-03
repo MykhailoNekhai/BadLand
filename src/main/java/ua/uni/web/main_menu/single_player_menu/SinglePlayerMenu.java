@@ -3,7 +3,6 @@ package ua.uni.web.main_menu.single_player_menu;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -37,8 +36,6 @@ public class SinglePlayerMenu implements Screen {
     private Texture transitionBlack;
     private BitmapFont titleFont;
     private BitmapFont cardFont;
-    private Sound uiHover;
-    private Sound uiSelect;
     private float elapsed;
     private float transitionAlpha;
     private boolean startTransition;
@@ -60,8 +57,6 @@ public class SinglePlayerMenu implements Screen {
         exitButtonBg = roundedRect(220, 86, 30, new Color(0f, 0f, 0f, 0.95f));
         vignette = makeVignette(1280, 720);
         transitionBlack = solidTexture(2, 2, Color.BLACK);
-        uiHover = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/ui_hover.wav"));
-        uiSelect = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/ui_select.wav"));
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
@@ -102,7 +97,7 @@ public class SinglePlayerMenu implements Screen {
         exit.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                uiSelect.play(0.75f);
+                AudioManager.get().playSelect(0.75f);
                 game.setScreen(new Menu(game));
             }
         });
@@ -142,7 +137,7 @@ public class SinglePlayerMenu implements Screen {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 if (startTransition) return;
-                uiSelect.play(0.85f);
+                AudioManager.get().playLevelSelect(0.85f);
                 s.addAction(Actions.sequence(
                         Actions.scaleTo(0.96f, 0.96f, 0.05f, Interpolation.fade),
                         Actions.scaleTo(1f, 1f, 0.10f, Interpolation.sineOut)
@@ -153,7 +148,7 @@ public class SinglePlayerMenu implements Screen {
 
             @Override
             public void enter(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y, int pointer, com.badlogic.gdx.scenes.scene2d.Actor fromActor) {
-                if (!startTransition) uiHover.play(0.35f);
+                if (!startTransition) AudioManager.get().playHover();
             }
         });
         return s;
@@ -320,7 +315,5 @@ public class SinglePlayerMenu implements Screen {
         transitionBlack.dispose();
         titleFont.dispose();
         cardFont.dispose();
-        if (uiHover != null) uiHover.dispose();
-        if (uiSelect != null) uiSelect.dispose();
     }
 }

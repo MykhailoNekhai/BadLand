@@ -68,6 +68,7 @@ public class Menu implements Screen {
     private float elapsed;
     private float uiAlpha = 0f;
     private float transitionAlpha = 0f;
+    private float nextAmbientAt;
     private boolean startTransition;
 
     public Menu(MainGame game) {
@@ -135,6 +136,7 @@ public class Menu implements Screen {
         }
 
         buildUi();
+        nextAmbientAt = 4.5f;
     }
 
     private void buildUi() {
@@ -164,7 +166,7 @@ public class Menu implements Screen {
         single.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                AudioManager.get().playSelect(0.8f);
+                AudioManager.get().playStart(0.8f);
                 triggerGameTransition(single, coop, options, exit);
             }
         });
@@ -252,6 +254,10 @@ public class Menu implements Screen {
     @Override
     public void render(float delta) {
         elapsed += delta;
+        if (!startTransition && elapsed >= nextAmbientAt) {
+            AudioManager.get().playRandomMenuAmbience(0.30f);
+            nextAmbientAt = elapsed + MathUtils.random(5.5f, 10.5f);
+        }
         if (uiAlpha < 1f) {
             uiAlpha = Math.min(1f, uiAlpha + (delta / 0.6f));
         }

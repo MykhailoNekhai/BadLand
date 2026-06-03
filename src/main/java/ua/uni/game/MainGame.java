@@ -18,6 +18,7 @@ import ua.uni.auth.FirebaseAuthService;
 import ua.uni.auth.FirebaseConfig;
 import ua.uni.auth.FirestoreService;
 import ua.uni.auth.SessionManager;
+import ua.uni.audio.services.AudioManager;
 import ua.uni.config.GameSettings;
 import ua.uni.web.login_menu.LoginMenu;
 import ua.uni.web.main_menu.Menu;
@@ -129,14 +130,29 @@ public class MainGame extends Game {
         if (activePopupAchievement == null) {
             activePopupAchievement = achievementManager.pollUnlockedAchievement();
             popupElapsed = 0f;
+            if (activePopupAchievement != null) {
+                playAchievementSound(activePopupAchievement);
+            }
         }
         if (activePopupAchievement != null) {
             popupElapsed += delta;
             if (popupElapsed >= ACHIEVEMENT_POPUP_DURATION) {
                 activePopupAchievement = achievementManager.pollUnlockedAchievement();
                 popupElapsed = 0f;
+                if (activePopupAchievement != null) {
+                    playAchievementSound(activePopupAchievement);
+                }
             }
         }
+    }
+
+    private void playAchievementSound(Achievements achievement) {
+        if (achievement.getRarity() == AchievementsRarity.Legendary) {
+            AudioManager.get().playAchievementWinner(0.95f);
+            return;
+        }
+        float volume = achievement.getRarity() == AchievementsRarity.Epic ? 1.00f : 0.90f;
+        AudioManager.get().playAchievementNotice(volume);
     }
 
     private void renderAchievementPopup() {

@@ -178,6 +178,7 @@ public class SettingsMenu implements Screen {
         readyButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                AudioManager.get().playSelect(0.75f);
                 game.setScreen(new Menu(game));
             }
         });
@@ -242,9 +243,7 @@ public class SettingsMenu implements Screen {
 
         panelStack.addAction(Actions.sequence(
                 Actions.delay(0.05f),
-                Actions.run(() -> {
-                    panelStack.setOrigin(panelStack.getWidth() / 2f, panelStack.getHeight() / 2f);
-                }),
+                Actions.run(() -> panelStack.setOrigin(panelStack.getWidth() / 2f, panelStack.getHeight() / 2f)),
                 Actions.forever(Actions.sequence(
                         Actions.scaleTo(1.006f, 1.006f, 2.2f, Interpolation.sine),
                         Actions.scaleTo(1f, 1f, 2.2f, Interpolation.sine)
@@ -261,6 +260,7 @@ public class SettingsMenu implements Screen {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                 AppLogger.info("Auth", "Logout");
+                AudioManager.get().playSelect(0.80f);
                 game.getSessionManager().clear();
                 game.setScreen(new LoginMenu(game));
             }
@@ -274,6 +274,7 @@ public class SettingsMenu implements Screen {
         statisticsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                AudioManager.get().playSelect(0.72f);
                 if (activeRightPanel != null) closeSidePanel(false);
                 else openSidePanel(false, LanguageButton.t("STATISTICS"), buildStatisticsContent());
             }
@@ -281,12 +282,14 @@ public class SettingsMenu implements Screen {
         achievementsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                AudioManager.get().playSelect(0.72f);
                 game.setScreen(new AchievementsButton(game));
             }
         });
         languageButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                AudioManager.get().playSelect(0.65f);
                 languageIndex = (languageIndex + 1) % LanguageButton.LANGUAGES.length;
                 GameSettings.setLanguage(LanguageButton.LANGUAGES[languageIndex]);
                 AppLogger.info("Settings", "Language -> " + LanguageButton.LANGUAGES[languageIndex]);
@@ -296,13 +299,15 @@ public class SettingsMenu implements Screen {
         creditsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                AudioManager.get().playSelect(0.72f);
                 if (activeLeftPanel != null) closeSidePanel(true);
-                else openSidePanel(true, LanguageButton.t("CREDITS_TEAM"), buildCreditsContent());
+                else openSidePanel(true, LanguageButton.t("CREDITS"), buildCreditsContent());
             }
         });
         keybindButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                AudioManager.get().playSelect(0.72f);
                 game.setScreen(new KeyBindingsButton(game));
             }
         });
@@ -310,36 +315,38 @@ public class SettingsMenu implements Screen {
     }
 
     private Table buildStatisticsContent() {
-        Label.LabelStyle rowStyle = new Label.LabelStyle(smallFont, smallFont.getColor());
-        Label.LabelStyle valueStyle = new Label.LabelStyle(itemFont, new Color(1f, 0.86f, 0.36f, 1f));
-
         int deaths = game.getAchievementManager().getTotalDeaths();
         int unlocked = game.getAchievementManager().getUnlockedCount();
         int total = game.getAchievementManager().getTotalCount();
 
+        Label.LabelStyle sectionStyle = new Label.LabelStyle(smallFont, new Color(1f, 0.86f, 0.36f, 1f));
+        Label.LabelStyle valueStyle = new Label.LabelStyle(itemFont, new Color(0.98f, 0.95f, 0.88f, 1f));
+
         Table t = new Table();
-        t.center().padTop(30);
-        t.add(new Label(LanguageButton.t("TOTAL_DEATHS"), rowStyle)).padBottom(6).row();
-        t.add(new Label(String.valueOf(deaths), valueStyle)).padBottom(28).row();
-        t.add(new Label(LanguageButton.t("ACHIEVEMENTS_PROGRESS"), rowStyle)).padBottom(6).row();
-        t.add(new Label(unlocked + " / " + total, valueStyle)).padBottom(20).row();
+        t.center().padTop(28);
+        t.add(new Label(LanguageButton.t("TOTAL_DEATHS"), sectionStyle)).padBottom(6).row();
+        t.add(new Label(String.valueOf(deaths), valueStyle)).padBottom(26).row();
+        t.add(new Label(LanguageButton.t("ACHIEVEMENTS_PROGRESS"), sectionStyle)).padBottom(6).row();
+        t.add(new Label(unlocked + " / " + total, valueStyle)).row();
         return t;
     }
 
     private Table buildCreditsContent() {
+        Label.LabelStyle heroStyle = new Label.LabelStyle(itemFont, new Color(0.98f, 0.95f, 0.88f, 1f));
         Label.LabelStyle sectionStyle = new Label.LabelStyle(smallFont, new Color(1f, 0.86f, 0.36f, 1f));
         Label.LabelStyle nameStyle = new Label.LabelStyle(smallFont, new Color(0.98f, 0.95f, 0.88f, 1f));
 
         Table t = new Table();
         t.center().padTop(20);
-        t.add(new Label(LanguageButton.t("DEVELOPED_BY"), sectionStyle)).padBottom(4).row();
-        t.add(new Label("KIRILL AMRAN", nameStyle)).padBottom(18).row();
-        t.add(new Label(LanguageButton.t("CODE"), sectionStyle)).padBottom(4).row();
-        t.add(new Label("KIRILL AMRAN", nameStyle)).padBottom(18).row();
-        t.add(new Label(LanguageButton.t("ART"), sectionStyle)).padBottom(4).row();
-        t.add(new Label("KIRILL AMRAN", nameStyle)).padBottom(18).row();
-        t.add(new Label(LanguageButton.t("MUSIC"), sectionStyle)).padBottom(4).row();
-        t.add(new Label("KIRILL AMRAN", nameStyle)).padBottom(24).row();
+        Label shadowFlight = new Label("SHADOW FLIGHT", heroStyle);
+        shadowFlight.setAlignment(com.badlogic.gdx.utils.Align.center);
+        Label team = new Label("TEAM", heroStyle);
+        team.setAlignment(com.badlogic.gdx.utils.Align.center);
+        t.add(shadowFlight).center().padBottom(2).row();
+        t.add(team).center().padBottom(28).row();
+        t.add(new Label(LanguageButton.t("DEVELOPED_BY") + ":", sectionStyle)).padBottom(6).row();
+        t.add(new Label("........", nameStyle)).padBottom(10).row();
+        t.add(new Label("........", nameStyle)).padBottom(22).row();
         t.add(new Label(LanguageButton.t("YEAR"), nameStyle)).row();
         return t;
     }
@@ -361,7 +368,7 @@ public class SettingsMenu implements Screen {
 
         Table inner = new Table();
         inner.top().padTop(28).padLeft(20).padRight(20).padBottom(20);
-        inner.add(titleLbl).center().padBottom(12).row();
+        inner.add(titleLbl).center().padBottom(4).row();
         inner.add(contentTable).expand().fill().row();
 
         Stack panelStack = new Stack();
@@ -371,6 +378,7 @@ public class SettingsMenu implements Screen {
         panelStack.setSize(panelW, panelH);
         panelStack.setPosition(startX, y);
         panelStack.addAction(Actions.moveTo(endX, y, 0.30f, Interpolation.sineOut));
+        AudioManager.get().playPanelInOut(0.70f);
 
         stage.addActor(panelStack);
         if (fromLeft) activeLeftPanel = panelStack;
@@ -387,6 +395,7 @@ public class SettingsMenu implements Screen {
                 Actions.moveTo(exitX, panel.getY(), 0.22f, Interpolation.sineIn),
                 Actions.removeActor()
         ));
+        AudioManager.get().playPanelInOut(0.60f);
         if (fromLeft) activeLeftPanel = null;
         else activeRightPanel = null;
     }

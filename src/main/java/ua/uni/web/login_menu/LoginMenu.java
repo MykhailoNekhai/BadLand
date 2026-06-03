@@ -88,6 +88,8 @@ public class LoginMenu implements Screen {
 
         TextButton loginBtn = new TextButton("LOGIN", btnStyle);
         TextButton registerBtn = new TextButton("REGISTER", btnStyle);
+        TextButton resetBtn = new TextButton("RESET PASSWORD", btnStyle);
+        TextButton resendBtn = new TextButton("RESEND VERIFICATION", btnStyle);
         statusLabel = new Label("", labelStyle);
 
         loginBtn.addListener(new ChangeListener() {
@@ -102,6 +104,18 @@ public class LoginMenu implements Screen {
                 doRegister();
             }
         });
+        resetBtn.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                doPasswordReset();
+            }
+        });
+        resendBtn.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+                doResendVerification();
+            }
+        });
 
         Table root = new Table();
         root.setFillParent(true);
@@ -111,7 +125,9 @@ public class LoginMenu implements Screen {
         root.add(passwordField).width(560).height(78).padBottom(12).row();
         root.add(nicknameField).width(560).height(78).padBottom(20).row();
         root.add(loginBtn).width(420).height(86).padBottom(10).row();
-        root.add(registerBtn).width(420).height(86).padBottom(16).row();
+        root.add(registerBtn).width(420).height(86).padBottom(10).row();
+        root.add(resetBtn).width(420).height(86).padBottom(10).row();
+        root.add(resendBtn).width(420).height(86).padBottom(16).row();
         root.add(statusLabel).padTop(6);
         stage.addActor(root);
     }
@@ -158,6 +174,40 @@ public class LoginMenu implements Screen {
         } catch (Exception e) {
             statusLabel.setText("Register failed: " + e.getMessage());
             AppLogger.error("Auth", "Register failed", e);
+        }
+    }
+
+    private void doPasswordReset() {
+        String email = emailField.getText().trim();
+        if (email.isEmpty()) {
+            statusLabel.setText("Enter your email first");
+            return;
+        }
+        try {
+            AppLogger.info("Auth", "Password reset request");
+            game.getAuthService().sendPasswordResetEmail(email);
+            statusLabel.setText("Password reset email sent.");
+        } catch (Exception e) {
+            statusLabel.setText("Reset failed: " + e.getMessage());
+            AppLogger.error("Auth", "Password reset failed", e);
+        }
+    }
+
+    private void doResendVerification() {
+        String email = emailField.getText().trim();
+        String password = passwordField.getText();
+        if (email.isEmpty() || password.isEmpty()) {
+            statusLabel.setText("Fill email and password first");
+            return;
+        }
+        try {
+            AppLogger.info("Auth", "Resend verification request");
+            FirebaseAuthService.AuthResult result = game.getAuthService().signIn(email, password);
+            game.getAuthService().sendEmailVerification(result.idToken());
+            statusLabel.setText("Verification email sent again.");
+        } catch (Exception e) {
+            statusLabel.setText("Resend failed: " + e.getMessage());
+            AppLogger.error("Auth", "Resend verification failed", e);
         }
     }
 
