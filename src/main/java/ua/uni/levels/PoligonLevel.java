@@ -18,9 +18,6 @@ public class PoligonLevel extends Plevel {
 
 
         spawnClone(2, 5);
-        spawnClone(5, 30);
-	    spawnClone(4, 5);
-        spawnClone(2, 12);
 
         createGround();
 

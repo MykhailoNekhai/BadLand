@@ -67,29 +67,16 @@ public abstract class Plevel implements Screen {
 
         world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
 
-        updateCameraToFollowSwarm();
+        if (clones.size > 0) {
+            Shadow clone = clones.get(0);
+            camera.position.set(clone.getBody().getPosition().x, clone.getBody().getPosition().y, 0);
+        }
         camera.update();
 
 
 
     }
 
-    private void updateCameraToFollowSwarm() {
-        if (clones.size == 0) return;
-
-        float sumX = 0;
-        float sumY = 0;
-
-        for (Shadow clone : clones) {
-            sumX += clone.getBody().getPosition().x;
-            sumY += clone.getBody().getPosition().y;
-        }
-
-        float averageX = sumX / clones.size;
-        float averageY = sumY / clones.size;
-
-        camera.position.set(averageX, averageY, 0);
-    }
 
 
 // (ЩЕ НЕ ВИРІШИВ)

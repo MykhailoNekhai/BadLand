@@ -33,7 +33,8 @@ public class Shadow {
             BodyDef heroDef = new BodyDef();
             heroDef.type = BodyDef.BodyType.DynamicBody;
             heroDef.position.set(startX, startY);
-            heroDef.linearDamping = 1f; // сопротивление воздуха
+            heroDef.linearDamping = 1.2f; // сопротивление воздуха
+            heroDef.gravityScale = 1.3f;
 
             CircleShape shape = new CircleShape();
             shape.setRadius(0.25f);
