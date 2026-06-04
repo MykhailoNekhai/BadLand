@@ -18,38 +18,38 @@ import com.badlogic.gdx.physics.box2d.*;
  */
 
 public class Shadow {
-        private Body body;
-        private final float verticalSpeed = 20f;
-        private final float baseSpeed = 5f;
-        private final float baseSpeedCap = 8f;
-        private final float backwardSpeed = -8f;
+    private Body body;
+    private final float verticalSpeed = 50f;
+    private final float baseSpeed = 10f;
+    private final float baseSpeedCap = 16f;
+    private final float backwardSpeed = -16f;
 
-        private final float maxFowardSpeed = 8f;
-        private final float maxBackwardSpeed = -2f;
 
-        // Конструктор із параметрами
+    private final float maxFowardSpeed = 5f;
+    private final float maxBackwardSpeed = -2f;
+
     public Shadow(World world, float startX, float startY) {
 
-            BodyDef heroDef = new BodyDef();
-            heroDef.type = BodyDef.BodyType.DynamicBody;
-            heroDef.position.set(startX, startY);
-            heroDef.linearDamping = 1.2f; // сопротивление воздуха
-            heroDef.gravityScale = 1.3f;
+        BodyDef heroDef = new BodyDef();
+        heroDef.type = BodyDef.BodyType.DynamicBody;
+        heroDef.position.set(startX, startY);
+        heroDef.linearDamping = 2.5f; // сопротивление воздуха
+        heroDef.gravityScale = 1.3f;
 
-            CircleShape shape = new CircleShape();
-            shape.setRadius(0.25f);
+        CircleShape shape = new CircleShape();
+        shape.setRadius(0.5f);
 
-            FixtureDef fixtureDef = new FixtureDef();
-            fixtureDef.shape = shape;
-            fixtureDef.density = 5f; // плотность (Mass=π×r2×Density)
-            fixtureDef.friction = 0.25f; // сила трения (от нуля до 1)
-            fixtureDef.restitution = 0.05f; // прыгучесть
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.density = 2.5f; // плотность (Mass=π×r2×Density)
+        fixtureDef.friction = 0.25f; // сила трения (от нуля до 1)
+        fixtureDef.restitution = 0.05f; // прыгучесть
 
-            this.body = world.createBody(heroDef);
-            this.body.createFixture(fixtureDef);
+        this.body = world.createBody(heroDef);
+        this.body.createFixture(fixtureDef);
 
-            shape.dispose();
-        }
+        shape.dispose();
+    }
 
 
     // Метод для руху героя
@@ -91,8 +91,8 @@ public class Shadow {
         }
     }
 
-        public Body getBody() {
-            return body;
-        }
+    public Body getBody() {
+        return body;
+    }
 
 }
