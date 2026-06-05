@@ -6,23 +6,45 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import ua.uni.MainGame;
 import ua.uni.entity.Shadow;
+import ua.uni.utilite.BodyEditorLoader;
+
 
 public abstract class Plevel implements Screen {
 
+    // Потрібно для world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS),
+    // тут задаєтся точність обрахунків фізики (кількість розрахунків на кадр)
     private static final float TIMESTEP = 1/60f;
     private static final int VELOCITY_ITERATIONS = 8;
     private static final int POSITION_ITERATIONS = 3;
 
-    private Box2DDebugRenderer debugRenderer;
+    private Box2DDebugRenderer debugRenderer; // Режим дебагу, необхнідний для розробки
+    protected BodyEditorLoader physicsLoader; // Вантажить складні об'єкти з json файлів
+
     protected World world;
     protected OrthographicCamera camera;
     protected MainGame game;
-    protected Array<Shadow> clones = new Array<>();
+
+    protected Array<Shadow> clones = new Array<>(); // Клони як масив, оскільки передбачено їх збільшення (як в Badlands
+    protected boolean isGameStarted = false; // потрібен для початку руху камери
+    protected Viewport viewport;
+
+    protected float cameraSpeed = 3f; // швидкість камери
+    protected float finishLineX = 40f; // Фінішна пряма рівня
+
+    // Enum станів, потрібен для розуміння, коли користувач натиснув на паузу, коли програв і т.д
+    protected enum GameState {
+        PLAYING, PAUSED, GAME_OVER, VICTORY
+    }
+
+    // Вважаємо старт рівня вже грою
+    protected GameState state = GameState.PLAYING;
+
 
     // размерность от 0 до 30 метров - оптимизирован box2d
 
@@ -30,52 +52,166 @@ public abstract class Plevel implements Screen {
         this.game = game;
     }
 
+     // Перевірка стану гри
+    private void mainGameLogic() {
+        if (state != GameState.PLAYING) {
+            return;
+        }
+        float leftCameraEdge = camera.position.x - (camera.viewportWidth / 2f);
+
+        for (int i = clones.size - 1; i >= 0; i--) {
+            Shadow clone = clones.get(i);
+            if (clone.getBody().getPosition().x < leftCameraEdge) {
+                world.destroyBody(clone.getBody()); // видаляємо саме так (нюанс побудови об'єктів на рушії)
+                clones.removeIndex(i);              // видаляємо об'єкт зі списку
+            }
+        }
+
+
+        if (clones.size == 0) {
+            state = GameState.GAME_OVER;
+            System.out.println("Гра завершена. Програв");
+            return;
+        }
+
+
+        float leaderX = -Float.MAX_VALUE;
+        for (Shadow clone : clones) {
+            float x = clone.getBody().getPosition().x;
+            if (x > leaderX) {
+                leaderX = x;
+            }
+        }
+
+
+        if (leaderX >= finishLineX) {
+            state = GameState.VICTORY;
+            System.out.println("Гра завершена. Перемога!");
+        }
+    }
+
+
     @Override
     public void show() {
         baseParameters();
+        createGround();
         buildLevel();
+
         // settingControls();
     }
 
+
+    // метод для створення клонів, наших тіней. В планах зробити подвоювач
     public void spawnClone(float x, float y) {
         Shadow newClone = new Shadow(world, x, y);
         clones.add(newClone);
     }
 
+    // метод із базовими налаштуваннями рівнів (усіх)!!!
+
     private void baseParameters() {
-        world = new World(new Vector2(0, -9.8f), true);
+        world = new World(new Vector2(0, -9.81f), true);
         debugRenderer = new Box2DDebugRenderer();
-        camera = new OrthographicCamera(Gdx.graphics.getWidth() / 40f, Gdx.graphics.getHeight() / 40f);
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(32f, 18f, camera);
+        viewport.apply();
+        camera.position.set(16f, 9f, 0f);
+
     }
 
     protected abstract void buildLevel();
 
+    // створення землі, простої
+    private void createGround() {
+        BodyDef roofBody = new BodyDef();
+        roofBody.type = BodyDef.BodyType.StaticBody;
+        roofBody.position.set(0, 0);
+
+        FixtureDef roofFix = new FixtureDef();
+        roofFix.density = 0f;
+        roofFix.friction = 0.2f;
+        roofFix.restitution = 0.1f;
+
+        ChainShape floorShape = new ChainShape();
+        floorShape.createChain(new Vector2[]{new Vector2(-500, 0), new Vector2(500, 0)});
+        roofFix.shape = floorShape;
+
+        Body floorBody = world.createBody(roofBody);
+        floorBody.createFixture(roofFix);
+        floorShape.dispose();
+
+        ChainShape ceilShape = new ChainShape();
+        ceilShape.createChain(new Vector2[]{new Vector2(-500, 18), new Vector2(500, 18)});
+        roofFix.shape = ceilShape;
+
+        Body ceilBody = world.createBody(roofBody);
+        ceilBody.createFixture(roofFix);
+        ceilShape.dispose();
+
+    }
+
+    // xTarget = xLeader + W/4 - формула місцезнаходження гг відносно камери
+    // V = deltaX*коофіцієнт різкості - формула плавного переходу камери, яка рухається відносно швидкості гг
+
+
     @Override
     public void render(float delta) {
+        // базові налаштування кольору та камери
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         debugRenderer.render(world, camera.combined);
 
-            boolean w = Gdx.input.isKeyPressed(Input.Keys.W);
-            boolean s = Gdx.input.isKeyPressed(Input.Keys.S);
-            boolean a = Gdx.input.isKeyPressed(Input.Keys.A);
-            boolean d = Gdx.input.isKeyPressed(Input.Keys.D);
+        boolean w = Gdx.input.isKeyPressed(Input.Keys.W);
+        boolean s = Gdx.input.isKeyPressed(Input.Keys.S);
+        boolean a = Gdx.input.isKeyPressed(Input.Keys.A);
+        boolean d = Gdx.input.isKeyPressed(Input.Keys.D);
 
-            for (Shadow clone : clones) {
-                clone.move(w, s, a, d);
-            }
+        for (Shadow clone : clones) {
+            clone.move(w, s, a, d);
+
+        }
+
+        if (!isGameStarted && (w || s || a || d)) {
+            isGameStarted = true;
+        }
 
         world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
 
-        if (clones.size > 0) {
-            Shadow clone = clones.get(0);
-            camera.position.set(clone.getBody().getPosition().x, clone.getBody().getPosition().y, 0);
+
+        if (isGameStarted && clones.size > 0) {
+
+            float minCameraSpeed = 3f;  // мін швидкість камери (3м/c)
+
+
+            float leaderX = -Float.MAX_VALUE;
+            for (Shadow clone : clones) {
+                float x = clone.getBody().getPosition().x;
+                if (x > leaderX) {
+                    leaderX = x;
+                }
+            }
+
+
+            float heroOffset = camera.viewportWidth * 0.3f; // максимальний поріг місцезнаходження гг відносно камери (щоб не був по центру)
+            float cameraX = leaderX + heroOffset; // координата, щоб точка камери була правіша за героя
+
+
+            float smoothness = 4.0f; // коофіцієнт плавності переходу камери
+
+            float neededSpeed = (cameraX - camera.position.x) * smoothness;
+
+            float actualCameraSpeed = Math.max(minCameraSpeed, neededSpeed); // проміжок швидкостей, від мінімального до максимального враховуючи швидкість гг
+
+            camera.position.x = camera.position.x + (actualCameraSpeed * delta);
         }
+
+        camera.position.y = camera.viewportHeight / 2f;
         camera.update();
-
-
+        mainGameLogic();
 
     }
+
+
 
 
 
@@ -119,11 +255,10 @@ public abstract class Plevel implements Screen {
         });
     }                   */
 
+    // НЕОБХІДНО ДЛЯ ПІДТРИМКИ БУДЬ ЯКОГО РОЗМІРУ ЕКРАНА!!!
     @Override
     public void resize(int width, int height) {
-        camera.viewportWidth = Gdx.graphics.getWidth() / 40f;
-        camera.viewportHeight = Gdx.graphics.getHeight() / 40f;
-        camera.update();
+        viewport.update(width, height);
     }
 
     @Override
@@ -140,9 +275,10 @@ public abstract class Plevel implements Screen {
     public void hide() {
     }
 
+    // Нюанси рушія, який написаний на c++
     @Override
     public void dispose() {
-    world.dispose();
-    debugRenderer.dispose();
+        world.dispose();
+        debugRenderer.dispose();
     }
 }
