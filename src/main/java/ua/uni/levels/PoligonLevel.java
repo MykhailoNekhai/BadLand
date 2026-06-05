@@ -1,9 +1,12 @@
 package ua.uni.levels;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import ua.uni.MainGame;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
+import ua.uni.entity.Saw;
+import ua.uni.utilite.BodyEditorLoader;
 
 public class PoligonLevel extends Plevel {
 
@@ -16,36 +19,13 @@ public class PoligonLevel extends Plevel {
     @Override
     protected void buildLevel() {
 
+        physicsLoader = new BodyEditorLoader(Gdx.files.internal("game-resourses/assetData/saw2.json"));
 
         spawnClone(2, 5);
 
-        createGround();
+        Saw saw1 = new Saw(world, physicsLoader, 20, 15, 4f);
 
     }
-
-    private void createGround() {
-
-        BodyDef groundDef = new BodyDef();
-        groundDef.type = BodyDef.BodyType.StaticBody;
-        groundDef.position.set(0, 0);
-
-        // ground shape
-
-        ChainShape groundShape = new ChainShape();
-        groundShape.createChain(new Vector2[]{new Vector2(-500, 0), new Vector2(500, 0)});
-        // fixture definition
-        FixtureDef groundFix = new FixtureDef();
-        groundFix.shape = groundShape;
-        groundFix.density = 2.5f; //  плотность тела, вес
-        groundFix.friction = .25f; // сила трения (от нуля до 1)
-        groundFix.restitution = 0.8f; //  коофициент уменьшения высоты отталкивания от поверхности
-
-        Body ball = world.createBody(groundDef);
-        Fixture fixture = ball.createFixture(groundFix);
-
-        groundShape.dispose();
-    }
-
 
 
 
