@@ -23,6 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
+import ua.uni.levels.PoligonLevel;
 import ua.uni.web.main_menu.Menu;
 import ua.uni.audio.music.LevelPlayScreen;
 
@@ -164,7 +165,7 @@ public class SinglePlayerMenu implements Screen {
         if (startTransition) {
             transitionAlpha = Math.min(1f, transitionAlpha + (delta / 0.45f));
             if (transitionAlpha >= 1f && selectedLevel > 0) {
-                game.setScreen(new LevelPlayScreen(game, selectedLevel));
+                game.setScreen(new PoligonLevel(game));
                 return;
             }
         }
