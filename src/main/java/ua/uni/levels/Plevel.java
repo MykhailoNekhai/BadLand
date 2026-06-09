@@ -43,6 +43,7 @@ public abstract class Plevel implements Screen {
 
     protected float cameraSpeed = 3f; // швидкість камери
     protected float finishLineX = 220f; // Фінішна пряма рівня
+    private float dynamicTimeStep;
 
     // Enum станів, потрібен для розуміння, коли користувач натиснув на паузу, коли програв і т.д
     protected enum GameState {
@@ -59,7 +60,7 @@ public abstract class Plevel implements Screen {
         this.game = game;
     }
 
-     // Перевірка стану гри
+    // Перевірка стану гри
     private void mainGameLogic() {
         if (state != GameState.PLAYING) {
             return;
@@ -130,6 +131,15 @@ public abstract class Plevel implements Screen {
 
         world.setContactListener(new GameContactListener());
 
+        int refreshRate = Gdx.graphics.getDisplayMode().refreshRate;
+
+        if (refreshRate == 0) {
+            refreshRate = 60;
+        }
+
+
+        dynamicTimeStep = 4.0f / refreshRate;
+
     }
 
     protected abstract void buildLevel();
@@ -179,16 +189,19 @@ public abstract class Plevel implements Screen {
         boolean a = Gdx.input.isKeyPressed(Input.Keys.A);
         boolean d = Gdx.input.isKeyPressed(Input.Keys.D);
 
-        for (Shadow clone : clones) {
-            clone.move(w, s, a, d);
 
-        }
 
         if (!isGameStarted && (w || s || a || d)) {
             isGameStarted = true;
         }
 
-        world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+        if (state == GameState.PLAYING) {
+            for (Shadow clone : clones) {
+                clone.move(w, s, a, d);
+            }
+
+            world.step(dynamicTimeStep, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+        }
 
 
         if (isGameStarted && clones.size > 0) {
