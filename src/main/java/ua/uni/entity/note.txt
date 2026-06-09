@@ -1,0 +1,27 @@
+Для того, щоб завантажити складну полігонну форму нам потрібен:
+- json файл (зазвичай я розміщую у resources/game-resourses/assetData)
+- у класі з об'єктом проробити маніпуляції із завантаженням
+
+Приклад, Saw1 (пила):
+створюємо приватну змінну private static BodyEditorLoader sharedLoader;
+(Тому що, якщо кожен раз при створенні об'єкту ми будемо знову шукати цей json і вантажити - це буде
+шкодити оптимізації, тому це ми будемо робити тільки для першого об'єкту такого типу)
+
+далі у конструкторі перевіряємо на першість, і вантажимо
+
+  if (sharedLoader == null) {
+            sharedLoader = new BodyEditorLoader(Gdx.files.internal("game-resourses/assetData/saw1.json"));
+        }
+
+залишилось застосувати це до нашого об'єкту, і тут є нюанс, оскліьки утиліта Physic Body Editor
+створює розмірність полігонів відносно розміру фотографії (тобто, наприклад, 200 на 200)
+то і зменшити в масштабі нам доведеться відповідно тут, щоб об'єкт нормально можна було викликати
+через конструктор, і з людськими пропорціями додати на карту
+
+private void convertToRealSize(float size, FixtureDef fixtureDef){
+        float imageWidthPixels = 447f; // ЦЕ РОЗМІР ФОТОГРАФІЇ
+
+        float realScale = size / imageWidthPixels;
+
+        sharedLoader.attachFixture(body, "saw", fixtureDef, realScale); тут застосовуємо
+    }
