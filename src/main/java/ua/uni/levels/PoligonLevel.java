@@ -3,7 +3,7 @@ package ua.uni.levels;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
-import ua.uni.MainGame;
+import ua.uni.game.MainGame;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 import ua.uni.entity.*;
 import ua.uni.utilite.BodyEditorLoader;

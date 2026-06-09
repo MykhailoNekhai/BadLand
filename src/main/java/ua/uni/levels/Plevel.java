@@ -10,7 +10,7 @@ import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import ua.uni.MainGame;
+import ua.uni.game.MainGame;
 import ua.uni.entity.Shadow;
 import ua.uni.utilite.BodyEditorLoader;
 import ua.uni.utilite.GameContactListener;
