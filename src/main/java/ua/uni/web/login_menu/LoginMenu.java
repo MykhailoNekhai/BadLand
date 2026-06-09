@@ -35,6 +35,7 @@ public class LoginMenu implements Screen {
     private TextField passwordField;
     private TextField nicknameField;
     private Label statusLabel;
+    private String nicknameOrEmailPrefix;
 
     public LoginMenu(MainGame game) {
         this.game = game;
@@ -148,6 +149,7 @@ public class LoginMenu implements Screen {
                 return;
             }
             game.getSessionManager().save(result);
+            game.getNakamaSessionService().authenticateFirebaseUser(result.uid(),nicknameOrEmailPrefix);
             AppLogger.info("Auth", "Login success. uid=" + result.uid());
             game.setScreen(new Menu(game));
         } catch (Exception e) {

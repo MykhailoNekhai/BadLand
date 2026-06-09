@@ -20,6 +20,12 @@ import ua.uni.auth.FirestoreService;
 import ua.uni.auth.SessionManager;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.config.GameSettings;
+import ua.uni.online.NakamaClient;
+import ua.uni.online.NakamaMatchService;
+import ua.uni.online.NakamaSessionService;
+import ua.uni.online.NakamaSocket;
+import ua.uni.online.OnlineConfig;
+import ua.uni.online.OnlineSessionStore;
 import ua.uni.web.login_menu.LoginMenu;
 import ua.uni.web.main_menu.Menu;
 import ua.uni.web.main_menu.settings_menu.AchievementsButton;
@@ -32,6 +38,12 @@ public class MainGame extends Game {
     private FirebaseAuthService authService;
     private FirestoreService firestoreService;
     private SessionManager sessionManager;
+    private OnlineConfig onlineConfig;
+    private NakamaClient nakamaClient;
+    private com.heroiclabs.nakama.Client onlineClient;
+    private OnlineSessionStore onlineSessionStore;
+    private NakamaSessionService nakamaSessionService;
+    private NakamaMatchService nakamaMatchService;
     private AchievementManager achievementManager;
     private SpriteBatch overlayBatch;
     private BitmapFont popupHeaderFont;
@@ -51,6 +63,13 @@ public class MainGame extends Game {
         authService = new FirebaseAuthService(firebaseConfig);
         firestoreService = new FirestoreService(firebaseConfig);
         sessionManager = new SessionManager();
+        onlineConfig = OnlineConfig.loadFromResources();
+        nakamaClient = new NakamaClient(onlineConfig);
+        onlineClient = nakamaClient.createClient();
+        onlineSessionStore = new OnlineSessionStore();
+        nakamaSessionService = new NakamaSessionService(onlineClient, onlineConfig, onlineSessionStore);
+        nakamaMatchService = new NakamaMatchService(
+                new NakamaSocket(onlineClient, onlineConfig.getHost(), onlineConfig.getSocketPort(), onlineConfig.isSsl()));
         achievementManager = new AchievementManager();
         initAchievementPopupUi();
         if (DEV_SKIP_LOGIN || sessionManager.hasSession()) {
@@ -82,6 +101,18 @@ public class MainGame extends Game {
 
     public SessionManager getSessionManager() {
         return sessionManager;
+    }
+
+    public OnlineConfig getOnlineConfig() {
+        return onlineConfig;
+    }
+
+    public NakamaSessionService getNakamaSessionService() {
+        return nakamaSessionService;
+    }
+
+    public NakamaMatchService getNakamaMatchService() {
+        return nakamaMatchService;
     }
 
     public AchievementManager getAchievementManager() {

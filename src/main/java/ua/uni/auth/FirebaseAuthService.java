@@ -11,6 +11,7 @@ import okhttp3.Response;
 
 public class FirebaseAuthService {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private static final String ACTION_HANDLER_PATH = "/web/action/";
     private final OkHttpClient client = new OkHttpClient();
     private final Gson gson = new Gson();
     private final FirebaseConfig config;
@@ -31,6 +32,7 @@ public class FirebaseAuthService {
         JsonObject payload = new JsonObject();
         payload.addProperty("requestType", "VERIFY_EMAIL");
         payload.addProperty("idToken", idToken);
+        payload.addProperty("continueUrl", buildActionHandlerUrl());
         post("accounts:sendOobCode", payload);
     }
 
@@ -38,6 +40,7 @@ public class FirebaseAuthService {
         JsonObject payload = new JsonObject();
         payload.addProperty("requestType", "PASSWORD_RESET");
         payload.addProperty("email", email);
+        payload.addProperty("continueUrl", buildActionHandlerUrl());
         post("accounts:sendOobCode", payload);
     }
 
@@ -90,6 +93,10 @@ public class FirebaseAuthService {
             }
             throw FirebaseErrorMapper.toException(0, null, e);
         }
+    }
+
+    private String buildActionHandlerUrl() {
+        return "https://" + config.getHostingDomain() + ACTION_HANDLER_PATH;
     }
 
     public record AuthResult(String idToken, String uid, String refreshToken, String email) {
