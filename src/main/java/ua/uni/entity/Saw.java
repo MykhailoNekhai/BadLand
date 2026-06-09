@@ -4,7 +4,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
-import ua.uni.utilite.BodyEditorLoader; // Твой починенный класс
+import ua.uni.utilite.BodyEditorLoader;
 
 public class Saw {
     private Body body;
@@ -36,9 +36,9 @@ public class Saw {
     }
 
     private void convertToRealSize(float size, BodyEditorLoader loader, FixtureDef fixtureDef){
-        float imageWidthPixels = 740f;
+        float imagePixels = 740f;
 
-        float realScale = size / imageWidthPixels;
+        float realScale = size / imagePixels;
 
         loader.attachFixture(body, "saw", fixtureDef, realScale);
     }

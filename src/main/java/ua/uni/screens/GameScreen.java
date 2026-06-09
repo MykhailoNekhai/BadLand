@@ -24,6 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.MainGame;
+import ua.uni.levels.PoligonLevel;
 import ua.uni.music.LevelPlayScreen;
 
 public class GameScreen implements Screen {
@@ -172,7 +173,7 @@ public class GameScreen implements Screen {
         if (startTransition) {
             transitionAlpha = Math.min(1f, transitionAlpha + (delta / 0.45f));
             if (transitionAlpha >= 1f && selectedLevel > 0) {
-                game.setScreen(new LevelPlayScreen(game, selectedLevel));
+                game.setScreen(new PoligonLevel(game));
                 return;
             }
         }

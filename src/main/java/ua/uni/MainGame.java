@@ -20,11 +20,11 @@ public class MainGame extends Game {
         authService = new FirebaseAuthService(firebaseConfig);
         firestoreService = new FirestoreService(firebaseConfig);
         sessionManager = new SessionManager();
-        if (sessionManager.hasSession()) {
+      //  if (sessionManager.hasSession()) {
             setScreen(new MenuScreen(this));
-        } else {
-            setScreen(new LoginScreen(this));
-        }
+    //    } else {
+     //       setScreen(new LoginScreen(this));
+     //   }
     }
 
     public FirebaseAuthService getAuthService() {

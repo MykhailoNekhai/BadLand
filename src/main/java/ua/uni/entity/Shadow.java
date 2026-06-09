@@ -2,59 +2,40 @@ package ua.uni.entity;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
-
-
-// Клас об'єкт головного героя
-/* щоб створити героя обов'язково треба:
-    - дати визначення об'єкту (статичний, кінетичний чи динамічний)
-    - встановити його місцезнаходження
-
-    надати йому тіло, а саме:
-    - тип тіла (фігура, полігон тощо)
-    - надати фізичні характеристики тілу
-
-    Усі значення, які пов'язані із фізичними властивостями відбуваються у вимірах SI (Міжнародна система одиниць)!!!
-
- */
+import ua.uni.utilite.BodyEditorLoader;
 
 public class Shadow {
     private Body body;
-    private final float verticalSpeed = 33f;
+    private final float verticalSpeed = 38f;
     private final float baseSpeed = 5f;
     private final float baseSpeedCap = 8f;
     private final float backwardSpeed = -8f;
 
     private final float maxFowardSpeed = 8f;
     private final float maxBackwardSpeed = -2f;
+    private boolean isDead = false;
 
-    // Конструктор із параметрами
-    public Shadow(World world, float startX, float startY) {
+    public Shadow(World world, BodyEditorLoader loader, float startX, float startY, float size) {
 
         BodyDef heroDef = new BodyDef();
         heroDef.type = BodyDef.BodyType.DynamicBody;
         heroDef.position.set(startX, startY);
-        heroDef.linearDamping = 0.2f; // сопротивление воздуха
+        heroDef.linearDamping = 0.2f;
         heroDef.gravityScale = 0.4f;
-
-        CircleShape shape = new CircleShape();
-        shape.setRadius(0.5f);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = shape;
-        fixtureDef.density = 5f; // плотность (Mass=π×r2×Density)
-        fixtureDef.friction = 0.25f; // сила трения (от нуля до 1)
-        fixtureDef.restitution = 0.05f; // прыгучесть
+        heroDef.angularDamping = 4.0f;
 
         this.body = world.createBody(heroDef);
-        this.body.createFixture(fixtureDef);
 
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.density = 5f;
+        fixtureDef.friction = 0.25f;
+        fixtureDef.restitution = 0.05f;
 
-        shape.dispose();
+        convertToRealSize(size, loader, fixtureDef);
 
+        this.body.setUserData(this);
     }
 
-
-    // Метод для руху героя
     public void move(boolean w, boolean s, boolean a, boolean d) {
         if (body == null) return;
 
@@ -92,11 +73,46 @@ public class Shadow {
             body.setLinearVelocity(maxBackwardSpeed, velocity.y);
         }
 
+        float velY = body.getLinearVelocity().y;
 
+        float targetAngle = velY * 0.06f;
+
+        if (targetAngle > 0.78f) targetAngle = 0.78f;
+        if (targetAngle < -0.78f) targetAngle = -0.78f;
+
+
+        float currentAngle = body.getAngle();
+
+
+        float angleError = targetAngle - currentAngle;
+
+
+        while (angleError > Math.PI) {
+            angleError -= (float)(Math.PI * 2);
+        }
+        while (angleError < -Math.PI) {
+            angleError += (float)(Math.PI * 2);
+        }
+        body.applyTorque(angleError * 15f, true);
+    }
+
+    private void convertToRealSize(float size, BodyEditorLoader loader, FixtureDef fixtureDef){
+        float imageWidthPixels = 200f;
+
+        float realScale = size / imageWidthPixels;
+
+        loader.attachFixture(body, "shadow", fixtureDef, realScale);
     }
 
     public Body getBody() {
         return body;
     }
 
+    public void setDead(boolean dead) {
+        this.isDead = dead;
+    }
+
+    public boolean isDead() {
+        return isDead;
+    }
 }

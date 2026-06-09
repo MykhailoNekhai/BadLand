@@ -13,6 +13,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import ua.uni.MainGame;
 import ua.uni.entity.Shadow;
 import ua.uni.utilite.BodyEditorLoader;
+import ua.uni.utilite.GameContactListener;
 
 
 public abstract class Plevel implements Screen {
@@ -23,8 +24,14 @@ public abstract class Plevel implements Screen {
     private static final int VELOCITY_ITERATIONS = 8;
     private static final int POSITION_ITERATIONS = 3;
 
+    // Краще не чіпати, через те що розмір тіні впливає на його масу, то при збільшенні об'єкту
+    // силу тяги треба змінювати відповідно!!!
+    // інакше тінь просто не зможе злетіти!!! (або буде літати моментально, якщо вага буде малою)
+    private static final float shadowSize = 1.2f;
+
+
     private Box2DDebugRenderer debugRenderer; // Режим дебагу, необхнідний для розробки
-    protected BodyEditorLoader physicsLoader; // Вантажить складні об'єкти з json файлів
+    protected BodyEditorLoader heroLoader;
 
     protected World world;
     protected OrthographicCamera camera;
@@ -35,7 +42,7 @@ public abstract class Plevel implements Screen {
     protected Viewport viewport;
 
     protected float cameraSpeed = 3f; // швидкість камери
-    protected float finishLineX = 40f; // Фінішна пряма рівня
+    protected float finishLineX = 220f; // Фінішна пряма рівня
 
     // Enum станів, потрібен для розуміння, коли користувач натиснув на паузу, коли програв і т.д
     protected enum GameState {
@@ -59,11 +66,13 @@ public abstract class Plevel implements Screen {
         }
         float leftCameraEdge = camera.position.x - (camera.viewportWidth / 2f);
 
+        float deathLineX = leftCameraEdge - shadowSize;
+
         for (int i = clones.size - 1; i >= 0; i--) {
             Shadow clone = clones.get(i);
-            if (clone.getBody().getPosition().x < leftCameraEdge) {
-                world.destroyBody(clone.getBody()); // видаляємо саме так (нюанс побудови об'єктів на рушії)
-                clones.removeIndex(i);              // видаляємо об'єкт зі списку
+            if (clone.getBody().getPosition().x < deathLineX || clone.isDead()) {
+                world.destroyBody(clone.getBody());
+                clones.removeIndex(i);
             }
         }
 
@@ -103,7 +112,7 @@ public abstract class Plevel implements Screen {
 
     // метод для створення клонів, наших тіней. В планах зробити подвоювач
     public void spawnClone(float x, float y) {
-        Shadow newClone = new Shadow(world, x, y);
+        Shadow newClone = new Shadow(world, heroLoader, x, y, shadowSize);
         clones.add(newClone);
     }
 
@@ -116,6 +125,10 @@ public abstract class Plevel implements Screen {
         viewport = new FitViewport(32f, 18f, camera);
         viewport.apply();
         camera.position.set(16f, 9f, 0f);
+
+        heroLoader = new BodyEditorLoader(Gdx.files.internal("game-resourses/assetData/shadow.json"));
+
+        world.setContactListener(new GameContactListener());
 
     }
 
