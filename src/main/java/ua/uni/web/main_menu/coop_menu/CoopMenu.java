@@ -672,14 +672,18 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
             return;
         }
         Gdx.app.postRunnable(() -> {
-            for (UserPresence join : presenceEvent.getJoins()) {
-                addPresence(join, false);
+            if (presenceEvent.getJoins() != null) {
+                for (UserPresence join : presenceEvent.getJoins()) {
+                    addPresence(join, false);
+                }
             }
-            for (UserPresence leave : presenceEvent.getLeaves()) {
-                players.remove(leave.getUserId());
-                if (leave.getUserId() != null && leave.getUserId().equals(hostUserId) && !isHost) {
-                    leaveMatchAndDisconnect("Host disconnected. Lobby closed.");
-                    return;
+            if (presenceEvent.getLeaves() != null) {
+                for (UserPresence leave : presenceEvent.getLeaves()) {
+                    players.remove(leave.getUserId());
+                    if (leave.getUserId() != null && leave.getUserId().equals(hostUserId) && !isHost) {
+                        leaveMatchAndDisconnect("Host disconnected. Lobby closed.");
+                        return;
+                    }
                 }
             }
             if (isHost) {

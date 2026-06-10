@@ -227,7 +227,7 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
         if (matchState == null || presenceEvent == null || !matchState.getMatchId().equals(presenceEvent.getMatchId())) {
             return;
         }
-        if (!presenceEvent.getLeaves().isEmpty()) {
+        if (presenceEvent.getLeaves() != null && !presenceEvent.getLeaves().isEmpty()) {
             Gdx.app.postRunnable(() -> abortMatch("A player disconnected from the level.", false));
         }
     }

@@ -463,7 +463,7 @@ public class CoopPoligonLevel extends PoligonLevel implements NakamaSocket.Event
         if (matchState == null || presenceEvent == null || !matchState.getMatchId().equals(presenceEvent.getMatchId())) {
             return;
         }
-        if (!presenceEvent.getLeaves().isEmpty()) {
+        if (presenceEvent.getLeaves() != null && !presenceEvent.getLeaves().isEmpty()) {
             Gdx.app.postRunnable(() -> abortLevel("A player disconnected from the level.", false));
         }
     }
