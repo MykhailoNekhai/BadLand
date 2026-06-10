@@ -192,8 +192,8 @@ public class KeyBindingsButton implements Screen {
         String hint = "(" + LanguageButton.t("CLICK_TO_TOGGLE") + ")";
         leftBtn.setText(LanguageButton.t("MOVE_LEFT") + ": " + Input.Keys.toString(moveLeft) + "   " + hint);
         rightBtn.setText(LanguageButton.t("MOVE_RIGHT") + ": " + Input.Keys.toString(moveRight) + "   " + hint);
-        upBtn.setText(LanguageButton.t("JUMP") + ": " + Input.Keys.toString(moveUp) + "   " + hint);
-        downBtn.setText(LanguageButton.t("INTERACT") + ": " + Input.Keys.toString(moveDown) + "   " + hint);
+        upBtn.setText(LanguageButton.t("MOVE_UP") + ": " + Input.Keys.toString(moveUp) + "   " + hint);
+        downBtn.setText(LanguageButton.t("MOVE_DOWN") + ": " + Input.Keys.toString(moveDown) + "   " + hint);
     }
 
     @Override

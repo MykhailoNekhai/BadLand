@@ -36,6 +36,8 @@ public final class LanguageButton {
         en.put("MOVE_RIGHT", "MOVE RIGHT");
         en.put("JUMP", "JUMP");
         en.put("INTERACT", "INTERACT");
+        en.put("MOVE_UP", "MOVE UP");
+        en.put("MOVE_DOWN", "MOVE DOWN");
         en.put("PAUSE", "PAUSE");
         en.put("SPRINT", "SPRINT");
         en.put("ATTACK", "ATTACK");
@@ -72,6 +74,8 @@ public final class LanguageButton {
         uk.put("MOVE_RIGHT", "ВПРАВО");
         uk.put("JUMP", "СТРИБОК");
         uk.put("INTERACT", "ДІЯ");
+        uk.put("MOVE_UP", "ВГОРУ");
+        uk.put("MOVE_DOWN", "ВНИЗ");
         uk.put("PAUSE", "ПАУЗА");
         uk.put("SPRINT", "СПРИНТ");
         uk.put("ATTACK", "АТАКА");
