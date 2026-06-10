@@ -11,8 +11,8 @@ public final class GameSettings {
     private static final String KEY_LANGUAGE = "language";
     private static final String KEY_MOVE_LEFT = "moveLeft";
     private static final String KEY_MOVE_RIGHT = "moveRight";
-    private static final String KEY_JUMP = "jump";
-    private static final String KEY_INTERACT = "interact";
+    private static final String KEY_JUMP = "moveUp";
+    private static final String KEY_INTERACT = "moveDown";
 
     public static final float DEFAULT_MUSIC_VOLUME = 0.65f;
 
@@ -21,8 +21,8 @@ public final class GameSettings {
     private static String language = "EN";
     private static int moveLeft = Input.Keys.A;
     private static int moveRight = Input.Keys.D;
-    private static int jump = Input.Keys.SPACE;
-    private static int interact = Input.Keys.E;
+    private static int moveUp = Input.Keys.SPACE;
+    private static int moveDown = Input.Keys.E;
     private static boolean loaded;
 
     private GameSettings() {}
@@ -34,8 +34,8 @@ public final class GameSettings {
         language = prefs.getString(KEY_LANGUAGE, "EN");
         moveLeft = prefs.getInteger(KEY_MOVE_LEFT, Input.Keys.A);
         moveRight = prefs.getInteger(KEY_MOVE_RIGHT, Input.Keys.D);
-        jump = prefs.getInteger(KEY_JUMP, Input.Keys.SPACE);
-        interact = prefs.getInteger(KEY_INTERACT, Input.Keys.E);
+        moveUp = prefs.getInteger(KEY_JUMP, Input.Keys.SPACE);
+        moveDown = prefs.getInteger(KEY_INTERACT, Input.Keys.E);
         loaded = true;
     }
 
@@ -44,8 +44,8 @@ public final class GameSettings {
     public static String getLanguage() { return language; }
     public static int getMoveLeft() { return moveLeft; }
     public static int getMoveRight() { return moveRight; }
-    public static int getJump() { return jump; }
-    public static int getInteract() { return interact; }
+    public static int getMoveUp() { return moveUp; }
+    public static int getMoveDown() { return moveDown; }
 
     public static void setMusicVolume(float value) {
         musicVolume = clamp(value);
@@ -77,14 +77,14 @@ public final class GameSettings {
         prefs.flush();
     }
 
-    public static void setJump(int key) {
-        jump = key;
+    public static void setMoveUp(int key) {
+        moveUp = key;
         prefs.putInteger(KEY_JUMP, key);
         prefs.flush();
     }
 
-    public static void setInteract(int key) {
-        interact = key;
+    public static void setMoveDown(int key) {
+        moveDown = key;
         prefs.putInteger(KEY_INTERACT, key);
         prefs.flush();
     }

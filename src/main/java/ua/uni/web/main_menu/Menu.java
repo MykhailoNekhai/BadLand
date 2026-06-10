@@ -25,6 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
+import ua.uni.web.main_menu.coop_menu.CoopMenu;
 import ua.uni.web.main_menu.settings_menu.LanguageButton;
 import ua.uni.web.main_menu.single_player_menu.SinglePlayerMenu;
 import ua.uni.web.main_menu.settings_menu.SettingsMenu;
@@ -174,7 +175,7 @@ public class Menu implements Screen {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.7f);
-                Gdx.app.log("Menu", "COOP MODE SOON");
+                game.setScreen(new CoopMenu(game));
             }
         });
         options.addListener(new ChangeListener() {

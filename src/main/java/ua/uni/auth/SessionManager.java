@@ -2,6 +2,7 @@ package ua.uni.auth;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
+import ua.uni.game.RuntimeProfile;
 
 public class SessionManager {
     private static final String PREFS_NAME = "shadowflight_session";
@@ -9,7 +10,7 @@ public class SessionManager {
     private static final String KEY_UID = "uid";
     private static final String KEY_EMAIL = "email";
 
-    private final Preferences preferences = Gdx.app.getPreferences(PREFS_NAME);
+    private final Preferences preferences = Gdx.app.getPreferences(RuntimeProfile.prefsName(PREFS_NAME));
 
     public void save(FirebaseAuthService.AuthResult result) {
         preferences.putString(KEY_ID_TOKEN, result.idToken());

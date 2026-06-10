@@ -21,6 +21,7 @@ import ua.uni.auth.SessionManager;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.config.GameSettings;
 import ua.uni.online.NakamaClient;
+import ua.uni.online.CoopMatchState;
 import ua.uni.online.NakamaMatchService;
 import ua.uni.online.NakamaSessionService;
 import ua.uni.online.NakamaSocket;
@@ -44,6 +45,7 @@ public class MainGame extends Game {
     private OnlineSessionStore onlineSessionStore;
     private NakamaSessionService nakamaSessionService;
     private NakamaMatchService nakamaMatchService;
+    private CoopMatchState coopMatchState;
     private AchievementManager achievementManager;
     private SpriteBatch overlayBatch;
     private BitmapFont popupHeaderFont;
@@ -117,6 +119,18 @@ public class MainGame extends Game {
 
     public AchievementManager getAchievementManager() {
         return achievementManager;
+    }
+
+    public CoopMatchState getCoopMatchState() {
+        return coopMatchState;
+    }
+
+    public void setCoopMatchState(CoopMatchState coopMatchState) {
+        this.coopMatchState = coopMatchState;
+    }
+
+    public void clearCoopMatchState() {
+        this.coopMatchState = null;
     }
 
     @Override

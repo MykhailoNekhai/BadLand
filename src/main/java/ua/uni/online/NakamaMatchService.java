@@ -18,7 +18,11 @@ public class NakamaMatchService {
     }
 
     public void connect(Session session) {
-        nakamaSocket.connect(session);
+        connect(session, null);
+    }
+
+    public void connect(Session session, NakamaSocket.EventListener eventListener) {
+        nakamaSocket.connect(session, eventListener);
         socket = nakamaSocket.getSocket();
     }
 
@@ -92,5 +96,9 @@ public class NakamaMatchService {
         if (socket == null) {
             throw new IllegalStateException("Nakama socket is not connected");
         }
+    }
+
+    public void setEventListener(NakamaSocket.EventListener eventListener) {
+        nakamaSocket.setEventListener(eventListener);
     }
 }

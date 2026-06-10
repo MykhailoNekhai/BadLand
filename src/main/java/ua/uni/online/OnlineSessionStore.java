@@ -4,13 +4,14 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.heroiclabs.nakama.DefaultSession;
 import com.heroiclabs.nakama.Session;
+import ua.uni.game.RuntimeProfile;
 
 public class OnlineSessionStore {
     private static final String PREFS_NAME = "badland_nakama_session";
     private static final String KEY_AUTH_TOKEN = "auth_token";
     private static final String KEY_REFRESH_TOKEN = "refresh_token";
 
-    private final Preferences preferences = Gdx.app.getPreferences(PREFS_NAME);
+    private final Preferences preferences = Gdx.app.getPreferences(RuntimeProfile.prefsName(PREFS_NAME));
 
     public void save(Session session) {
         preferences.putString(KEY_AUTH_TOKEN, session.getAuthToken());

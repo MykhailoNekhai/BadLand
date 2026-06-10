@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
@@ -35,13 +36,13 @@ public class KeyBindingsButton implements Screen {
 
     private int moveLeft;
     private int moveRight;
-    private int jump;
-    private int interact;
+    private int moveUp;
+    private int moveDown;
 
     private TextButton leftBtn;
     private TextButton rightBtn;
-    private TextButton jumpBtn;
-    private TextButton interactBtn;
+    private TextButton upBtn;
+    private TextButton downBtn;
 
     public KeyBindingsButton(MainGame game) {
         this.game = game;
@@ -55,8 +56,8 @@ public class KeyBindingsButton implements Screen {
 
         moveLeft = GameSettings.getMoveLeft();
         moveRight = GameSettings.getMoveRight();
-        jump = GameSettings.getJump();
-        interact = GameSettings.getInteract();
+        moveUp = GameSettings.getMoveUp();
+        moveDown = GameSettings.getMoveDown();
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
@@ -109,51 +110,40 @@ public class KeyBindingsButton implements Screen {
 
         leftBtn = new TextButton("", activeStyle);
         rightBtn = new TextButton("", activeStyle);
-        jumpBtn = new TextButton("", activeStyle);
-        interactBtn = new TextButton("", activeStyle);
-        refreshBindingLabels();
+        upBtn = new TextButton("", activeStyle);
+        downBtn = new TextButton("", activeStyle);
 
         leftBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                moveLeft = (moveLeft == Input.Keys.A) ? Input.Keys.LEFT : Input.Keys.A;
-                GameSettings.setMoveLeft(moveLeft);
-                refreshBindingLabels();
-            }
-        });
+                                @Override
+                                public void changed(ChangeEvent event, Actor actor) {
+                                    toggleMoveLeft();
+                                    refreshBindingLabels();
+                                }
+                            }
+        );
         rightBtn.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                moveRight = (moveRight == Input.Keys.D) ? Input.Keys.RIGHT : Input.Keys.D;
-                GameSettings.setMoveRight(moveRight);
+            public void changed(ChangeEvent event, Actor actor) {
+                toggleMoveRight();
                 refreshBindingLabels();
             }
         });
-        jumpBtn.addListener(new ChangeListener() {
+        upBtn.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                jump = (jump == Input.Keys.SPACE) ? Input.Keys.W : Input.Keys.SPACE;
-                GameSettings.setJump(jump);
+            public void changed(ChangeEvent event, Actor actor) {
+                toggleMoveUp();
                 refreshBindingLabels();
             }
         });
-        interactBtn.addListener(new ChangeListener() {
+        downBtn.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                interact = (interact == Input.Keys.E) ? Input.Keys.ENTER : Input.Keys.E;
-                GameSettings.setInteract(interact);
+            public void changed(ChangeEvent event, Actor actor) {
+                toggleMoveDown();
                 refreshBindingLabels();
             }
         });
+        refreshBindingLabels();
 
-        TextButton pauseBtn = new TextButton(LanguageButton.t("PAUSE") + ": ESC   (" + LanguageButton.t("COMING_SOON") + ")", futureStyle);
-        TextButton sprintBtn = new TextButton(LanguageButton.t("SPRINT") + ": SHIFT   (" + LanguageButton.t("COMING_SOON") + ")", futureStyle);
-        TextButton attackBtn = new TextButton(LanguageButton.t("ATTACK") + ": LMB   (" + LanguageButton.t("COMING_SOON") + ")", futureStyle);
-        TextButton invBtn = new TextButton(LanguageButton.t("INVENTORY") + ": TAB   (" + LanguageButton.t("COMING_SOON") + ")", futureStyle);
-        pauseBtn.setDisabled(true);
-        sprintBtn.setDisabled(true);
-        attackBtn.setDisabled(true);
-        invBtn.setDisabled(true);
 
         Table titleTable = new Table();
         titleTable.setFillParent(true);
@@ -166,12 +156,8 @@ public class KeyBindingsButton implements Screen {
         rows.top();
         rows.add(leftBtn).width(760).height(84).padBottom(10).row();
         rows.add(rightBtn).width(760).height(84).padBottom(10).row();
-        rows.add(jumpBtn).width(760).height(84).padBottom(10).row();
-        rows.add(interactBtn).width(760).height(84).padBottom(18).row();
-        rows.add(pauseBtn).width(760).height(84).padBottom(10).row();
-        rows.add(sprintBtn).width(760).height(84).padBottom(10).row();
-        rows.add(attackBtn).width(760).height(84).padBottom(10).row();
-        rows.add(invBtn).width(760).height(84).padBottom(10).row();
+        rows.add(upBtn).width(760).height(84).padBottom(10).row();
+        rows.add(downBtn).width(760).height(84).padBottom(18).row();
 
         ScrollPane scroll = new ScrollPane(rows);
         scroll.setScrollingDisabled(true, false);
@@ -206,8 +192,8 @@ public class KeyBindingsButton implements Screen {
         String hint = "(" + LanguageButton.t("CLICK_TO_TOGGLE") + ")";
         leftBtn.setText(LanguageButton.t("MOVE_LEFT") + ": " + Input.Keys.toString(moveLeft) + "   " + hint);
         rightBtn.setText(LanguageButton.t("MOVE_RIGHT") + ": " + Input.Keys.toString(moveRight) + "   " + hint);
-        jumpBtn.setText(LanguageButton.t("JUMP") + ": " + Input.Keys.toString(jump) + "   " + hint);
-        interactBtn.setText(LanguageButton.t("INTERACT") + ": " + Input.Keys.toString(interact) + "   " + hint);
+        upBtn.setText(LanguageButton.t("JUMP") + ": " + Input.Keys.toString(moveUp) + "   " + hint);
+        downBtn.setText(LanguageButton.t("INTERACT") + ": " + Input.Keys.toString(moveDown) + "   " + hint);
     }
 
     @Override
@@ -250,16 +236,55 @@ public class KeyBindingsButton implements Screen {
         return t;
     }
 
+    private void toggleMoveLeft() {
+        if (moveLeft == Input.Keys.A) {
+            moveLeft = Input.Keys.LEFT;
+        } else {
+            moveLeft = Input.Keys.A;
+        }
+        GameSettings.setMoveLeft(moveLeft);
+        refreshBindingLabels();
+    }
+
+    private void toggleMoveRight() {
+        if (moveRight == Input.Keys.D) {
+            moveRight = Input.Keys.RIGHT;
+        } else {
+            moveRight = Input.Keys.D;
+        }
+        GameSettings.setMoveRight(moveRight);
+    }
+
+    private void toggleMoveUp() {
+        if (moveUp == Input.Keys.W) {
+            moveUp = Input.Keys.UP;
+        } else {
+            moveUp = Input.Keys.W;
+        }
+        GameSettings.setMoveUp(moveUp);
+    }
+
+    private void toggleMoveDown() {
+        if (moveDown == Input.Keys.S) {
+            moveDown = Input.Keys.DOWN;
+        } else {
+            moveDown = Input.Keys.S;
+        }
+        GameSettings.setMoveDown(moveDown);
+    }
+
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
     }
 
     @Override
-    public void pause() {}
+    public void pause() {
+    }
 
     @Override
-    public void resume() {}
+    public void resume() {
+    }
 
     @Override
     public void hide() {

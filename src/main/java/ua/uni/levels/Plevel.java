@@ -14,28 +14,30 @@ import ua.uni.game.MainGame;
 import ua.uni.entity.Shadow;
 import ua.uni.utilite.BodyEditorLoader;
 import ua.uni.utilite.GameContactListener;
+import ua.uni.config.GameSettings;
 
 
 public abstract class Plevel implements Screen {
 
     // Потрібно для world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS),
     // тут задаєтся точність обрахунків фізики (кількість розрахунків на кадр)
-    private static final float TIMESTEP = 1/60f;
-    private static final int VELOCITY_ITERATIONS = 8;
-    private static final int POSITION_ITERATIONS = 3;
+    protected static final float TIMESTEP = 1/35f;
+    protected static final int VELOCITY_ITERATIONS = 8;
+    protected static final int POSITION_ITERATIONS = 3;
 
     // Краще не чіпати, через те що розмір тіні впливає на його масу, то при збільшенні об'єкту
     // силу тяги треба змінювати відповідно!!!
     // інакше тінь просто не зможе злетіти!!! (або буде літати моментально, якщо вага буде малою)
-    private static final float shadowSize = 1.2f;
+    protected static final float SHADOW_SIZE = 1.2f;
 
 
-    private Box2DDebugRenderer debugRenderer; // Режим дебагу, необхнідний для розробки
+    protected Box2DDebugRenderer debugRenderer; // Режим дебагу, необхнідний для розробки
     protected BodyEditorLoader heroLoader;
 
     protected World world;
     protected OrthographicCamera camera;
     protected MainGame game;
+
 
     protected Array<Shadow> clones = new Array<>(); // Клони як масив, оскільки передбачено їх збільшення (як в Badlands
     protected boolean isGameStarted = false; // потрібен для початку руху камери
@@ -50,6 +52,7 @@ public abstract class Plevel implements Screen {
         PLAYING, PAUSED, GAME_OVER, VICTORY
     }
 
+
     // Вважаємо старт рівня вже грою
     protected GameState state = GameState.PLAYING;
 
@@ -61,13 +64,13 @@ public abstract class Plevel implements Screen {
     }
 
     // Перевірка стану гри
-    private void mainGameLogic() {
+    protected void mainGameLogic() {
         if (state != GameState.PLAYING) {
             return;
         }
         float leftCameraEdge = camera.position.x - (camera.viewportWidth / 2f);
 
-        float deathLineX = leftCameraEdge - shadowSize;
+        float deathLineX = leftCameraEdge - SHADOW_SIZE;
 
         for (int i = clones.size - 1; i >= 0; i--) {
             Shadow clone = clones.get(i);
@@ -113,7 +116,7 @@ public abstract class Plevel implements Screen {
 
     // метод для створення клонів, наших тіней. В планах зробити подвоювач
     public void spawnClone(float x, float y) {
-        Shadow newClone = new Shadow(world, heroLoader, x, y, shadowSize);
+        Shadow newClone = new Shadow(world, heroLoader, x, y, SHADOW_SIZE);
         clones.add(newClone);
     }
 
@@ -184,10 +187,10 @@ public abstract class Plevel implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         debugRenderer.render(world, camera.combined);
 
-        boolean w = Gdx.input.isKeyPressed(Input.Keys.W);
-        boolean s = Gdx.input.isKeyPressed(Input.Keys.S);
-        boolean a = Gdx.input.isKeyPressed(Input.Keys.A);
-        boolean d = Gdx.input.isKeyPressed(Input.Keys.D);
+        boolean w = Gdx.input.isKeyPressed(GameSettings.getMoveUp());
+        boolean s = Gdx.input.isKeyPressed(GameSettings.getMoveDown());
+        boolean a = Gdx.input.isKeyPressed(GameSettings.getMoveLeft());
+        boolean d = Gdx.input.isKeyPressed(GameSettings.getMoveRight());
 
 
 
