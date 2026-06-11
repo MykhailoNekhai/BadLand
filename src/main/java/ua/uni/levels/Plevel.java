@@ -44,7 +44,7 @@ public abstract class Plevel implements Screen {
     protected Viewport viewport;
 
     protected float cameraSpeed = 3f; // швидкість камери
-    protected float finishLineX = 220f; // Фінішна пряма рівня
+    protected float finishLineX = 1000f; // Фінішна пряма рівня
     private float dynamicTimeStep;
 
     // Enum станів, потрібен для розуміння, коли користувач натиснув на паузу, коли програв і т.д
@@ -135,13 +135,16 @@ public abstract class Plevel implements Screen {
         world.setContactListener(new GameContactListener());
 
         int refreshRate = Gdx.graphics.getDisplayMode().refreshRate;
+        System.out.println("Refresh rate: " + refreshRate);
 
-        if (refreshRate == 0) {
-            refreshRate = 60;
+        if (refreshRate == 60) {
+            System.out.println("Refresh rate is 0, setting to 60");
+            refreshRate = 240;
         }
 
 
         dynamicTimeStep = 4.0f / refreshRate;
+        System.out.println("Dynamic time step: " + dynamicTimeStep);
 
     }
 

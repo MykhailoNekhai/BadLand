@@ -118,6 +118,14 @@ public class AchievementManager {
         return userState.getTotalPlaySeconds();
     }
 
+    public int getCompletedLevelsCount() {
+        return userState.getCompletedLevelsCount(TOTAL_LEVELS);
+    }
+
+    public int getTotalLevels() {
+        return TOTAL_LEVELS;
+    }
+
     public void resetAll() {
         pendingUnlocked.clear();
         playtimeAccumulator = 0f;

@@ -250,27 +250,6 @@ public class SettingsMenu implements Screen {
                 ))
         ));
 
-        TextButton.TextButtonStyle logoutStyle = new TextButton.TextButtonStyle();
-        logoutStyle.up = new TextureRegionDrawable(backBtn);
-        logoutStyle.down = new TextureRegionDrawable(backBtn);
-        logoutStyle.over = new TextureRegionDrawable(backBtn);
-        logoutStyle.font = smallFont;
-        logoutButton = new TextButton(LanguageButton.t("LOG_OUT"), logoutStyle);
-        logoutButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                AppLogger.info("Auth", "Logout");
-                AudioManager.get().playSelect(0.80f);
-                game.getSessionManager().clear();
-                game.setScreen(new LoginMenu(game));
-            }
-        });
-        Table logoutTable = new Table();
-        logoutTable.setFillParent(true);
-        logoutTable.bottom().right().padBottom(24).padRight(24);
-        logoutTable.add(logoutButton).width(200).height(72);
-        stage.addActor(logoutTable);
-
         statisticsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
@@ -409,7 +388,6 @@ public class SettingsMenu implements Screen {
         creditsButton.setText(LanguageButton.t("CREDITS"));
         keybindButton.setText(LanguageButton.t("KEY_BINDINGS"));
         readyButton.setText(LanguageButton.t("READY"));
-        logoutButton.setText(LanguageButton.t("LOG_OUT"));
     }
 
     private static int indexOf(String[] arr, String value) {
@@ -492,6 +470,7 @@ public class SettingsMenu implements Screen {
         pixmap.dispose();
         return t;
     }
+
 
     private Texture circleTexture(int diameter, Color color) {
         Pixmap p = new Pixmap(diameter, diameter, Pixmap.Format.RGBA8888);

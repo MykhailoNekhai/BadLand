@@ -32,6 +32,7 @@ import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
 import ua.uni.game.RuntimeProfile;
 import ua.uni.levels.CoopPoligonLevel;
+import ua.uni.levels.CoopRuinsLevel;
 import ua.uni.logging.AppLogger;
 import ua.uni.online.CoopMatchState;
 import ua.uni.online.CoopProtocol;
@@ -565,6 +566,10 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         game.setCoopMatchState(new CoopMatchState(currentMatchId, selfUserId, hostUserId, level));
         if (level == 1) {
             game.setScreen(new CoopPoligonLevel(game));
+            return;
+        }
+        if (level == 2) {
+            game.setScreen(new CoopRuinsLevel(game));
             return;
         }
         game.setScreen(new CoopLevelPlayScreen(game, level));

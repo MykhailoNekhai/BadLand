@@ -69,6 +69,16 @@ public class UserAchievementState {
         return preferences.getBoolean(KEY_LEVEL_COMPLETED_PREFIX + level, false);
     }
 
+    public int getCompletedLevelsCount(int totalLevels) {
+        int completed = 0;
+        for (int level = 1; level <= totalLevels; level++) {
+            if (isLevelCompleted(level)) {
+                completed++;
+            }
+        }
+        return completed;
+    }
+
     public void markLevelCompleted(int level) {
         preferences.putBoolean(KEY_LEVEL_COMPLETED_PREFIX + level, true);
         preferences.flush();
