@@ -27,7 +27,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
 import ua.uni.web.main_menu.coop_menu.CoopMenu;
-import ua.uni.web.main_menu.settings_menu.AccountMenu;
+import ua.uni.web.main_menu.account_menu.AccountMenu;
 import ua.uni.web.main_menu.settings_menu.LanguageButton;
 import ua.uni.web.main_menu.settings_menu.SettingsMenu;
 import ua.uni.web.main_menu.single_player_menu.SinglePlayerMenu;
@@ -67,7 +67,6 @@ public class Menu implements Screen {
     private float elapsed;
     private float uiAlpha;
     private float transitionAlpha;
-    private float nextAmbientAt;
     private boolean startTransition;
 
     public Menu(MainGame game) {
@@ -81,7 +80,7 @@ public class Menu implements Screen {
 
         initFonts();
         initTextures();
-        AudioManager.get().playMenuMusic();
+        AudioManager.get().enterMenuContext();
 
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             partX[i] = MathUtils.random(0f, 1280f);
@@ -92,7 +91,6 @@ public class Menu implements Screen {
         }
 
         buildUi();
-        nextAmbientAt = 4.5f;
     }
 
     private void initFonts() {
@@ -247,10 +245,7 @@ public class Menu implements Screen {
     @Override
     public void render(float delta) {
         elapsed += delta;
-        if (!startTransition && elapsed >= nextAmbientAt) {
-            AudioManager.get().playRandomMenuAmbience(0.30f);
-            nextAmbientAt = elapsed + MathUtils.random(5.5f, 10.5f);
-        }
+        AudioManager.get().updateMenuAmbience(delta);
         if (uiAlpha < 1f) {
             uiAlpha = Math.min(1f, uiAlpha + (delta / 0.6f));
         }
@@ -544,6 +539,7 @@ public class Menu implements Screen {
 
     @Override
     public void hide() {
+        AudioManager.get().leaveMenuContext();
         Gdx.input.setInputProcessor(null);
     }
 

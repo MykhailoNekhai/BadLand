@@ -52,7 +52,7 @@ public class KeyBindingsButton implements Screen {
     public void show() {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
-        AudioManager.get().playMenuMusic();
+        AudioManager.get().enterMenuContext();
 
         moveLeft = GameSettings.getMoveLeft();
         moveRight = GameSettings.getMoveRight();
@@ -199,6 +199,7 @@ public class KeyBindingsButton implements Screen {
     @Override
     public void render(float delta) {
         elapsed += delta;
+        AudioManager.get().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new SettingsMenu(game));
             return;
@@ -288,6 +289,7 @@ public class KeyBindingsButton implements Screen {
 
     @Override
     public void hide() {
+        AudioManager.get().leaveMenuContext();
         Gdx.input.setInputProcessor(null);
     }
 

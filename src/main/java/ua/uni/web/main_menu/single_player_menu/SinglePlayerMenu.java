@@ -26,8 +26,7 @@ import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
 import ua.uni.levels.PoligonLevel;
 import ua.uni.levels.RuinsLevel;
-import ua.uni.web.main_menu.Menu;
-import ua.uni.audio.music.LevelPlayScreen;
+import ua.uni.audio.music.Menu;
 
 public class SinglePlayerMenu implements Screen {
     private static final int LEVELS_PER_PAGE = 10;
@@ -62,7 +61,7 @@ public class SinglePlayerMenu implements Screen {
     public void show() {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
-        AudioManager.get().playMenuMusic();
+        AudioManager.get().enterMenuContext();
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
@@ -210,8 +209,9 @@ public class SinglePlayerMenu implements Screen {
     @Override
     public void render(float delta) {
         elapsed += delta;
+        AudioManager.get().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new Menu(game));
+            game.setScreen(new ua.uni.web.main_menu.Menu(game));
             return;
         }
         if (startTransition) {
@@ -222,7 +222,7 @@ public class SinglePlayerMenu implements Screen {
                 } else if (selectedLevel == 2) {
                     game.setScreen(new RuinsLevel(game));
                 } else {
-                    game.setScreen(new LevelPlayScreen(game, selectedLevel));
+                    game.setScreen(new Menu(game, selectedLevel));
                 }
                 return;
             }
@@ -361,6 +361,7 @@ public class SinglePlayerMenu implements Screen {
 
     @Override
     public void hide() {
+        AudioManager.get().leaveMenuContext();
         Gdx.input.setInputProcessor(null);
     }
 

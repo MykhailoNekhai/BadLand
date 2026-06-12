@@ -1,0 +1,22 @@
+src/main/resources/game-resourses/audio/menu_music.mp3
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/27-smaller birds.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/12-distant frogs.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/14-morningbird.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/5-birdie.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/6-birdie2.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/8-blackbird1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/69-Hover.wav
+src/main/resources/game-resourses/audio/ui_select.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/76-Start.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/75-MenuInOuts.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/73-MP4select.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/46-achievement notice.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/1-Amb24b48k.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/5-crow.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/6-electric.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/8-motor.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/1-electric1.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/11-servo1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/174-metalhang1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/51-winner.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/222-sidedeath pro tools filt.wav

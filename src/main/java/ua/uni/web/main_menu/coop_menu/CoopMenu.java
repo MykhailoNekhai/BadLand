@@ -99,7 +99,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     public void show() {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
-        AudioManager.get().playMenuMusic();
+        AudioManager.get().enterMenuContext();
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/coop_bg_generated.png"));
         fg = new Texture(Gdx.files.internal("game-resourses/menu/coop_fg_generated.png"));
@@ -700,6 +700,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
 
     @Override
     public void render(float delta) {
+        AudioManager.get().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             leaveMatchAndDisconnect("Closed coop lobby.");
             game.setScreen(new Menu(game));
@@ -762,6 +763,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
 
     @Override
     public void hide() {
+        AudioManager.get().leaveMenuContext();
         Gdx.input.setInputProcessor(null);
     }
 
