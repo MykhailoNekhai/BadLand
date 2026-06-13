@@ -7,6 +7,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import ua.uni.dto.PlayerAchievementsDto;
+import ua.uni.dto.PlayerDataDto;
+import ua.uni.dto.PlayerProgressDto;
+import ua.uni.dto.PlayerSettingsDto;
+import ua.uni.dto.PlayerStatsDto;
+import ua.uni.dto.UserProfileDto;
 
 public class FirestoreService {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
@@ -19,20 +25,96 @@ public class FirestoreService {
     }
 
     public void createUserProfile(String idToken, String uid, String nickname, String email, String language) {
-        JsonObject fields = new JsonObject();
-        fields.add("nickname", stringValue(nickname));
-        fields.add("email", stringValue(email));
-        fields.add("language", stringValue(language));
-
-        JsonObject body = new JsonObject();
-        body.add("fields", fields);
-
-        String url = baseDocumentsUrl() + "/users?documentId=" + uid;
-        executeAuthorizedPost(url, idToken, body.toString());
+        long now = System.currentTimeMillis();
+        saveUserProfile(idToken, uid, new UserProfileDto(uid, nickname, email, language, now, now, false));
     }
 
     public JsonObject getUserProfile(String idToken, String uid) {
         String url = baseDocumentsUrl() + "/users/" + uid;
+        return executeAuthorizedGet(url, idToken);
+    }
+
+    public void saveUserProfile(String idToken, String uid, UserProfileDto profile) {
+        executeAuthorizedPatch(documentUrl("users/" + uid), idToken, FirestoreDtoMapper.toDocumentBody(profile).toString());
+    }
+
+    public UserProfileDto getUserProfileDto(String idToken, String uid) {
+        return getDocument(idToken, "users/" + uid, UserProfileDto.class);
+    }
+
+    public void savePlayerSettings(String idToken, String uid, PlayerSettingsDto settings) {
+        saveDocument(idToken, privateDocumentPath(uid, "settings"), settings);
+    }
+
+    public PlayerSettingsDto getPlayerSettings(String idToken, String uid) {
+        return getDocument(idToken, privateDocumentPath(uid, "settings"), PlayerSettingsDto.class);
+    }
+
+    public void savePlayerProgress(String idToken, String uid, PlayerProgressDto progress) {
+        saveDocument(idToken, privateDocumentPath(uid, "progress"), progress);
+    }
+
+    public PlayerProgressDto getPlayerProgress(String idToken, String uid) {
+        return getDocument(idToken, privateDocumentPath(uid, "progress"), PlayerProgressDto.class);
+    }
+
+    public void savePlayerStats(String idToken, String uid, PlayerStatsDto stats) {
+        saveDocument(idToken, privateDocumentPath(uid, "stats"), stats);
+    }
+
+    public PlayerStatsDto getPlayerStats(String idToken, String uid) {
+        return getDocument(idToken, privateDocumentPath(uid, "stats"), PlayerStatsDto.class);
+    }
+
+    public void savePlayerAchievements(String idToken, String uid, PlayerAchievementsDto achievements) {
+        saveDocument(idToken, privateDocumentPath(uid, "achievements"), achievements);
+    }
+
+    public PlayerAchievementsDto getPlayerAchievements(String idToken, String uid) {
+        return getDocument(idToken, privateDocumentPath(uid, "achievements"), PlayerAchievementsDto.class);
+    }
+
+    public void savePlayerData(String idToken, String uid, PlayerDataDto playerData) {
+        if (playerData == null) {
+            return;
+        }
+        if (playerData.getProfile() != null) {
+            saveUserProfile(idToken, uid, playerData.getProfile());
+        }
+        if (playerData.getSettings() != null) {
+            savePlayerSettings(idToken, uid, playerData.getSettings());
+        }
+        if (playerData.getProgress() != null) {
+            savePlayerProgress(idToken, uid, playerData.getProgress());
+        }
+        if (playerData.getStats() != null) {
+            savePlayerStats(idToken, uid, playerData.getStats());
+        }
+        if (playerData.getAchievements() != null) {
+            savePlayerAchievements(idToken, uid, playerData.getAchievements());
+        }
+    }
+
+    public PlayerDataDto getPlayerData(String idToken, String uid) {
+        return new PlayerDataDto(
+                getUserProfileDto(idToken, uid),
+                getPlayerSettings(idToken, uid),
+                getPlayerProgress(idToken, uid),
+                getPlayerStats(idToken, uid),
+                getPlayerAchievements(idToken, uid)
+        );
+    }
+
+    private void saveDocument(String idToken, String documentPath, Object dto) {
+        executeAuthorizedPatch(documentUrl(documentPath), idToken, FirestoreDtoMapper.toDocumentBody(dto).toString());
+    }
+
+    private <T> T getDocument(String idToken, String documentPath, Class<T> type) {
+        JsonObject document = executeAuthorizedGet(documentUrl(documentPath), idToken);
+        return FirestoreDtoMapper.fromDocument(document, type);
+    }
+
+    private JsonObject executeAuthorizedGet(String url, String idToken) {
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Bearer " + idToken)
@@ -53,11 +135,11 @@ public class FirestoreService {
         }
     }
 
-    private void executeAuthorizedPost(String url, String idToken, String body) {
+    private void executeAuthorizedPatch(String url, String idToken, String body) {
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Bearer " + idToken)
-                .post(RequestBody.create(body, JSON))
+                .patch(RequestBody.create(body, JSON))
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
@@ -78,9 +160,11 @@ public class FirestoreService {
                 + "/databases/(default)/documents";
     }
 
-    private JsonObject stringValue(String value) {
-        JsonObject object = new JsonObject();
-        object.addProperty("stringValue", value);
-        return object;
+    private String documentUrl(String documentPath) {
+        return baseDocumentsUrl() + "/" + documentPath;
+    }
+
+    private String privateDocumentPath(String uid, String documentName) {
+        return "users/" + uid + "/private/" + documentName;
     }
 }
