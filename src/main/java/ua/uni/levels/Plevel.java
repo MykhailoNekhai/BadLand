@@ -50,8 +50,6 @@ public abstract class Plevel implements Screen {
 
     protected boolean isGameStarted = false; // потрібен для початку руху камери
     protected Viewport viewport;
-    protected float cameraSpeed = 3f;
-    protected float finishLineX = 1000f;
 
     protected float cameraSpeed = 3f; // швидкість камери
     protected float finishLineX = 2000f; // Фінішна пряма рівня
@@ -199,7 +197,6 @@ public abstract class Plevel implements Screen {
             }
         }
 
-        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         if (!isGameStarted) {
@@ -208,17 +205,18 @@ public abstract class Plevel implements Screen {
             boolean a = Gdx.input.isKeyPressed(GameSettings.getMoveLeft());
             boolean d = Gdx.input.isKeyPressed(GameSettings.getMoveRight());
 
-        if (state == GameState.PLAYING && !isGameStarted && (w || s || a || d)) {
-            isGameStarted = true;
+            if (state == GameState.PLAYING && !isGameStarted && (w || s || a || d)) {
+                isGameStarted = true;
+            }
         }
-
+/*
         if (state == GameState.PLAYING) {
             AudioManager.get().updateLevelAmbience(delta);
             for (Shadow clone : clones) {
                 clone.move(w, s, a, d);
             }
         }
-
+*/
         ImmutableArray<Entity> players = engine.getEntitiesFor(Family.all(PlayerComponent.class, PhysicsComponent.class).get());
 
         if (isGameStarted && players.size() > 0) {
@@ -247,22 +245,15 @@ public abstract class Plevel implements Screen {
         game.getBatch().setProjectionMatrix(camera.combined);
 
         if (state == GameState.PLAYING) {
+            AudioManager.get().updateLevelAmbience(delta);
             world.step(dynamicTimeStep, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-
             engine.update(delta);
+            mainGameLogic();
+        } else if (state == GameState.PAUSED) {
+            engine.getSystem(RenderSystem.class).update(delta);
+            pauseMenu.render(delta);
         } else {
             engine.getSystem(RenderSystem.class).update(delta);
-        }
-
-
-        mainGameLogic();
-            camera.position.y = camera.viewportHeight / 2f;
-            camera.update();
-            mainGameLogic();
-        } else {
-            camera.position.y = camera.viewportHeight / 2f;
-            camera.update();
-            pauseMenu.render(delta);
         }
     }
 
