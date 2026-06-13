@@ -27,6 +27,7 @@ import ua.uni.online.NakamaSessionService;
 import ua.uni.online.NakamaSocket;
 import ua.uni.online.OnlineConfig;
 import ua.uni.online.OnlineSessionStore;
+import ua.uni.utilite.ConfigLoader;
 import ua.uni.web.login_menu.LoginMenu;
 import ua.uni.web.main_menu.Menu;
 import ua.uni.web.main_menu.settings_menu.AchievementsButton;
@@ -57,9 +58,21 @@ public class MainGame extends Game {
     private final GlyphLayout popupTitleLayout = new GlyphLayout();
     private Achievements activePopupAchievement;
     private float popupElapsed;
+    private SpriteBatch batch;
+
+
+    public SpriteBatch getBatch() {
+        return batch;
+    }
+
+
 
     @Override
     public void create() {
+        // вантажимо з конфігу об'єкти прямо при запуску гри
+        batch = new SpriteBatch();
+        ConfigLoader.load();
+
         GameSettings.load();
         firebaseConfig = FirebaseConfig.loadFromResources();
         authService = new FirebaseAuthService(firebaseConfig);

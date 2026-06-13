@@ -1,0 +1,938 @@
+
+{
+  "sharp-rock-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 90.0
+  },
+  "avatar-1": {
+    "bodyType": "Dynamic",
+    "friction": 0.25,
+    "restitution": 0.05,
+    "density": 5.0,
+    "baseWidth": 208.0,
+    "isPlayer": true,
+    "linearDamping": 0.2,
+    "gravityScale": 0.3,
+    "angularDamping": 4.0
+  },
+  "wood-branch-8": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 524.0
+  },
+  "small-branch": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 347.0
+  },
+  "thorne-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 37.0
+  },
+  "hammer-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 242.0
+  },
+  "branch-tip-6": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 83.0
+  },
+  "mod-chain": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 137.0
+  },
+  "grass-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 392.0
+  },
+  "branch-tip-7": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 134.0
+  },
+  "branch-tip-5": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 50.0
+  },
+  "part-4": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 168.0
+  },
+  "liana-4": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 686.0
+  },
+  "swampy-rock-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 339.0
+  },
+  "pipe-medium": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 40.0
+  },
+  "saloon-door-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 52.0
+  },
+  "sirpa-4": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 10.0
+  },
+  "grenade-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 42.0
+  },
+  "pipe-straight-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 232.0
+  },
+  "sponge-4": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 34.0
+  },
+  "sirpa-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 20.0
+  },
+  "wire-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 313.0
+  },
+  "box": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 94.0
+  },
+  "part-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 148.0
+  },
+  "wood-branch-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 351.0
+  },
+  "pipe-straight-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 232.0
+  },
+  "branch-tip-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 479.0
+  },
+  "branch-tip-12": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 107.0
+  },
+  "pipe-short": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 40.0
+  },
+  "thorne-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 28.0
+  },
+  "branch-tip-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 60.0
+  },
+  "turret-5": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 186.0
+  },
+  "wood-stump-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 162.0
+  },
+  "pipe-chain-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 97.0
+  },
+  "turret-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 154.0
+  },
+  "roundy-pipes-large": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 292.0
+  },
+  "sirpa-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 22.0
+  },
+  "sponge-6": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 39.0
+  },
+  "tube-part": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 154.0
+  },
+  "sponge-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 83.0
+  },
+  "wood-branch-16": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 394.0
+  },
+  "scifi-ball": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 113.0
+  },
+  "wood-branch-5": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 605.0
+  },
+  "gear-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 597.0
+  },
+  "turret": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 167.0
+  },
+  "fat-curve": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 131.0
+  },
+  "liana-5": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 676.0
+  },
+  "wood-branch-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 374.0
+  },
+  "wood-stump-5": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 249.0
+  },
+  "sponge-9": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 165.0
+  },
+  "portal-cube-bg": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 306.0
+  },
+  "turret-4": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 145.0
+  },
+  "sirpa-6": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 10.0
+  },
+  "liana-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 501.0
+  },
+  "wood-branch-7": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 574.0
+  },
+  "sponge-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 84.0
+  },
+  "sponge-7": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 149.0
+  },
+  "branch-tip-10": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 258.0
+  },
+  "liana-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 315.0
+  },
+  "grenade": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 38.0
+  },
+  "branch-tip-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 61.0
+  },
+  "branch-root-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 100.0
+  },
+  "random-filler": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 308.0
+  },
+  "part-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 145.0
+  },
+  "rock-5": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 229.0
+  },
+  "roundy-pipes-large-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 299.0
+  },
+  "wire-4": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 200.0
+  },
+  "wood-branch-10": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 480.0
+  },
+  "rock-11": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 336.0
+  },
+  "sliding-thorne": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 33.0
+  },
+  "pipe-chain-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 40.0
+  },
+  "branch-tip-9": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 163.0
+  },
+  "tube-tip": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 232.0
+  },
+  "timescape": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 113.0
+  },
+  "gravity": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 137.0
+  },
+  "saloon-door": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 52.0
+  },
+  "spike-bot-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 69.0
+  },
+  "round-triangle": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 155.0
+  },
+  "sharp-rock-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 18.0
+  },
+  "Plank1": {
+    "friction": 0.5,
+    "restitution": 0.1,
+    "density": 0.5,
+    "baseWidth": 369.0
+  },
+  "shredder-large": {
+    "bodyType": "Kinematic",
+    "isDeadly": true,
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 446.0
+  },
+  "button": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 95.0
+  },
+  "brick-filler": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 135.0
+  },
+  "wood-branch-4": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 352.0
+  },
+  "wire-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 494.0
+  },
+  "branch-tip-8": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 148.0
+  },
+  "burdock": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 38.0
+  },
+  "triangle": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 196.0
+  },
+  "tube-mask": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 209.0
+  },
+  "portal-mask-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 200.0
+  },
+  "wood-stump-4": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 251.0
+  },
+  "sirpa-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 18.0
+  },
+  "button-base": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 121.0
+  },
+  "lazer-obstacle": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 115.0
+  },
+  "small-branch-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 400.0
+  },
+  "rock-4": {
+    "friction": 0.8,
+    "restitution": 0.0,
+    "density": 0.0,
+    "baseWidth": 230.0
+  },
+  "wood-branch-9": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 366.0
+  },
+  "button-shaft": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 44.0
+  },
+  "branch-root": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 673.0
+  },
+  "sponge-5": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 54.0
+  },
+  "lazer-turret": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 178.0
+  },
+  "wood-branch-6": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 786.0
+  },
+  "rock-7": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 63.0
+  },
+  "tube-connection": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 110.0
+  },
+  "portal-mask": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 189.0
+  },
+  "rock-10": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 400.0
+  },
+  "portal-bg": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 479.0
+  },
+  "sliding-door": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 90.0
+  },
+  "wire-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 369.0
+  },
+  "rock-6": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 109.0
+  },
+  "branch-tip-11": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 132.0
+  },
+  "liana-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 527.0
+  },
+  "wood-branch-15": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 493.0
+  },
+  "leca": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 497.0
+  },
+  "rock-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 162.0
+  },
+  "sirpa-5": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 6.0
+  },
+  "propeller-slim-large": {
+    "bodyType": "Kinematic",
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 370.0
+  },
+  "sponge-8": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 70.0
+  },
+  "turret-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 139.0
+  },
+  "branch-tip-4": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 89.0
+  },
+  "tube-shallow-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 217.0
+  },
+  "pipe-long": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 42.0
+  },
+  "swamp-tip": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 72.0
+  },
+  "rock-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 507.0
+  },
+  "sirpa-7": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 8.0
+  },
+  "rocket": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 42.0
+  },
+  "wood-stump-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 332.0
+  },
+  "thorne-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 40.0
+  },
+  "wood-stump-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 208.0
+  },
+  "gear": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 634.0
+  },
+  "pipe-corner-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 244.0
+  },
+  "propeller-small": {
+    "bodyType": "Kinematic",
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 110.0
+  },
+  "part-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 113.0
+  },
+  "wood-branch-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 540.0
+  },
+  "mine": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 180.0
+  },
+  "rock-8": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 18.0
+  },
+  "arc": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 493.0
+  },
+  "spike-bot": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 288.0
+  },
+  "filler-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 204.0
+  },
+  "propeller-slim-large-2": {
+    "bodyType": "Kinematic",
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 135.0
+  },
+  "sponge-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 42.0
+  },
+  "burdock-large": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 131.0
+  },
+  "tube-steep-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 239.0
+  },
+  "superball": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 102.0
+  },
+  "huge-curve": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 1000.0
+  },
+  "sharp-rock-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 26.0
+  },
+  "propeller-large": {
+    "bodyType": "Kinematic",
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 248.0
+  },
+  "barbwire": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 419.0
+  },
+  "wood-edge-1": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 1006
+  },
+  "wood-edge-2": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 1006
+  },
+  "wood-edge-3": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 1006
+  },
+  "wood-edge-4": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 1006
+  },
+  "wood-edge-5": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 1006
+  },
+  "wood-edge-6": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 1006
+  }
+}

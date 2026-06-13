@@ -25,7 +25,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
 import ua.uni.levels.PoligonLevel;
-import ua.uni.levels.RuinsLevel;
+//import ua.uni.levels.RuinsLevel;
 import ua.uni.audio.music.Menu;
 
 public class SinglePlayerMenu implements Screen {
@@ -220,7 +220,7 @@ public class SinglePlayerMenu implements Screen {
                 if (selectedLevel == 1) {
                     game.setScreen(new PoligonLevel(game));
                 } else if (selectedLevel == 2) {
-                    game.setScreen(new RuinsLevel(game));
+              //      game.setScreen(new RuinsLevel(game));
                 } else {
                     game.setScreen(new Menu(game, selectedLevel));
                 }

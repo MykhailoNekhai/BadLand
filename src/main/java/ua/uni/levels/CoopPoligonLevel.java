@@ -1,7 +1,7 @@
 package ua.uni.levels;
 
 import ua.uni.game.MainGame;
-
+/*
 public class CoopPoligonLevel extends BaseCoopLevel {
 
     public CoopPoligonLevel(MainGame game) {
@@ -39,3 +39,5 @@ public class CoopPoligonLevel extends BaseCoopLevel {
         new ua.uni.entity.Saw2(world, 205, 16, 8f);
     }
 }
+
+ */

@@ -1,5 +1,6 @@
 package ua.uni.entity;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import ua.uni.utilite.BodyEditorLoader;
@@ -97,11 +98,11 @@ public class Shadow {
     }
 
     private void convertToRealSize(float size, BodyEditorLoader loader, FixtureDef fixtureDef){
-        float imageWidthPixels = 200f;
+        float imageWidthPixels = 208f;
 
         float realScale = size / imageWidthPixels;
 
-        loader.attachFixture(body, "shadow", fixtureDef, realScale);
+        loader.attachFixture(body, "avatar-1", fixtureDef, realScale);
     }
 
     public Body getBody() {
@@ -115,4 +116,5 @@ public class Shadow {
     public boolean isDead() {
         return isDead;
     }
+
 }

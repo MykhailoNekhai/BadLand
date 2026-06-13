@@ -1,11 +1,15 @@
 package ua.uni.utilite;
 
+import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.physics.box2d.*;
-import ua.uni.entity.Clonable;
-import ua.uni.entity.Deadly;
-import ua.uni.entity.Shadow;
+import ua.uni.components.DeadlyComponent;
+import ua.uni.components.PlayerComponent;
 
 public class GameContactListener implements ContactListener {
+
+    private ComponentMapper<PlayerComponent> playerMapper = ComponentMapper.getFor(PlayerComponent.class);
+    private ComponentMapper<DeadlyComponent> deadlyMapper = ComponentMapper.getFor(DeadlyComponent.class);
 
     @Override
     public void beginContact(Contact contact) {
@@ -16,23 +20,18 @@ public class GameContactListener implements ContactListener {
             return;
         }
 
-        boolean isA_Shadow = objA instanceof Shadow;
-        boolean isB_Shadow = objB instanceof Shadow;
+        checkDeath(objA, objB);
+        checkDeath(objB, objA);
+    }
 
-        boolean isA_Hazard = objA instanceof Deadly;
-        boolean isB_Hazard = objB instanceof Deadly;
+    private void checkDeath(Object supposedPlayer, Object supposedDeadly) {
+        if (supposedPlayer instanceof Entity && supposedDeadly instanceof Entity) {
+            Entity playerEntity = (Entity) supposedPlayer;
+            Entity deadlyEntity = (Entity) supposedDeadly;
 
-        boolean isA_Clonable = objA instanceof Clonable;
-        boolean isB_Clonable = objB instanceof Clonable;
-
-        if ((isA_Shadow && isB_Hazard) || (isB_Shadow && isA_Hazard)) {
-            Shadow shadow = isA_Shadow ? (Shadow) objA : (Shadow) objB;
-            shadow.setDead(true);
-        }
-
-        if ((isA_Shadow && isB_Clonable) || (isB_Shadow && isA_Clonable)) {
-            Clonable clonable = isA_Clonable ? (Clonable) objA : (Clonable) objB;
-            clonable.collect();
+            if (playerMapper.has(playerEntity) && deadlyMapper.has(deadlyEntity)) {
+                playerMapper.get(playerEntity).isDead = true;
+            }
         }
     }
 
