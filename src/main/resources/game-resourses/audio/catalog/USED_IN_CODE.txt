@@ -1,0 +1,79 @@
+USED IN CODE
+
+MENU
+- menu/background/menu_music.mp3
+- menu/ambience/all 32 files from DawnDayBank
+  1-Dawnsong.wav
+  2-bee1.wav
+  3-bee2.wav
+  4-bird clip.wav
+  5-birdie.wav
+  6-birdie2.wav
+  7-birdie3.wav
+  8-blackbird1.wav
+  9-blackbird2.wav
+  10-blackbird3.wav
+  11-blackbird4.wav
+  12-distant frogs.wav
+  13-more frogs.wav
+  14-morningbird.wav
+  15-nightgale1.wav
+  16-nightgale2.wav
+  17-nightgale3.wav
+  18-nightgale4.wav
+  19-nightgale5.wav
+  20-nightgale6.wav
+  21-nightgale7.wav
+  22-nightgale8.wav
+  23-nightgaledub.wav
+  24-nightgaledub2.wav
+  25-robin1.wav
+  26-robin2.wav
+  27-smaller birds.wav
+  28-sparrow.wav
+  29-splash.wav
+  30-ujellus.wav
+  31-day pad.wav
+  32-vibra hit.wav
+
+UI
+- ui/menu/69-Hover.wav
+- ui/menu/ui_select.wav
+- ui/menu/76-Start.wav
+- ui/menu/75-MenuInOuts.wav
+- ui/menu/73-MP4select.wav
+- ui/system/46-achievement notice.wav
+
+LEVEL
+- level/background/1-Amb24b48k.wav
+- level/ambience/all files from EveningBank except 1-Amb24b48k.wav
+  2-bird.wav
+  3-birdflock.wav
+  4-birdsvarifi.wav
+  5-crow.wav
+  6-electric.wav
+  7-electric2.wav
+  8-motor.wav
+  9-motor2.wav
+  10-treefall1.wav
+  11-treefall2.wav
+  12-treefall3.wav
+  13-treefallreverse.wav
+- level/ambience/all files from NightBank
+  1-electric1.wav
+  2-electric2.wav
+  3-electric3.wav
+  4-electric4.wav
+  5-electro1.wav
+  6-electrocreature.wav
+  7-electrocreature2.wav
+  8-nightpad24b48k.wav
+  9-pulse1.wav
+  10-pulsereverse.wav
+  11-servo1.wav
+  12-servo2.wav
+  13-servo3.wav
+  14-servo4.wav
+  15-servo5.wav
+- level/results/51-winner.wav
+- level/results/222-sidedeath pro tools filt.wav

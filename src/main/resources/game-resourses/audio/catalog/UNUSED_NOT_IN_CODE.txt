@@ -1,0 +1,270 @@
+src/main/resources/game-resourses/audio/extracted/BadlandBank/1-Portal out.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/10-Slide metal.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/100-BreakGravel3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/101-BreakRock1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/102-BreakRock2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/103-BreakRock3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/104-BreakRock4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/105-BreakRock5.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/106-BreakRock6.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/107-BreakTearing1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/108-BreakTearing2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/109-BreakTearing3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/11-Count.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/110-BreakTearing4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/111-earthquake rock pro tools filter.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/112-RonMhard1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/113-RonMhard2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/114-RonMhard3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/115-RonMlight1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/116-RonMlight2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/117-RonMlight3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/118-RonMmedium1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/119-RonMmedium2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/12-Go.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/120-RonMmedium3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/121-RonMmedium4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/122-RonRhard2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/123-RonRhard3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/124-RonRhard4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/125-RonRlight1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/126-RonRlight2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/127-RonRlight3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/128-RonRlight4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/129-RonRmedium1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/13-Mystic1stereo.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/130-RonRmedium2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/131-RonRmedium3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/132-RonRmedium4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/133-RonWhard1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/134-RonWhard2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/135-RonWhard3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/136-RonWlight1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/137-RonWlight2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/138-RonWlight3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/139-RonWlight4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/14-badguy.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/140-RonWmedium1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/141-RonWmedium2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/142-RonWmedium3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/143-RonWmedium4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/144-Explosion 1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/145-Explosion 2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/146-Hovering.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/147-Mine pro tools filter.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/148-Powerdown.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/149-propeller loose 1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/15-droplet1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/150-propeller loose 2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/151-propeller loose 3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/152-propeller loose 4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/153-chainhit1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/154-chainhit2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/155-chainhit3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/156-chainhit4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/157-chainhit5.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/158-Burdock Circsaw hit.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/159-Circsaw hit.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/16-droplet2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/160-Circsaw loop.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/161-cubeteleport.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/162-endpipesoundwarmer.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/163-playerendsuhina.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/164-ball grow.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/165-ball wobble.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/166-metal hinge 1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/167-metal hinge 2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/168-metal hinge 3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/169-hydraulic door.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/17-droplet3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/170-magnet active.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/171-magnet idle weak1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/172-magnet idle weak2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/173-magnet idle.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/175-metalhang2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/176-metalhang3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/177-metalhang4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/178-metalhang5.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/179-metalhang6.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/18-machine ambience.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/180-scifiwheelloop.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/181-smallproploose1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/182-smallproploose2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/183-smallproploose3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/184-Spike appear.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/185-Spike dissapear.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/186-switch hit.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/187-switch hydraulic.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/188-switch on.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/189-Teleport1 pro tools filt.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/19-bicycle.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/190-Teleport2 pro tools filt.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/191-Teleport3 pro tools filt.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/192-Teleport4 pro tools filt.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/193-Teleport5 pro tools filt.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/194-tormaytinappear.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/195-tormaytincollision.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/196-tormaytindissapear.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/197-grenadebeep NEW.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/198-turret ready.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/199-turret shoot.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/2-Portal.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/20-coggishloop.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/200-turret turn.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/201-PLhitM1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/202-PLhitM2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/203-PLhitM3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/204-PLhitM4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/205-PLhitM5.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/206-PLhitR1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/207-PLhitW1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/208-PLhitW2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/209-PLhitW3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/21-fan.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/210-bones.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/211-chain single hit1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/212-chain single hit2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/213-chain single hit3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/214-fly1 pro tools filt1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/215-fly1 pro tools filt2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/216-fly1 pro tools filt3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/217-fly1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/218-fly2 pro tools filt1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/219-fly2 pro tools filt2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/22-nastymetal.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/220-fly2 pro tools filt3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/221-fly2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/223-squish.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/224-windloop.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/23-sewing short.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/24-sewing.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/25-sewing2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/26-metalbreak1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/27-metalbreak2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/28-metalbreak6.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/29-metal mini screech.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/3-Screenshot.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/30-metal mutant.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/31-mystic2stereo.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/32-mystic3stereo.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/33-spotlight.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/34-lightwhoosh_02-02.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/35-lightwhoosh_02-03.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/36-whoosh1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/37-whoosh2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/38-whoosh3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/39-gravity.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/4-stream pro tools filt.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/40-Lazer idle loop 2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/41-lazer burn.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/42-lazer hit.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/43-lazer move.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/44-lazer player hit.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/45-Mystic Egg.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/47-name.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/48-one egg.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/49-score blip.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/5-Blow pipe heavy loop.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/50-scoreboard.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/52-BIGGERZ_03.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/53-bouncylittle.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/54-bouncymedium.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/55-bouncyreally.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/56-clone1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/57-clone2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/58-clone3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/59-clone4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/6-Blow pipe player.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/60-faster.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/61-rollpick NEW.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/62-sitcky3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/63-slower.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/64-smaller NEW.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/65-sticky1 pro tools filt.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/66-timefast.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/67-timeslow.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/68-unsticky.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/7-Blow pipe softer loop.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/70-MP1select.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/71-MP2select.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/72-MP3select.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/74-Map.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/77-branch 1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/78-branch 2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/79-branch 3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/8-Circsaw stuck.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/80-branchshort1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/81-branchshort2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/82-branchshort3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/83-gravelshort1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/84-gravelshort2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/85-gravelshort3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/86-rockshort1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/87-rockshort2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/88-rockshort3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/89-rockshort4.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/9-Powerup.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/90-rockshort5.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/91-rockshort6.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/92-tearshort1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/93-tearshort2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/94-tearshort3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/95-BreakFoliage1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/96-BreakFoliage2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/97-BreakFoliage3.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/98-BreakGravel1.wav
+src/main/resources/game-resourses/audio/extracted/BadlandBank/99-BreakGravel2.wav
+src/main/resources/game-resourses/audio/extracted/BadlandIntroBank/1-Badland24b48k.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/1-Dawnsong.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/10-blackbird3.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/11-blackbird4.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/13-more frogs.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/15-nightgale1.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/16-nightgale2.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/17-nightgale3.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/18-nightgale4.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/19-nightgale5.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/2-bee1.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/20-nightgale6.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/21-nightgale7.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/22-nightgale8.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/23-nightgaledub.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/24-nightgaledub2.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/25-robin1.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/26-robin2.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/28-sparrow.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/29-splash.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/3-bee2.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/30-ujellus.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/31-day pad.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/32-vibra hit.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/4-bird clip.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/7-birdie3.wav
+src/main/resources/game-resourses/audio/extracted/DawnDayBank/9-blackbird2.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/10-treefall1.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/11-treefall2.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/12-treefall3.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/13-treefallreverse.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/2-bird.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/3-birdflock.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/4-birdsvarifi.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/7-electric2.wav
+src/main/resources/game-resourses/audio/extracted/EveningBank/9-motor2.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/10-pulsereverse.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/12-servo2.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/13-servo3.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/14-servo4.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/15-servo5.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/2-electric2.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/3-electric3.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/4-electric4.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/5-electro1.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/6-electrocreature.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/7-electrocreature2.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/8-nightpad24b48k.wav
+src/main/resources/game-resourses/audio/extracted/NightBank/9-pulse1.wav
+src/main/resources/game-resourses/audio/extracted/TimeBank/1-timestoploop.wav
+src/main/resources/game-resourses/audio/menu_music.wav
+src/main/resources/game-resourses/audio/music-list.txt
+src/main/resources/game-resourses/audio/ui_hover.wav
+src/main/resources/game-resourses/audio/ui_inout.wav

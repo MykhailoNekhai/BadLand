@@ -42,7 +42,7 @@ public class AchievementsButton implements Screen {
     public void show() {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
-        AudioManager.get().playMenuMusic();
+        AudioManager.get().enterMenuContext();
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
@@ -152,6 +152,7 @@ public class AchievementsButton implements Screen {
     @Override
     public void render(float delta) {
         elapsed += delta;
+        AudioManager.get().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new SettingsMenu(game));
             return;
@@ -263,6 +264,7 @@ public class AchievementsButton implements Screen {
 
     @Override
     public void hide() {
+        AudioManager.get().leaveMenuContext();
         Gdx.input.setInputProcessor(null);
     }
 

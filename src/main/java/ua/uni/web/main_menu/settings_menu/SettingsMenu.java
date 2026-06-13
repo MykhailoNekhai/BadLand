@@ -32,6 +32,7 @@ import ua.uni.web.main_menu.Menu;
 
 public class SettingsMenu implements Screen {
     private final MainGame game;
+    private final Runnable onExit;
     private Stage stage;
 
     private Texture bg;
@@ -75,7 +76,21 @@ public class SettingsMenu implements Screen {
     private TextButton logoutButton;
 
     public SettingsMenu(MainGame game) {
+        this(game, null);
+    }
+
+    public SettingsMenu(MainGame game, Runnable onExit) {
         this.game = game;
+        this.onExit = onExit;
+    }
+
+    public void handleExternalEscape() {
+        if (activeLeftPanel != null || activeRightPanel != null) {
+            if (activeRightPanel != null) closeSidePanel(false);
+            if (activeLeftPanel != null) closeSidePanel(true);
+        } else {
+            exitSettings();
+        }
     }
 
     @Override
@@ -84,7 +99,7 @@ public class SettingsMenu implements Screen {
         Gdx.input.setInputProcessor(stage);
 
         languageIndex = Math.max(0, indexOf(LanguageButton.LANGUAGES, GameSettings.getLanguage()));
-        AudioManager.get().playMenuMusic();
+        AudioManager.get().enterMenuContext();
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
@@ -179,7 +194,7 @@ public class SettingsMenu implements Screen {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                 AudioManager.get().playSelect(0.75f);
-                game.setScreen(new Menu(game));
+                exitSettings();
             }
         });
 
@@ -249,27 +264,6 @@ public class SettingsMenu implements Screen {
                         Actions.scaleTo(1f, 1f, 2.2f, Interpolation.sine)
                 ))
         ));
-
-        TextButton.TextButtonStyle logoutStyle = new TextButton.TextButtonStyle();
-        logoutStyle.up = new TextureRegionDrawable(backBtn);
-        logoutStyle.down = new TextureRegionDrawable(backBtn);
-        logoutStyle.over = new TextureRegionDrawable(backBtn);
-        logoutStyle.font = smallFont;
-        logoutButton = new TextButton(LanguageButton.t("LOG_OUT"), logoutStyle);
-        logoutButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                AppLogger.info("Auth", "Logout");
-                AudioManager.get().playSelect(0.80f);
-                game.getSessionManager().clear();
-                game.setScreen(new LoginMenu(game));
-            }
-        });
-        Table logoutTable = new Table();
-        logoutTable.setFillParent(true);
-        logoutTable.bottom().right().padBottom(24).padRight(24);
-        logoutTable.add(logoutButton).width(200).height(72);
-        stage.addActor(logoutTable);
 
         statisticsButton.addListener(new ChangeListener() {
             @Override
@@ -409,7 +403,6 @@ public class SettingsMenu implements Screen {
         creditsButton.setText(LanguageButton.t("CREDITS"));
         keybindButton.setText(LanguageButton.t("KEY_BINDINGS"));
         readyButton.setText(LanguageButton.t("READY"));
-        logoutButton.setText(LanguageButton.t("LOG_OUT"));
     }
 
     private static int indexOf(String[] arr, String value) {
@@ -423,15 +416,21 @@ public class SettingsMenu implements Screen {
         return LanguageButton.t("SOUNDS") + ": " + Math.round(GameSettings.getMusicVolume() * 100f) + "%";
     }
 
+    private void exitSettings() {
+        if (onExit != null) {
+            onExit.run();
+        } else {
+            game.setScreen(new Menu(game));
+        }
+    }
+
     @Override
     public void render(float delta) {
         elapsed += delta;
+        AudioManager.get().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            if (activeLeftPanel != null || activeRightPanel != null) {
-                if (activeRightPanel != null) closeSidePanel(false);
-                if (activeLeftPanel != null) closeSidePanel(true);
-            } else {
-                game.setScreen(new Menu(game));
+            handleExternalEscape();
+            if (onExit == null && activeLeftPanel == null && activeRightPanel == null) {
                 return;
             }
         }
@@ -492,6 +491,7 @@ public class SettingsMenu implements Screen {
         pixmap.dispose();
         return t;
     }
+
 
     private Texture circleTexture(int diameter, Color color) {
         Pixmap p = new Pixmap(diameter, diameter, Pixmap.Format.RGBA8888);
@@ -684,6 +684,7 @@ public class SettingsMenu implements Screen {
 
     @Override
     public void hide() {
+        AudioManager.get().leaveMenuContext();
         Gdx.input.setInputProcessor(null);
     }
 

@@ -51,7 +51,7 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
     public void show() {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
-        AudioManager.get().stopMenuMusic();
+        AudioManager.get().startLevelMusic();
         bg = solidTexture(2, 2, new Color(0.03f, 0.03f, 0.04f, 1f));
         game.getNakamaMatchService().setEventListener(this);
 
@@ -90,6 +90,7 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
         if (ended) {
             return;
         }
+        AudioManager.get().updateLevelAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             abortMatch("A player left the match.", true);
             return;
@@ -138,6 +139,7 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
             return;
         }
         ended = true;
+        AudioManager.get().playLevelLose(0.95f);
         if (broadcast && matchState != null && game.getNakamaMatchService().isConnected()) {
             Map<String, String> payload = new LinkedHashMap<>();
             payload.put("type", "abort");
@@ -154,6 +156,11 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
             return;
         }
         ended = true;
+        if ("Victory".equalsIgnoreCase(title)) {
+            AudioManager.get().playLevelWin(0.95f);
+        } else {
+            AudioManager.get().playLevelLose(0.95f);
+        }
         if (broadcast && matchState != null && game.getNakamaMatchService().isConnected()) {
             Map<String, String> payload = new LinkedHashMap<>();
             payload.put("type", "result");
@@ -245,6 +252,7 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
 
     @Override
     public void hide() {
+        AudioManager.get().stopLevelMusic();
         Gdx.input.setInputProcessor(null);
     }
 

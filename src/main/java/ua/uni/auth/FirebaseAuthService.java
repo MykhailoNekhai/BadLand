@@ -56,6 +56,21 @@ public class FirebaseAuthService {
         return user.has("emailVerified") && user.get("emailVerified").getAsBoolean();
     }
 
+    public AccountMetadata getAccountMetadata(String idToken) {
+        JsonObject payload = new JsonObject();
+        payload.addProperty("idToken", idToken);
+        JsonObject response = post("accounts:lookup", payload);
+        JsonArray users = response.getAsJsonArray("users");
+        if (users == null || users.isEmpty()) {
+            return new AccountMetadata("", "", false);
+        }
+        JsonObject user = users.get(0).getAsJsonObject();
+        String createdAt = user.has("createdAt") ? user.get("createdAt").getAsString() : "";
+        String lastLoginAt = user.has("lastLoginAt") ? user.get("lastLoginAt").getAsString() : "";
+        boolean emailVerified = user.has("emailVerified") && user.get("emailVerified").getAsBoolean();
+        return new AccountMetadata(createdAt, lastLoginAt, emailVerified);
+    }
+
     private AuthResult authenticate(String endpoint, String email, String password) {
         JsonObject payload = new JsonObject();
         payload.addProperty("email", email);
@@ -100,5 +115,8 @@ public class FirebaseAuthService {
     }
 
     public record AuthResult(String idToken, String uid, String refreshToken, String email) {
+    }
+
+    public record AccountMetadata(String createdAt, String lastLoginAt, boolean emailVerified) {
     }
 }
