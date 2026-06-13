@@ -1,5 +1,7 @@
 package ua.uni.levels;
 
+import com.badlogic.ashley.core.*;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -10,9 +12,16 @@ import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import ua.uni.components.PhysicsComponent;
+import ua.uni.components.PlayerComponent;
+import ua.uni.entity.Barbwire;
 import ua.uni.game.MainGame;
 import ua.uni.entity.Shadow;
+import ua.uni.systems.PhysicsSystem;
+import ua.uni.systems.RenderSystem;
+import ua.uni.systems.ShadowSystem;
 import ua.uni.utilite.BodyEditorLoader;
+import ua.uni.utilite.EntityFactory;
 import ua.uni.utilite.GameContactListener;
 import ua.uni.config.GameSettings;
 
@@ -32,20 +41,21 @@ public abstract class Plevel implements Screen {
 
 
     protected Box2DDebugRenderer debugRenderer; // Режим дебагу, необхнідний для розробки
-    protected BodyEditorLoader heroLoader;
+    protected Engine engine;
 
     protected World world;
     protected OrthographicCamera camera;
     protected MainGame game;
 
 
-    protected Array<Shadow> clones = new Array<>(); // Клони як масив, оскільки передбачено їх збільшення (як в Badlands
     protected boolean isGameStarted = false; // потрібен для початку руху камери
     protected Viewport viewport;
 
     protected float cameraSpeed = 3f; // швидкість камери
-    protected float finishLineX = 220f; // Фінішна пряма рівня
+    protected float finishLineX = 2000f; // Фінішна пряма рівня
     private float dynamicTimeStep;
+    private ComponentMapper<PhysicsComponent> physMapper = ComponentMapper.getFor(PhysicsComponent.class);
+    private ComponentMapper<PlayerComponent> playerMapper = ComponentMapper.getFor(PlayerComponent.class);
 
     // Enum станів, потрібен для розуміння, коли користувач натиснув на паузу, коли програв і т.д
     protected enum GameState {
@@ -68,20 +78,26 @@ public abstract class Plevel implements Screen {
         if (state != GameState.PLAYING) {
             return;
         }
+
+        ImmutableArray<Entity> players = engine.getEntitiesFor(Family.all(PlayerComponent.class, PhysicsComponent.class).get());
         float leftCameraEdge = camera.position.x - (camera.viewportWidth / 2f);
 
         float deathLineX = leftCameraEdge - SHADOW_SIZE;
 
-        for (int i = clones.size - 1; i >= 0; i--) {
-            Shadow clone = clones.get(i);
-            if (clone.getBody().getPosition().x < deathLineX || clone.isDead()) {
-                world.destroyBody(clone.getBody());
-                clones.removeIndex(i);
+        for (int i = 0; i < players.size(); ++i) {
+            Entity player = players.get(i);
+            PhysicsComponent phys = physMapper.get(player);
+            PlayerComponent playerComp = playerMapper.get(player);
+
+            if (phys.body.getPosition().x < deathLineX || playerComp.isDead) {
+                world.destroyBody(phys.body);
+                engine.removeEntity(player);
             }
         }
 
+        players = engine.getEntitiesFor(Family.all(PlayerComponent.class, PhysicsComponent.class).get());
 
-        if (clones.size == 0) {
+        if (players.size() == 0) {
             state = GameState.GAME_OVER;
             System.out.println("Гра завершена. Програв");
             return;
@@ -89,8 +105,12 @@ public abstract class Plevel implements Screen {
 
 
         float leaderX = -Float.MAX_VALUE;
-        for (Shadow clone : clones) {
-            float x = clone.getBody().getPosition().x;
+        for (int i = 0; i < players.size(); ++i) {
+            Entity player = players.get(i);
+
+            PhysicsComponent phys = physMapper.get(player);
+
+            float x = phys.body.getPosition().x;
             if (x > leaderX) {
                 leaderX = x;
             }
@@ -116,8 +136,7 @@ public abstract class Plevel implements Screen {
 
     // метод для створення клонів, наших тіней. В планах зробити подвоювач
     public void spawnClone(float x, float y) {
-        Shadow newClone = new Shadow(world, heroLoader, x, y, SHADOW_SIZE);
-        clones.add(newClone);
+        EntityFactory.createPlayer(engine, world, x, y, SHADOW_SIZE);
     }
 
     // метод із базовими налаштуваннями рівнів (усіх)!!!
@@ -130,7 +149,6 @@ public abstract class Plevel implements Screen {
         viewport.apply();
         camera.position.set(16f, 9f, 0f);
 
-        heroLoader = new BodyEditorLoader(Gdx.files.internal("game-resourses/assetData/shadow.json"));
 
         world.setContactListener(new GameContactListener());
 
@@ -143,12 +161,18 @@ public abstract class Plevel implements Screen {
 
         dynamicTimeStep = 4.0f / refreshRate;
 
+        engine = new PooledEngine();
+        engine.addSystem(new PhysicsSystem());
+        engine.addSystem(new ShadowSystem());
+        engine.addSystem(new RenderSystem(game.getBatch()));
     }
 
     protected abstract void buildLevel();
 
     // створення землі, простої
     private void createGround() {
+
+
         BodyDef roofBody = new BodyDef();
         roofBody.type = BodyDef.BodyType.StaticBody;
         roofBody.position.set(0, 0);
@@ -182,62 +206,57 @@ public abstract class Plevel implements Screen {
 
     @Override
     public void render(float delta) {
-        // базові налаштування кольору та камери
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(0.5f, 0.8f, 1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        debugRenderer.render(world, camera.combined);
 
-        boolean w = Gdx.input.isKeyPressed(GameSettings.getMoveUp());
-        boolean s = Gdx.input.isKeyPressed(GameSettings.getMoveDown());
-        boolean a = Gdx.input.isKeyPressed(GameSettings.getMoveLeft());
-        boolean d = Gdx.input.isKeyPressed(GameSettings.getMoveRight());
+        if (!isGameStarted) {
+            boolean w = Gdx.input.isKeyPressed(GameSettings.getMoveUp());
+            boolean s = Gdx.input.isKeyPressed(GameSettings.getMoveDown());
+            boolean a = Gdx.input.isKeyPressed(GameSettings.getMoveLeft());
+            boolean d = Gdx.input.isKeyPressed(GameSettings.getMoveRight());
 
-
-
-        if (!isGameStarted && (w || s || a || d)) {
-            isGameStarted = true;
-        }
-
-        if (state == GameState.PLAYING) {
-            for (Shadow clone : clones) {
-                clone.move(w, s, a, d);
+            if (w || s || a || d) {
+                isGameStarted = true;
             }
-
-            world.step(dynamicTimeStep, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
         }
 
+        ImmutableArray<Entity> players = engine.getEntitiesFor(Family.all(PlayerComponent.class, PhysicsComponent.class).get());
 
-        if (isGameStarted && clones.size > 0) {
-
-            float minCameraSpeed = 3f;  // мін швидкість камери (3м/c)
-
-
+        if (isGameStarted && players.size() > 0) {
+            float minCameraSpeed = 3f;
             float leaderX = -Float.MAX_VALUE;
-            for (Shadow clone : clones) {
-                float x = clone.getBody().getPosition().x;
+
+            for (int i = 0; i < players.size(); ++i) {
+                float x = physMapper.get(players.get(i)).body.getPosition().x;
                 if (x > leaderX) {
                     leaderX = x;
                 }
             }
 
-
-            float heroOffset = camera.viewportWidth * 0.3f; // максимальний поріг місцезнаходження гг відносно камери (щоб не був по центру)
-            float cameraX = leaderX + heroOffset; // координата, щоб точка камери була правіша за героя
-
-
-            float smoothness = 4.0f; // коофіцієнт плавності переходу камери
-
+            float heroOffset = camera.viewportWidth * 0.3f;
+            float cameraX = leaderX + heroOffset;
+            float smoothness = 4.0f;
             float neededSpeed = (cameraX - camera.position.x) * smoothness;
-
-            float actualCameraSpeed = Math.max(minCameraSpeed, neededSpeed); // проміжок швидкостей, від мінімального до максимального враховуючи швидкість гг
+            float actualCameraSpeed = Math.max(minCameraSpeed, neededSpeed);
 
             camera.position.x = camera.position.x + (actualCameraSpeed * delta);
         }
 
         camera.position.y = camera.viewportHeight / 2f;
         camera.update();
-        mainGameLogic();
 
+        game.getBatch().setProjectionMatrix(camera.combined);
+
+        if (state == GameState.PLAYING) {
+            world.step(dynamicTimeStep, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+
+            engine.update(delta);
+        } else {
+            engine.getSystem(RenderSystem.class).update(delta);
+        }
+
+
+        mainGameLogic();
     }
 
 
