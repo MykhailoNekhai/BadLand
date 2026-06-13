@@ -1,4 +1,3 @@
-
 {
   "sharp-rock-1": {
     "friction": 0.8,
@@ -934,5 +933,44 @@
     "restitution": 0.1,
     "density": 0.0,
     "baseWidth": 1006
+  },
+  "item-big": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 66
+  },
+  "item-small": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 47
+  },
+  "item-slow": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 56
+  },
+  "item-superclone": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 74
+  },
+  "item-clone": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 69
+  },
+  "item-fastforward": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 71
   }
 }
+
+
+
