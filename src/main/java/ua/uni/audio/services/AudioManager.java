@@ -7,15 +7,16 @@ import com.badlogic.gdx.math.MathUtils;
 import ua.uni.config.GameSettings;
 
 public final class AudioManager {
-    private static final float MENU_AMBIENT_VOLUME = 0.30f;
-    private static final float MENU_AMBIENT_FIRST_DELAY = 4.5f;
-    private static final float MENU_AMBIENT_MIN_DELAY = 5.5f;
-    private static final float MENU_AMBIENT_MAX_DELAY = 10.5f;
+    private static final float AMBIENT_FREQUENCY_BOOST = 0.64f;
+    private static final float MENU_AMBIENT_VOLUME = 0.45f;
+    private static final float MENU_AMBIENT_FIRST_DELAY = 4.5f * AMBIENT_FREQUENCY_BOOST;
+    private static final float MENU_AMBIENT_MIN_DELAY = 5.5f * AMBIENT_FREQUENCY_BOOST;
+    private static final float MENU_AMBIENT_MAX_DELAY = 10.5f * AMBIENT_FREQUENCY_BOOST;
     private static final float LEVEL_MUSIC_VOLUME = 0.42f;
     private static final float LEVEL_AMBIENT_VOLUME = 0.16f;
-    private static final float LEVEL_AMBIENT_FIRST_DELAY = 5.0f;
-    private static final float LEVEL_AMBIENT_MIN_DELAY = 6.5f;
-    private static final float LEVEL_AMBIENT_MAX_DELAY = 11.5f;
+    private static final float LEVEL_AMBIENT_FIRST_DELAY = 5.0f * AMBIENT_FREQUENCY_BOOST;
+    private static final float LEVEL_AMBIENT_MIN_DELAY = 6.5f * AMBIENT_FREQUENCY_BOOST;
+    private static final float LEVEL_AMBIENT_MAX_DELAY = 11.5f * AMBIENT_FREQUENCY_BOOST;
 
     private static AudioManager INSTANCE;
 

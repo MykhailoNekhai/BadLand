@@ -101,7 +101,7 @@ public class AchievementsButton implements Screen {
         resetStyle.over = new TextureRegionDrawable(backBtn);
         resetStyle.down = new TextureRegionDrawable(backBtn);
         resetStyle.font = cardFont;
-        resetButton = new TextButton("RESET", resetStyle);
+        resetButton = new TextButton(LanguageButton.t("RESET"), resetStyle);
         resetButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
@@ -137,7 +137,7 @@ public class AchievementsButton implements Screen {
         Label.LabelStyle style = new Label.LabelStyle(cardFont, unlocked
                 ? new Color(1f, 0.86f, 0.36f, 1f)
                 : new Color(0.58f, 0.58f, 0.58f, 1f));
-        Label label = new Label(achievement.getCode() + "\n" + (unlocked ? LanguageButton.t("UNLOCKED") : LanguageButton.t("LOCKED")), style);
+        Label label = new Label(achievement.getTitle() + "\n" + (unlocked ? LanguageButton.t("UNLOCKED") : LanguageButton.t("LOCKED")), style);
         label.setAlignment(com.badlogic.gdx.utils.Align.center);
         Table wrap = new Table();
         wrap.setFillParent(true);

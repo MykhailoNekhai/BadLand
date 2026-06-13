@@ -172,17 +172,17 @@ public class AccountMenu implements Screen {
         itemStyle.overFontColor = new Color(1f, 0.92f, 0.55f, 1f);
         itemStyle.downFontColor = new Color(1f, 0.92f, 0.55f, 1f);
 
-        titleLabel = new Label("ACCOUNT", titleLs);
-        achievementsButton = new TextButton("SECURITY", itemStyle);
-        customizeButton = new TextButton("CUSTOMIZE", itemStyle);
-        changeAvatarButton = new TextButton("CHANGE AVATAR", itemStyle);
+        titleLabel = new Label(LanguageButton.t("ACCOUNT"), titleLs);
+        achievementsButton = new TextButton(LanguageButton.t("SECURITY"), itemStyle);
+        customizeButton = new TextButton(LanguageButton.t("CUSTOMIZE"), itemStyle);
+        changeAvatarButton = new TextButton(LanguageButton.t("CHANGE_AVATAR"), itemStyle);
 
         TextButton.TextButtonStyle readyStyle = new TextButton.TextButtonStyle();
         readyStyle.font = itemFont;
         readyStyle.fontColor = new Color(0.95f, 0.90f, 0.65f, 1f);
         readyStyle.overFontColor = new Color(1f, 0.92f, 0.55f, 1f);
         readyStyle.downFontColor = new Color(1f, 0.92f, 0.55f, 1f);
-        readyButton = new TextButton("BACK", readyStyle);
+        readyButton = new TextButton(LanguageButton.t("BACK"), readyStyle);
         readyButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -194,7 +194,7 @@ public class AccountMenu implements Screen {
         profileSnapshot = loadProfileSnapshot();
         soundsLabel = new Label("", ls);
         nicknameLabel = new Label(profileSnapshot.nickname(), profileNameStyle);
-        idLabel = new Label("ID: " + profileSnapshot.id(), profileIdStyle);
+        idLabel = new Label(LanguageButton.t("ID") + ": " + profileSnapshot.id(), profileIdStyle);
 
         Table avatarBlock = new Table();
         avatarBlock.center().padTop(4f);
@@ -245,7 +245,7 @@ public class AccountMenu implements Screen {
             public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.72f);
                 if (activeLeftPanel != null) closeSidePanel(true);
-                else openSidePanel(true, "AVATAR", buildAvatarContent());
+                else openSidePanel(true, LanguageButton.t("CHANGE_AVATAR"), buildAvatarContent());
             }
         });
         achievementsButton.addListener(new ChangeListener() {
@@ -253,7 +253,7 @@ public class AccountMenu implements Screen {
             public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.72f);
                 if (activeRightPanel != null) closeSidePanel(false);
-                else openSidePanel(false, "SECURITY", buildSecurityContent());
+                else openSidePanel(false, LanguageButton.t("SECURITY"), buildSecurityContent());
             }
         });
         customizeButton.addListener(new ChangeListener() {
@@ -261,7 +261,7 @@ public class AccountMenu implements Screen {
             public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.72f);
                 if (activeLeftPanel != null) closeSidePanel(true);
-                else openSidePanel(true, "CUSTOMIZE", buildCustomizeContent());
+                else openSidePanel(true, LanguageButton.t("CUSTOMIZE"), buildCustomizeContent());
             }
         });
 
@@ -274,22 +274,22 @@ public class AccountMenu implements Screen {
 
         Table table = new Table();
         table.center().padTop(20);
-        table.add(new Label("NICKNAME", sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("NICKNAME"), sectionStyle)).padBottom(6).row();
         table.add(new Label(profileSnapshot.nickname(), valueStyle)).padBottom(18).row();
-        table.add(new Label("ID", sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("ID"), sectionStyle)).padBottom(6).row();
         table.add(new Label(profileSnapshot.id(), valueStyle)).padBottom(18).row();
-        table.add(new Label("EMAIL", sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("EMAIL").toUpperCase(), sectionStyle)).padBottom(6).row();
         table.add(new Label(profileSnapshot.email(), valueStyle)).padBottom(18).row();
-        table.add(new Label("DEATHS", sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("DEATHS"), sectionStyle)).padBottom(6).row();
         table.add(new Label(String.valueOf(profileSnapshot.deaths()), valueStyle)).padBottom(18).row();
-        table.add(new Label("PLAY TIME", sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("PLAY_TIME"), sectionStyle)).padBottom(6).row();
         table.add(new Label(formatPlayTime(profileSnapshot.playSeconds()), valueStyle)).padBottom(18).row();
-        table.add(new Label("LEVELS", sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("LEVELS"), sectionStyle)).padBottom(6).row();
         table.add(new Label(profileSnapshot.completedLevels() + " / " + profileSnapshot.totalLevels(), valueStyle)).padBottom(18).row();
-        table.add(new Label("ACHIEVEMENTS", sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("ACHIEVEMENTS"), sectionStyle)).padBottom(6).row();
         table.add(new Label(profileSnapshot.unlockedAchievements() + " / " + profileSnapshot.totalAchievements(), valueStyle)).padBottom(18).row();
-        table.add(new Label("SCORE", sectionStyle)).padBottom(6).row();
-        table.add(new Label("SOON", valueStyle)).row();
+        table.add(new Label(LanguageButton.t("SCORE"), sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("SOON"), valueStyle)).row();
         return table;
     }
 
@@ -305,12 +305,12 @@ public class AccountMenu implements Screen {
 
         Label.LabelStyle hintStyle = new Label.LabelStyle(smallFont, new Color(0.98f, 0.95f, 0.88f, 1f));
 
-        TextButton changeEmail = new TextButton("CHANGE EMAIL", itemStyle);
-        TextButton resetPassword = new TextButton("RESET PASSWORD", itemStyle);
-        TextButton logout = new TextButton("LOG OUT", itemStyle);
+        TextButton changeEmail = new TextButton(LanguageButton.t("CHANGE_EMAIL"), itemStyle);
+        TextButton resetPassword = new TextButton(LanguageButton.t("RESET_PASSWORD"), itemStyle);
+        TextButton logout = new TextButton(LanguageButton.t("LOG_OUT"), itemStyle);
         Label hint = new Label(profileSnapshot.hasSession()
-                ? "Firebase actions will use your current account email."
-                : "Login first to enable Firebase actions.", hintStyle);
+                ? LanguageButton.t("SESSION_EMAIL_HINT")
+                : LanguageButton.t("LOGIN_FIRST_FIREBASE"), hintStyle);
         hint.setWrap(true);
 
         changeEmail.addListener(new ChangeListener() {
@@ -350,12 +350,12 @@ public class AccountMenu implements Screen {
 
         Table table = new Table();
         table.center().padTop(20);
-        table.add(new Label("SKINS", sectionStyle)).padBottom(6).row();
-        table.add(new Label("SOON", valueStyle)).padBottom(18).row();
-        table.add(new Label("TRAILS", sectionStyle)).padBottom(6).row();
-        table.add(new Label("SOON", valueStyle)).padBottom(18).row();
-        table.add(new Label("COSMETICS", sectionStyle)).padBottom(6).row();
-        table.add(new Label("SOON", valueStyle)).row();
+        table.add(new Label(LanguageButton.t("SKINS"), sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("SOON"), valueStyle)).padBottom(18).row();
+        table.add(new Label(LanguageButton.t("TRAILS"), sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("SOON"), valueStyle)).padBottom(18).row();
+        table.add(new Label(LanguageButton.t("COSMETICS"), sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("SOON"), valueStyle)).row();
         return table;
     }
 
@@ -365,10 +365,10 @@ public class AccountMenu implements Screen {
 
         Table table = new Table();
         table.center().padTop(20);
-        table.add(new Label("AVATAR CHANGE", sectionStyle)).padBottom(6).row();
-        table.add(new Label("SOON", valueStyle)).padBottom(18).row();
-        table.add(new Label("UPLOAD TARGET", sectionStyle)).padBottom(6).row();
-        table.add(new Label("FIREBASE STORAGE", valueStyle)).row();
+        table.add(new Label(LanguageButton.t("AVATAR_CHANGE"), sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("SOON"), valueStyle)).padBottom(18).row();
+        table.add(new Label(LanguageButton.t("UPLOAD_TARGET"), sectionStyle)).padBottom(6).row();
+        table.add(new Label(LanguageButton.t("FIREBASE_STORAGE"), valueStyle)).row();
         return table;
     }
 
@@ -423,12 +423,13 @@ public class AccountMenu implements Screen {
 
     private void refreshLabels() {
         profileSnapshot = loadProfileSnapshot();
-        titleLabel.setText("ACCOUNT");
+        titleLabel.setText(LanguageButton.t("ACCOUNT"));
         nicknameLabel.setText(profileSnapshot.nickname());
-        changeAvatarButton.setText("CHANGE AVATAR");
-        achievementsButton.setText("SECURITY");
-        customizeButton.setText("CUSTOMIZE");
-        readyButton.setText("BACK");
+        idLabel.setText(LanguageButton.t("ID") + ": " + profileSnapshot.id());
+        changeAvatarButton.setText(LanguageButton.t("CHANGE_AVATAR"));
+        achievementsButton.setText(LanguageButton.t("SECURITY"));
+        customizeButton.setText(LanguageButton.t("CUSTOMIZE"));
+        readyButton.setText(LanguageButton.t("BACK"));
     }
 
     private static int indexOf(String[] arr, String value) {
@@ -773,14 +774,14 @@ public class AccountMenu implements Screen {
         }
 
         if (nickname.isBlank()) {
-            nickname = "LOCAL PILOT";
+            nickname = LanguageButton.t("LOCAL_PILOT");
         }
         if (email.isBlank()) {
-            email = "LOCAL PROFILE";
+            email = LanguageButton.t("LOCAL_PROFILE");
         }
-        String id = hasSession ? game.getSessionManager().getUid() : "LOCAL";
-        String accountCreated = "LOCAL";
-        String lastLogin = "LOCAL";
+        String id = hasSession ? game.getSessionManager().getUid() : LanguageButton.t("LOCAL");
+        String accountCreated = LanguageButton.t("LOCAL");
+        String lastLogin = LanguageButton.t("LOCAL");
         if (hasSession) {
             try {
                 FirebaseAuthService.AccountMetadata metadata = game.getAuthService()
@@ -822,17 +823,17 @@ public class AccountMenu implements Screen {
         int hours = totalSeconds / 3600;
         int minutes = (totalSeconds % 3600) / 60;
         if (hours > 0) {
-            return hours + "h " + minutes + "m";
+            return LanguageButton.tf("HOURS_MINUTES_FMT", hours, minutes);
         }
         if (minutes > 0) {
-            return minutes + "m";
+            return LanguageButton.tf("MINUTES_FMT", minutes);
         }
-        return totalSeconds + "s";
+        return LanguageButton.tf("SECONDS_FMT", totalSeconds);
     }
 
     private String formatTimestamp(String millisString) {
         if (millisString == null || millisString.isBlank()) {
-            return "UNKNOWN";
+            return LanguageButton.t("UNKNOWN");
         }
         try {
             long millis = Long.parseLong(millisString);
@@ -840,7 +841,7 @@ public class AccountMenu implements Screen {
             java.time.ZonedDateTime dt = instant.atZone(java.time.ZoneId.systemDefault());
             return dt.toLocalDate() + " " + dt.toLocalTime().withSecond(0).withNano(0);
         } catch (Exception e) {
-            return "UNKNOWN";
+            return LanguageButton.t("UNKNOWN");
         }
     }
 

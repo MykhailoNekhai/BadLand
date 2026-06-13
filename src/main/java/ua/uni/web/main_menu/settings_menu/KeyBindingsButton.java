@@ -17,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.config.GameSettings;
@@ -28,10 +29,10 @@ public class KeyBindingsButton implements Screen {
     private Texture bg;
     private Texture rowBtn;
     private Texture rowBtnDim;
-    private Texture backBtn;
     private BitmapFont font;
     private BitmapFont smallFont;
     private BitmapFont titleFont;
+    private Label titleLabel;
     private float elapsed;
 
     private int moveLeft;
@@ -61,10 +62,8 @@ public class KeyBindingsButton implements Screen {
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        rowBtn = roundedRect(760, 84, 22, new Color(0f, 0f, 0f, 0.85f));
-        rowBtnDim = roundedRect(760, 84, 22, new Color(0f, 0f, 0f, 0.55f));
-        backBtn = roundedRect(220, 86, 30, new Color(0f, 0f, 0f, 0.95f));
-
+        rowBtn = roundedRect(760, 84, 22, new Color(0f, 0f, 0f, 1f));
+        rowBtnDim = roundedRect(760, 84, 22, new Color(0f, 0f, 0f, 1f));
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter p = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -144,13 +143,11 @@ public class KeyBindingsButton implements Screen {
         });
         refreshBindingLabels();
 
-
-        Table titleTable = new Table();
-        titleTable.setFillParent(true);
-        titleTable.top().center().padTop(14);
-        titleTable.add(new Label(LanguageButton.t("KEY_BINDINGS"),
-                new Label.LabelStyle(titleFont, Color.WHITE)));
-        stage.addActor(titleTable);
+        titleLabel = new Label(LanguageButton.t("KEY_BINDINGS"),
+                new Label.LabelStyle(titleFont, Color.WHITE));
+        titleLabel.setAlignment(Align.center);
+        stage.addActor(titleLabel);
+        positionTitle();
 
         Table rows = new Table();
         rows.top();
@@ -165,27 +162,9 @@ public class KeyBindingsButton implements Screen {
 
         Table scrollWrap = new Table();
         scrollWrap.setFillParent(true);
-        scrollWrap.center().padTop(110).padBottom(40);
+        scrollWrap.top().padTop(118).padBottom(40);
         scrollWrap.add(scroll).width(800).expandY().fillY();
         stage.addActor(scrollWrap);
-
-        TextButton.TextButtonStyle backStyle = new TextButton.TextButtonStyle();
-        backStyle.up = new TextureRegionDrawable(backBtn);
-        backStyle.over = new TextureRegionDrawable(backBtn);
-        backStyle.down = new TextureRegionDrawable(backBtn);
-        backStyle.font = font;
-        TextButton back = new TextButton(LanguageButton.t("BACK"), backStyle);
-        back.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                game.setScreen(new SettingsMenu(game));
-            }
-        });
-        Table backTable = new Table();
-        backTable.setFillParent(true);
-        backTable.top().left().padTop(20).padLeft(20);
-        backTable.add(back).width(220).height(86);
-        stage.addActor(backTable);
     }
 
     private void refreshBindingLabels() {
@@ -238,6 +217,7 @@ public class KeyBindingsButton implements Screen {
     }
 
     private void toggleMoveLeft() {
+        AudioManager.get().playSelect(0.7f);
         if (moveLeft == Input.Keys.A) {
             moveLeft = Input.Keys.LEFT;
         } else {
@@ -248,6 +228,7 @@ public class KeyBindingsButton implements Screen {
     }
 
     private void toggleMoveRight() {
+        AudioManager.get().playSelect(0.7f);
         if (moveRight == Input.Keys.D) {
             moveRight = Input.Keys.RIGHT;
         } else {
@@ -257,6 +238,7 @@ public class KeyBindingsButton implements Screen {
     }
 
     private void toggleMoveUp() {
+        AudioManager.get().playSelect(0.7f);
         if (moveUp == Input.Keys.W) {
             moveUp = Input.Keys.UP;
         } else {
@@ -266,6 +248,7 @@ public class KeyBindingsButton implements Screen {
     }
 
     private void toggleMoveDown() {
+        AudioManager.get().playSelect(0.7f);
         if (moveDown == Input.Keys.S) {
             moveDown = Input.Keys.DOWN;
         } else {
@@ -274,9 +257,22 @@ public class KeyBindingsButton implements Screen {
         GameSettings.setMoveDown(moveDown);
     }
 
+    private void positionTitle() {
+        if (titleLabel == null) {
+            return;
+        }
+        titleLabel.pack();
+        float viewportWidth = stage.getViewport().getWorldWidth();
+        float viewportHeight = stage.getViewport().getWorldHeight();
+        float x = (viewportWidth - titleLabel.getWidth()) * 0.5f;
+        float y = viewportHeight - titleLabel.getHeight() - 18f;
+        titleLabel.setPosition(x, y);
+    }
+
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
+        positionTitle();
     }
 
     @Override
@@ -299,7 +295,6 @@ public class KeyBindingsButton implements Screen {
         bg.dispose();
         rowBtn.dispose();
         rowBtnDim.dispose();
-        backBtn.dispose();
         font.dispose();
         smallFont.dispose();
         titleFont.dispose();

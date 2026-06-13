@@ -27,6 +27,7 @@ import ua.uni.game.MainGame;
 import ua.uni.levels.PoligonLevel;
 //import ua.uni.levels.RuinsLevel;
 import ua.uni.audio.music.Menu;
+import ua.uni.web.main_menu.settings_menu.LanguageButton;
 
 public class SinglePlayerMenu implements Screen {
     private static final int LEVELS_PER_PAGE = 10;
@@ -66,7 +67,7 @@ public class SinglePlayerMenu implements Screen {
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         levelCard = makeLevelCardTexture(230, 300);
-        pageButtonBg = roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 0.88f));
+        pageButtonBg = roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 1f));
         pageButtonActiveBg = roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 1f));
         vignette = makeVignette(1280, 720);
         transitionBlack = solidTexture(2, 2, Color.BLACK);
@@ -76,12 +77,14 @@ public class SinglePlayerMenu implements Screen {
         FreeTypeFontGenerator.FreeTypeFontParameter pTitle = new FreeTypeFontGenerator.FreeTypeFontParameter();
         pTitle.size = 88;
         pTitle.color = Color.BLACK;
+        pTitle.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(pTitle);
         FreeTypeFontGenerator.FreeTypeFontParameter pCard = new FreeTypeFontGenerator.FreeTypeFontParameter();
         pCard.size = 44;
         pCard.color = new Color(1f, 0.86f, 0.36f, 1f);
         pCard.borderWidth = 1.4f;
         pCard.borderColor = new Color(0f, 0f, 0f, 1f);
+        pCard.characters = LanguageButton.FONT_CHARACTERS;
         cardFont = generator.generateFont(pCard);
 
         generator.dispose();
@@ -91,7 +94,7 @@ public class SinglePlayerMenu implements Screen {
 
     private void buildUi() {
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleFont.getColor());
-        titleLabel = new Label("LEVELS", titleStyle);
+        titleLabel = new Label(LanguageButton.t("LEVELS"), titleStyle);
         positionTitle();
         stage.addActor(titleLabel);
 
