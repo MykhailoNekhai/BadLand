@@ -20,6 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.game.MainGame;
+import ua.uni.web.main_menu.settings_menu.LanguageButton;
 import ua.uni.web.main_menu.settings_menu.SettingsMenu;
 import ua.uni.web.main_menu.single_player_menu.SinglePlayerMenu;
 
@@ -126,6 +127,7 @@ public class PauseMenu {
         items.color = new Color(0.98f, 0.95f, 0.88f, 1f);
         items.borderWidth = 1.6f;
         items.borderColor = new Color(0.06f, 0.05f, 0.03f, 1f);
+        items.characters = LanguageButton.FONT_CHARACTERS;
         itemFont = generator.generateFont(items);
 
         FreeTypeFontGenerator.FreeTypeFontParameter small = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -133,6 +135,7 @@ public class PauseMenu {
         small.color = Color.WHITE;
         small.borderWidth = 1.0f;
         small.borderColor = Color.BLACK;
+        small.characters = LanguageButton.FONT_CHARACTERS;
         smallFont = generator.generateFont(small);
 
         FreeTypeFontGenerator.FreeTypeFontParameter title = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -140,6 +143,7 @@ public class PauseMenu {
         title.color = new Color(1f, 0.86f, 0.36f, 1f);
         title.borderWidth = 1.8f;
         title.borderColor = new Color(0.10f, 0.05f, 0.02f, 1f);
+        title.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(title);
 
         generator.dispose();
@@ -160,12 +164,12 @@ public class PauseMenu {
         itemStyle.overFontColor = new Color(1f, 0.92f, 0.55f, 1f);
         itemStyle.downFontColor = new Color(1f, 0.92f, 0.55f, 1f);
 
-        Label titleLabel = new Label("PAUSE", titleStyle);
-        continueButton = new TextButton("CONTINUE", itemStyle);
-        restartButton = new TextButton("RESTART", itemStyle);
-        checkpointButton = new TextButton("CHECKPOINT", itemStyle);
-        settingButton = new TextButton("SETTING", itemStyle);
-        exitToMenuButton = new TextButton("EXIT TO MENU", itemStyle);
+        Label titleLabel = new Label(LanguageButton.t("PAUSE"), titleStyle);
+        continueButton = new TextButton(LanguageButton.t("CONTINUE"), itemStyle);
+        restartButton = new TextButton(LanguageButton.t("RESTART"), itemStyle);
+        checkpointButton = new TextButton(LanguageButton.t("CHECKPOINT"), itemStyle);
+        settingButton = new TextButton(LanguageButton.t("SETTING"), itemStyle);
+        exitToMenuButton = new TextButton(LanguageButton.t("EXIT_TO_MENU"), itemStyle);
 
         continueButton.addListener(new ChangeListener() {
             @Override

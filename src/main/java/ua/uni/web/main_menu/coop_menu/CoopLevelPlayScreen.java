@@ -23,6 +23,7 @@ import ua.uni.online.CoopMatchState;
 import ua.uni.online.CoopProtocol;
 import ua.uni.online.NakamaSocket;
 import ua.uni.online.Serialization;
+import ua.uni.web.main_menu.settings_menu.LanguageButton;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
@@ -62,17 +63,19 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
         titleParams.color = Color.WHITE;
         titleParams.borderWidth = 2f;
         titleParams.borderColor = Color.BLACK;
+        titleParams.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(titleParams);
 
         FreeTypeFontGenerator.FreeTypeFontParameter bodyParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         bodyParams.size = 34;
         bodyParams.color = new Color(0.92f, 0.92f, 0.88f, 1f);
+        bodyParams.characters = LanguageButton.FONT_CHARACTERS;
         bodyFont = generator.generateFont(bodyParams);
         generator.dispose();
 
-        Label titleLabel = new Label("CO-OP LEVEL " + String.format("%02d", level),
+        Label titleLabel = new Label(LanguageButton.tf("COOP_LEVEL_TITLE_FMT", String.format("%02d", level)),
                 new Label.LabelStyle(titleFont, Color.WHITE));
-        statusLabel = new Label("Placeholder co-op level.\nENTER = finish, K = local death, ESC = abort match",
+        statusLabel = new Label(LanguageButton.t("COOP_LEVEL_PLACEHOLDER"),
                 new Label.LabelStyle(bodyFont, Color.WHITE));
         statusLabel.setAlignment(Align.center);
         statusLabel.setWrap(true);
@@ -92,17 +95,18 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
         }
         AudioManager.get().updateLevelAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            abortMatch("A player left the match.", true);
+            abortMatch(LanguageButton.t("PLAYER_LEFT_MATCH"), true);
             return;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.K) && !localDead) {
             localDead = true;
             sendDeathState();
-            statusLabel.setText("You are dead. Waiting for teammate...");
+            statusLabel.setText(LanguageButton.t("YOU_ARE_DEAD"));
             checkTeamWipe();
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            finishMatch("Victory", "Co-op level " + String.format("%02d", level) + " completed.", true);
+            finishMatch(LanguageButton.t("VICTORY"),
+                    LanguageButton.tf("COOP_LEVEL_COMPLETED_FMT", String.format("%02d", level)), true);
             return;
         }
 
@@ -130,7 +134,7 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
 
     private void checkTeamWipe() {
         if (localDead && remoteDead) {
-            finishMatch("Game Over", "All players died. Match ended.", true);
+            finishMatch(LanguageButton.t("GAME_OVER"), LanguageButton.t("ALL_PLAYERS_DIED"), true);
         }
     }
 
@@ -148,7 +152,7 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
                     Serialization.toJson(payload).getBytes(StandardCharsets.UTF_8));
         }
         cleanupMatchConnection();
-        game.setScreen(new CoopStatusScreen(game, "Connection Error", message));
+        game.setScreen(new CoopStatusScreen(game, LanguageButton.t("CONNECTION_ERROR"), message));
     }
 
     private void finishMatch(String title, String message, boolean broadcast) {
@@ -186,13 +190,13 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
 
     @Override
     public void onDisconnect(Throwable throwable) {
-        Gdx.app.postRunnable(() -> abortMatch("Connection lost during co-op level.", false));
+        Gdx.app.postRunnable(() -> abortMatch(LanguageButton.t("CONNECTION_LOST_COOP"), false));
     }
 
     @Override
     public void onError(Error error) {
         if (error != null) {
-            Gdx.app.postRunnable(() -> abortMatch("Socket error: " + error.getMessage(), false));
+            Gdx.app.postRunnable(() -> abortMatch(LanguageButton.tf("SOCKET_ERROR_FMT", error.getMessage()), false));
         }
     }
 
@@ -206,13 +210,13 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
             return;
         }
         if (matchData.getOpCode() == CoopProtocol.OP_LEVEL_ABORT) {
-            Gdx.app.postRunnable(() -> abortMatch(data.getOrDefault("message", "A player disconnected."), false));
+            Gdx.app.postRunnable(() -> abortMatch(data.getOrDefault("message", LanguageButton.t("PLAYER_DISCONNECTED")), false));
             return;
         }
         if (matchData.getOpCode() == CoopProtocol.OP_LEVEL_RESULT) {
             Gdx.app.postRunnable(() -> finishMatch(
-                    data.getOrDefault("title", "Match Ended"),
-                    data.getOrDefault("message", "Co-op match finished."), false));
+                    data.getOrDefault("title", LanguageButton.t("MATCH_ENDED")),
+                    data.getOrDefault("message", LanguageButton.t("COOP_MATCH_FINISHED")), false));
             return;
         }
         if (matchData.getOpCode() == CoopProtocol.OP_PLAYER_DEATH) {
@@ -221,8 +225,8 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
                 Gdx.app.postRunnable(() -> {
                     remoteDead = Boolean.parseBoolean(data.getOrDefault("dead", "false"));
                     statusLabel.setText(remoteDead
-                            ? "Teammate died. If you die too, the match ends."
-                            : "Teammate is alive.");
+                            ? LanguageButton.t("TEAMMATE_DIED")
+                            : LanguageButton.t("TEAMMATE_ALIVE"));
                     checkTeamWipe();
                 });
             }
@@ -235,7 +239,7 @@ public class CoopLevelPlayScreen implements Screen, NakamaSocket.EventListener {
             return;
         }
         if (presenceEvent.getLeaves() != null && !presenceEvent.getLeaves().isEmpty()) {
-            Gdx.app.postRunnable(() -> abortMatch("A player disconnected from the level.", false));
+            Gdx.app.postRunnable(() -> abortMatch(LanguageButton.t("PLAYER_DISCONNECTED_LEVEL"), false));
         }
     }
 

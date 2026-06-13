@@ -2,6 +2,7 @@ package ua.uni.game;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -30,6 +31,7 @@ import ua.uni.online.OnlineSessionStore;
 import ua.uni.web.login_menu.LoginMenu;
 import ua.uni.web.main_menu.Menu;
 import ua.uni.web.main_menu.settings_menu.AchievementsButton;
+import ua.uni.web.main_menu.settings_menu.LanguageButton;
 
 public class MainGame extends Game {
     private static final float ACHIEVEMENT_POPUP_DURATION = 4.4f;
@@ -74,11 +76,7 @@ public class MainGame extends Game {
                 new NakamaSocket(onlineClient, onlineConfig.getHost(), onlineConfig.getSocketPort(), onlineConfig.isSsl()));
         achievementManager = new AchievementManager();
         initAchievementPopupUi();
-        if (DEV_SKIP_LOGIN || sessionManager.hasSession()) {
-            setScreen(new Menu(this));
-        } else {
-            setScreen(new LoginMenu(this));
-        }
+        setScreen(new IntroScreen(this));
     }
 
     @Override
@@ -133,6 +131,13 @@ public class MainGame extends Game {
         this.coopMatchState = null;
     }
 
+    public Screen createStartupScreen() {
+        if (DEV_SKIP_LOGIN || sessionManager.hasSession()) {
+            return new Menu(this);
+        }
+        return new LoginMenu(this);
+    }
+
     @Override
     public void dispose() {
         super.dispose();
@@ -155,6 +160,7 @@ public class MainGame extends Game {
         header.color = new Color(0.92f, 0.93f, 0.88f, 1f);
         header.borderWidth = 1f;
         header.borderColor = new Color(0.02f, 0.02f, 0.02f, 1f);
+        header.characters = LanguageButton.FONT_CHARACTERS;
         popupHeaderFont = generator.generateFont(header);
 
         FreeTypeFontGenerator.FreeTypeFontParameter title = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -162,6 +168,7 @@ public class MainGame extends Game {
         title.color = Color.WHITE;
         title.borderWidth = 1.1f;
         title.borderColor = new Color(0.02f, 0.02f, 0.02f, 1f);
+        title.characters = LanguageButton.FONT_CHARACTERS;
         popupTitleFont = generator.generateFont(title);
 
         generator.dispose();
@@ -218,7 +225,7 @@ public class MainGame extends Game {
         Color rarity = rarityColor(activePopupAchievement.getRarity());
         Color rarityAccent = rarityAccentColor(activePopupAchievement.getRarity());
 
-        popupHeaderLayout.setText(popupHeaderFont, "ACHIEVEMENT UNLOCKED");
+        popupHeaderLayout.setText(popupHeaderFont, LanguageButton.t("ACHIEVEMENT_UNLOCKED"));
         popupTitleLayout.setText(popupTitleFont, activePopupAchievement.getTitle());
 
         overlayBatch.begin();

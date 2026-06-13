@@ -38,6 +38,7 @@ import ua.uni.online.CoopMatchState;
 import ua.uni.online.CoopProtocol;
 import ua.uni.online.NakamaSocket;
 import ua.uni.online.Serialization;
+import ua.uni.web.main_menu.settings_menu.LanguageButton;
 import ua.uni.web.main_menu.Menu;
 
 import java.nio.charset.StandardCharsets;
@@ -118,21 +119,24 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         titleParams.color = Color.WHITE;
         titleParams.borderWidth = 2f;
         titleParams.borderColor = Color.BLACK;
+        titleParams.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(titleParams);
 
         FreeTypeFontGenerator.FreeTypeFontParameter uiParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         uiParams.size = 40;
         uiParams.color = Color.WHITE;
+        uiParams.characters = LanguageButton.FONT_CHARACTERS;
         uiFont = generator.generateFont(uiParams);
 
         FreeTypeFontGenerator.FreeTypeFontParameter statusParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         statusParams.size = 28;
         statusParams.color = new Color(0.92f, 0.92f, 0.92f, 1f);
+        statusParams.characters = LanguageButton.FONT_CHARACTERS;
         statusFont = generator.generateFont(statusParams);
         generator.dispose();
 
         buildUi();
-        refreshLobbyUi("Create a room or join by match ID.");
+        refreshLobbyUi(LanguageButton.t("CREATE_OR_JOIN_MATCH"));
     }
 
     private void buildUi() {
@@ -153,8 +157,8 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, Color.WHITE);
         Label.LabelStyle infoStyle = new Label.LabelStyle(statusFont, Color.WHITE);
 
-        Label titleLabel = new Label("CO-OP LOBBY", titleStyle);
-        Label infoLabel = new Label("Host selects level and starts. Everyone must be ready.", infoStyle);
+        Label titleLabel = new Label(LanguageButton.t("COOP_LOBBY"), titleStyle);
+        Label infoLabel = new Label(LanguageButton.t("COOP_LOBBY_INFO"), infoStyle);
         infoLabel.setAlignment(Align.center);
 
         roleLabel = new Label("", infoStyle);
@@ -169,16 +173,16 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         statusLabel.setAlignment(Align.center);
 
         matchIdField = new TextField("", fieldStyle);
-        matchIdField.setMessageText("Enter match ID");
+        matchIdField.setMessageText(LanguageButton.t("ENTER_MATCH_ID"));
 
-        TextButton createButton = new TextButton("CREATE MATCH", buttonStyle);
-        TextButton joinButton = new TextButton("JOIN MATCH", buttonStyle);
-        TextButton leaveButton = new TextButton("LEAVE MATCH", buttonStyle);
-        TextButton backButton = new TextButton("BACK", buttonStyle);
-        readyButton = new TextButton("READY: OFF", buttonStyle);
-        startButton = new TextButton("START", buttonStyle);
-        levelPrevButton = new TextButton("LEVEL -", buttonStyle);
-        levelNextButton = new TextButton("LEVEL +", buttonStyle);
+        TextButton createButton = new TextButton(LanguageButton.t("CREATE_MATCH"), buttonStyle);
+        TextButton joinButton = new TextButton(LanguageButton.t("JOIN_MATCH"), buttonStyle);
+        TextButton leaveButton = new TextButton(LanguageButton.t("LEAVE_MATCH"), buttonStyle);
+        TextButton backButton = new TextButton(LanguageButton.t("BACK"), buttonStyle);
+        readyButton = new TextButton(LanguageButton.t("READY_OFF"), buttonStyle);
+        startButton = new TextButton(LanguageButton.t("START"), buttonStyle);
+        levelPrevButton = new TextButton(LanguageButton.t("LEVEL_PREV"), buttonStyle);
+        levelNextButton = new TextButton(LanguageButton.t("LEVEL_NEXT"), buttonStyle);
 
         createButton.addListener(new ChangeListener() {
             @Override
@@ -198,14 +202,14 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                 AudioManager.get().playSelect(0.70f);
-                leaveMatchAndDisconnect("Left lobby.");
+                leaveMatchAndDisconnect(LanguageButton.t("LEFT_LOBBY"));
             }
         });
         backButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                 AudioManager.get().playSelect(0.72f);
-                leaveMatchAndDisconnect("Closed coop lobby.");
+                leaveMatchAndDisconnect(LanguageButton.t("CLOSED_COOP_LOBBY"));
                 game.setScreen(new Menu(game));
             }
         });
@@ -304,7 +308,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
             matchIdField.setText(currentMatchId);
             broadcastLobbySnapshot();
             AppLogger.info(LOG_TAG, "Created coop match id=" + currentMatchId + " host=" + selfUserId);
-            refreshLobbyUi("Match created. Waiting for players.");
+            refreshLobbyUi(LanguageButton.t("MATCH_CREATED_WAITING"));
         } catch (Exception e) {
             refreshLobbyUi(userFacingError("create", e));
             AppLogger.error(LOG_TAG, "Failed to create coop match", e);
@@ -314,14 +318,14 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     private void joinMatch() {
         String matchId = matchIdField.getText().trim();
         if (matchId.isEmpty()) {
-            refreshLobbyUi("Enter a match ID first.");
+            refreshLobbyUi(LanguageButton.t("ENTER_MATCH_ID_FIRST"));
             return;
         }
         try {
             Session session = ensureConnectedSession();
             Match match = game.getNakamaMatchService().joinMatch(matchId);
             if (match == null || match.getMatchId() == null || match.getMatchId().isBlank()) {
-                throw new IllegalStateException("Nakama returned an empty joined match");
+                throw new IllegalStateException(LanguageButton.t("INVALID_MATCH_RESPONSE"));
             }
             currentSession = session;
             selfUserId = session.getUserId();
@@ -334,7 +338,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
             matchIdField.setText(currentMatchId);
             sendReadyState();
             AppLogger.info(LOG_TAG, "Joined coop match id=" + currentMatchId + " guest=" + selfUserId);
-            refreshLobbyUi("Joined match. Waiting for host lobby sync.");
+            refreshLobbyUi(LanguageButton.t("JOINED_MATCH_WAITING"));
         } catch (Exception e) {
             refreshLobbyUi(userFacingError("join", e));
             AppLogger.error(LOG_TAG, "Failed to join coop match", e);
@@ -383,7 +387,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
 
     private void toggleReady() {
         if (currentMatchId == null || selfUserId == null) {
-            refreshLobbyUi("Join or create a match first.");
+            refreshLobbyUi(LanguageButton.t("JOIN_OR_CREATE_FIRST"));
             return;
         }
         isReady = !isReady;
@@ -395,34 +399,34 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         if (isHost) {
             broadcastLobbySnapshot();
         } else {
-            refreshLobbyUi("Ready state sent to host.");
+            refreshLobbyUi(LanguageButton.t("READY_SENT_TO_HOST"));
         }
         refreshLobbyUi(null);
     }
 
     private void changeLevel(int delta) {
         if (!isHost || currentMatchId == null) {
-            refreshLobbyUi("Only the host can select level.");
+            refreshLobbyUi(LanguageButton.t("ONLY_HOST_SELECT"));
             return;
         }
         selectedLevel += delta;
         if (selectedLevel < 1) selectedLevel = MAX_LEVELS;
         if (selectedLevel > MAX_LEVELS) selectedLevel = 1;
         broadcastLobbySnapshot();
-        refreshLobbyUi("Host selected level " + String.format("%02d", selectedLevel) + ".");
+        refreshLobbyUi(LanguageButton.tf("HOST_SELECTED_LEVEL_FMT", String.format("%02d", selectedLevel)));
     }
 
     private void startMatchIfPossible() {
         if (!isHost) {
-            refreshLobbyUi("Only the host can start the match.");
+            refreshLobbyUi(LanguageButton.t("ONLY_HOST_START"));
             return;
         }
         if (players.size() < 2) {
-            refreshLobbyUi("Need at least 2 players.");
+            refreshLobbyUi(LanguageButton.t("NEED_AT_LEAST_TWO"));
             return;
         }
         if (!allPlayersReady()) {
-            refreshLobbyUi("Everyone must be ready before start.");
+            refreshLobbyUi(LanguageButton.t("EVERYONE_READY"));
             return;
         }
         Map<String, String> message = new LinkedHashMap<>();
@@ -576,23 +580,31 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     }
 
     private void refreshLobbyUi(String message) {
-        String role = "Role: " + (currentMatchId == null ? "not in lobby" : (isHost ? "HOST" : "GUEST"));
-        String session = "Session: " + (selfUserId == null ? "disconnected" : shortId(selfUserId));
-        String match = "Match: " + (currentMatchId == null ? "none" : currentMatchId);
-        String level = "Level: " + String.format("%02d", selectedLevel) + (isHost ? " (host selects)" : " (host controls)");
-        StringBuilder playersText = new StringBuilder("Players:\n");
+        String roleValue = currentMatchId == null
+                ? LanguageButton.t("ROLE_NONE")
+                : (isHost ? LanguageButton.t("ROLE_HOST") : LanguageButton.t("ROLE_GUEST"));
+        String role = LanguageButton.tf("ROLE_FMT", roleValue);
+        String session = LanguageButton.tf("SESSION_FMT",
+                selfUserId == null ? LanguageButton.t("SESSION_DISCONNECTED") : shortId(selfUserId));
+        String match = LanguageButton.tf("MATCH_FMT",
+                currentMatchId == null ? LanguageButton.t("MATCH_NONE") : currentMatchId);
+        String level = LanguageButton.tf("LEVEL_FMT", String.format("%02d", selectedLevel),
+                isHost ? LanguageButton.t("LEVEL_HOST_SELECTS") : LanguageButton.t("LEVEL_HOST_CONTROLS"));
+        StringBuilder playersText = new StringBuilder(LanguageButton.t("PLAYERS_HEADER"));
         if (players.isEmpty()) {
-            playersText.append("Waiting for lobby...");
+            playersText.append(LanguageButton.t("WAITING_FOR_LOBBY"));
         } else {
             boolean first = true;
             for (LobbyPlayer player : players.values()) {
                 if (!first) {
                     playersText.append('\n');
                 }
-                playersText.append(player.userId.equals(hostUserId) ? "[HOST] " : "[GUEST] ")
+                playersText.append(player.userId.equals(hostUserId)
+                                ? LanguageButton.t("PLAYER_HOST_PREFIX")
+                                : LanguageButton.t("PLAYER_GUEST_PREFIX"))
                         .append(player.username)
                         .append(" - ")
-                        .append(player.ready ? "READY" : "NOT READY");
+                        .append(player.ready ? LanguageButton.t("PLAYER_READY") : LanguageButton.t("PLAYER_NOT_READY"));
                 first = false;
             }
         }
@@ -602,7 +614,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         matchLabel.setText(match);
         levelLabel.setText(level);
         playersLabel.setText(playersText.toString());
-        readyButton.setText(isReady ? "READY: ON" : "READY: OFF");
+        readyButton.setText(isReady ? LanguageButton.t("READY_ON") : LanguageButton.t("READY_OFF"));
         readyButton.setDisabled(currentMatchId == null);
         levelPrevButton.setDisabled(!isHost || currentMatchId == null);
         levelNextButton.setDisabled(!isHost || currentMatchId == null);
@@ -617,7 +629,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         if (gameStarting) {
             return;
         }
-        Gdx.app.postRunnable(() -> refreshLobbyUi("Disconnected from lobby."));
+        Gdx.app.postRunnable(() -> refreshLobbyUi(LanguageButton.t("DISCONNECTED_FROM_LOBBY")));
     }
 
     @Override
@@ -625,7 +637,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         if (error == null) {
             return;
         }
-        Gdx.app.postRunnable(() -> refreshLobbyUi("Socket error: " + error.getMessage()));
+        Gdx.app.postRunnable(() -> refreshLobbyUi(LanguageButton.tf("SOCKET_ERROR_FMT", error.getMessage())));
     }
 
     @Override
@@ -640,7 +652,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         if (matchData.getOpCode() == CoopProtocol.OP_LOBBY_SNAPSHOT) {
             Gdx.app.postRunnable(() -> {
                 applySnapshot(data);
-                refreshLobbyUi("Lobby updated.");
+                refreshLobbyUi(LanguageButton.t("LOBBY_UPDATED"));
             });
             return;
         }
@@ -652,7 +664,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
                 if (player != null) {
                     player.ready = ready;
                     broadcastLobbySnapshot();
-                    refreshLobbyUi(player.username + " changed ready state.");
+                    refreshLobbyUi(LanguageButton.tf("READY_CHANGED_FMT", player.username));
                 }
             });
             return;
@@ -686,7 +698,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
                 for (UserPresence leave : presenceEvent.getLeaves()) {
                     players.remove(leave.getUserId());
                     if (leave.getUserId() != null && leave.getUserId().equals(hostUserId) && !isHost) {
-                        leaveMatchAndDisconnect("Host disconnected. Lobby closed.");
+                        leaveMatchAndDisconnect(LanguageButton.t("HOST_DISCONNECTED"));
                         return;
                     }
                 }
@@ -694,7 +706,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
             if (isHost) {
                 broadcastLobbySnapshot();
             }
-            refreshLobbyUi("Lobby presence updated.");
+            refreshLobbyUi(LanguageButton.t("LOBBY_PRESENCE_UPDATED"));
         });
     }
 
@@ -702,7 +714,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     public void render(float delta) {
         AudioManager.get().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            leaveMatchAndDisconnect("Closed coop lobby.");
+            leaveMatchAndDisconnect(LanguageButton.t("CLOSED_COOP_LOBBY"));
             game.setScreen(new Menu(game));
             return;
         }

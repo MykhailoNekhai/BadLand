@@ -16,6 +16,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.game.MainGame;
 import ua.uni.web.main_menu.Menu;
+import ua.uni.web.main_menu.settings_menu.LanguageButton;
 
 public class CoopStatusScreen implements Screen {
     private final MainGame game;
@@ -45,16 +46,18 @@ public class CoopStatusScreen implements Screen {
         titleParams.color = Color.WHITE;
         titleParams.borderWidth = 2f;
         titleParams.borderColor = Color.BLACK;
+        titleParams.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(titleParams);
 
         FreeTypeFontGenerator.FreeTypeFontParameter bodyParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         bodyParams.size = 34;
         bodyParams.color = new Color(0.92f, 0.92f, 0.88f, 1f);
+        bodyParams.characters = LanguageButton.FONT_CHARACTERS;
         bodyFont = generator.generateFont(bodyParams);
         generator.dispose();
 
         Label titleLabel = new Label(title, new Label.LabelStyle(titleFont, Color.WHITE));
-        Label bodyLabel = new Label(message + "\n\nPress ENTER or ESC to return.", new Label.LabelStyle(bodyFont, Color.WHITE));
+        Label bodyLabel = new Label(message + "\n\n" + LanguageButton.t("PRESS_ENTER_ESC_RETURN"), new Label.LabelStyle(bodyFont, Color.WHITE));
         bodyLabel.setWrap(true);
         bodyLabel.setAlignment(Align.center);
 

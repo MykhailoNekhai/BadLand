@@ -21,6 +21,7 @@ import ua.uni.game.MainGame;
 import ua.uni.auth.FirebaseAuthService;
 import ua.uni.logging.AppLogger;
 import ua.uni.web.main_menu.Menu;
+import ua.uni.web.main_menu.settings_menu.LanguageButton;
 
 public class LoginMenu implements Screen {
     private final MainGame game;
@@ -54,10 +55,12 @@ public class LoginMenu implements Screen {
         titleParams.size = 114;
         titleParams.color = Color.BLACK;
         titleParams.borderWidth = 0f;
+        titleParams.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(titleParams);
         FreeTypeFontGenerator.FreeTypeFontParameter up = new FreeTypeFontGenerator.FreeTypeFontParameter();
         up.size = 44;
         up.color = Color.WHITE;
+        up.characters = LanguageButton.FONT_CHARACTERS;
         uiFont = generator.generateFont(up);
         generator.dispose();
 
@@ -79,18 +82,18 @@ public class LoginMenu implements Screen {
         Label.LabelStyle labelStyle = new Label.LabelStyle(uiFont, Color.WHITE);
 
         emailField = new TextField("", fieldStyle);
-        emailField.setMessageText("Email");
+        emailField.setMessageText(LanguageButton.t("EMAIL"));
         passwordField = new TextField("", fieldStyle);
         passwordField.setPasswordMode(true);
         passwordField.setPasswordCharacter('*');
-        passwordField.setMessageText("Password");
+        passwordField.setMessageText(LanguageButton.t("PASSWORD"));
         nicknameField = new TextField("", fieldStyle);
-        nicknameField.setMessageText("Nickname (for register)");
+        nicknameField.setMessageText(LanguageButton.t("NICKNAME_REGISTER"));
 
-        TextButton loginBtn = new TextButton("LOGIN", btnStyle);
-        TextButton registerBtn = new TextButton("REGISTER", btnStyle);
-        TextButton resetBtn = new TextButton("RESET PASSWORD", btnStyle);
-        TextButton resendBtn = new TextButton("RESEND VERIFICATION", btnStyle);
+        TextButton loginBtn = new TextButton(LanguageButton.t("LOGIN"), btnStyle);
+        TextButton registerBtn = new TextButton(LanguageButton.t("REGISTER"), btnStyle);
+        TextButton resetBtn = new TextButton(LanguageButton.t("RESET_PASSWORD"), btnStyle);
+        TextButton resendBtn = new TextButton(LanguageButton.t("RESEND_VERIFICATION"), btnStyle);
         statusLabel = new Label("", labelStyle);
 
         loginBtn.addListener(new ChangeListener() {
@@ -137,14 +140,14 @@ public class LoginMenu implements Screen {
         String email = emailField.getText().trim();
         String password = passwordField.getText();
         if (email.isEmpty() || password.isEmpty()) {
-            statusLabel.setText("Fill email and password");
+            statusLabel.setText(LanguageButton.t("FILL_EMAIL_PASSWORD"));
             return;
         }
         try {
             AppLogger.info("Auth", "Login attempt");
             FirebaseAuthService.AuthResult result = game.getAuthService().signIn(email, password);
             if (!game.getAuthService().isEmailVerified(result.idToken())) {
-                statusLabel.setText("Verify your email first. Check inbox.");
+                statusLabel.setText(LanguageButton.t("VERIFY_EMAIL_FIRST"));
                 AppLogger.info("Auth", "Login blocked: email not verified");
                 return;
             }
@@ -153,7 +156,7 @@ public class LoginMenu implements Screen {
             AppLogger.info("Auth", "Login success. uid=" + result.uid());
             game.setScreen(new Menu(game));
         } catch (Exception e) {
-            statusLabel.setText("Login failed: " + e.getMessage());
+            statusLabel.setText(LanguageButton.tf("LOGIN_FAILED_FMT", e.getMessage()));
             AppLogger.error("Auth", "Login failed", e);
         }
     }
@@ -163,7 +166,7 @@ public class LoginMenu implements Screen {
         String password = passwordField.getText();
         String nickname = nicknameField.getText().trim();
         if (email.isEmpty() || password.isEmpty() || nickname.isEmpty()) {
-            statusLabel.setText("Fill all fields for register");
+            statusLabel.setText(LanguageButton.t("FILL_REGISTER_FIELDS"));
             return;
         }
         try {
@@ -171,10 +174,10 @@ public class LoginMenu implements Screen {
             FirebaseAuthService.AuthResult result = game.getAuthService().signUp(email, password);
             game.getFirestoreService().createUserProfile(result.idToken(), result.uid(), nickname, email, "uk");
             game.getAuthService().sendEmailVerification(result.idToken());
-            statusLabel.setText("Registered. Verify email, then login.");
+            statusLabel.setText(LanguageButton.t("REGISTERED_VERIFY_LOGIN"));
             AppLogger.info("Auth", "Register success. uid=" + result.uid());
         } catch (Exception e) {
-            statusLabel.setText("Register failed: " + e.getMessage());
+            statusLabel.setText(LanguageButton.tf("REGISTER_FAILED_FMT", e.getMessage()));
             AppLogger.error("Auth", "Register failed", e);
         }
     }
@@ -182,15 +185,15 @@ public class LoginMenu implements Screen {
     private void doPasswordReset() {
         String email = emailField.getText().trim();
         if (email.isEmpty()) {
-            statusLabel.setText("Enter your email first");
+            statusLabel.setText(LanguageButton.t("ENTER_EMAIL_FIRST"));
             return;
         }
         try {
             AppLogger.info("Auth", "Password reset request");
             game.getAuthService().sendPasswordResetEmail(email);
-            statusLabel.setText("Password reset email sent.");
+            statusLabel.setText(LanguageButton.t("PASSWORD_RESET_SENT"));
         } catch (Exception e) {
-            statusLabel.setText("Reset failed: " + e.getMessage());
+            statusLabel.setText(LanguageButton.tf("RESET_FAILED_FMT", e.getMessage()));
             AppLogger.error("Auth", "Password reset failed", e);
         }
     }
@@ -199,16 +202,16 @@ public class LoginMenu implements Screen {
         String email = emailField.getText().trim();
         String password = passwordField.getText();
         if (email.isEmpty() || password.isEmpty()) {
-            statusLabel.setText("Fill email and password first");
+            statusLabel.setText(LanguageButton.t("FILL_EMAIL_PASSWORD_FIRST"));
             return;
         }
         try {
             AppLogger.info("Auth", "Resend verification request");
             FirebaseAuthService.AuthResult result = game.getAuthService().signIn(email, password);
             game.getAuthService().sendEmailVerification(result.idToken());
-            statusLabel.setText("Verification email sent again.");
+            statusLabel.setText(LanguageButton.t("VERIFICATION_SENT_AGAIN"));
         } catch (Exception e) {
-            statusLabel.setText("Resend failed: " + e.getMessage());
+            statusLabel.setText(LanguageButton.tf("RESEND_FAILED_FMT", e.getMessage()));
             AppLogger.error("Auth", "Resend verification failed", e);
         }
     }

@@ -334,7 +334,7 @@ public class SettingsMenu implements Screen {
         t.center().padTop(20);
         Label shadowFlight = new Label("SHADOW FLIGHT", heroStyle);
         shadowFlight.setAlignment(com.badlogic.gdx.utils.Align.center);
-        Label team = new Label("TEAM", heroStyle);
+        Label team = new Label(LanguageButton.t("CREDITS_TEAM"), heroStyle);
         team.setAlignment(com.badlogic.gdx.utils.Align.center);
         t.add(shadowFlight).center().padBottom(2).row();
         t.add(team).center().padBottom(28).row();

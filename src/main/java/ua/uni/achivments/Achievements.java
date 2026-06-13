@@ -1,6 +1,7 @@
 package ua.uni.achivments;
 
 import ua.uni.objects.ID;
+import ua.uni.web.main_menu.settings_menu.LanguageButton;
 
 public class Achievements {
     private ID id;
@@ -34,7 +35,7 @@ public class Achievements {
     }
 
     public String getTitle() {
-        return title;
+        return LanguageButton.achievementTitle(code, title);
     }
 
     public void setTitle(String title) {
@@ -50,7 +51,7 @@ public class Achievements {
     }
 
     public String getMessage() {
-        return message;
+        return LanguageButton.achievementMessage(code, message);
     }
 
     public void setMessage(String message) {
