@@ -30,7 +30,7 @@ public class CoopPoligonLevel extends PoligonLevel implements NakamaSocket.Event
     private static final float MAX_EXTRAPOLATION_SECONDS = 0.18f;
 
     private final Array<Shadow> remoteClones = new Array<>();
-    private final Array<RemoteShadowState> remoteStates = new Array<>();
+ //   private final Array<RemoteShadowState> remoteStates = new Array<>();
     private final CoopMatchState matchState;
     private float networkSendElapsed;
     private float remotePacketElapsed;
@@ -46,7 +46,7 @@ public class CoopPoligonLevel extends PoligonLevel implements NakamaSocket.Event
         super(game);
         this.matchState = game.getCoopMatchState();
     }
-
+/*
     @Override
     public void show() {
         super.show();
@@ -497,5 +497,5 @@ public class CoopPoligonLevel extends PoligonLevel implements NakamaSocket.Event
         private float targetAngle;
         private boolean active;
         private boolean hasTarget;
-    }
+    } */
 }
