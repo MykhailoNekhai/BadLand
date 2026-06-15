@@ -5,8 +5,12 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -45,6 +49,8 @@ public abstract class Plevel implements Screen {
     protected OrthographicCamera camera;
     protected MainGame game;
 
+    private Texture backgroundGradient;
+    private Texture backgroundGlow;
 
     protected boolean isGameStarted = false; // потрібен для початку руху камери
     protected Viewport viewport;
@@ -106,6 +112,7 @@ public abstract class Plevel implements Screen {
         if (players.size() == 0) {
             state = GameState.GAME_OVER;
             if (levelNumber > 0) {
+                game.getAchievementManager().onLevelFailed();
                 game.getAchievementManager().onDeath();
             }
             AudioManager.get().playLevelLose(0.95f);
@@ -178,6 +185,12 @@ public abstract class Plevel implements Screen {
         engine.addSystem(new PullSystem());
         engine.addSystem(new BonusSystem(world));
         pauseMenu = new PauseMenu(game, this::resumeFromPause, this::restartLevel, this::checkpointAction);
+        backgroundGradient = makeLevelGradientTexture(64, 256,
+                new Color(0.18f, 0.24f, 0.32f, 1f),
+                new Color(0.04f, 0.05f, 0.08f, 1f));
+        backgroundGlow = makeGlowTexture(420,
+                new Color(0.88f, 0.76f, 0.46f, 0.30f),
+                new Color(0.88f, 0.76f, 0.46f, 0f));
     }
 
     protected abstract void buildLevel();
@@ -211,7 +224,7 @@ public abstract class Plevel implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.5f, 0.8f, 1f, 1);
+        Gdx.gl.glClearColor(0.04f, 0.05f, 0.08f, 1f);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (state == GameState.PLAYING) {
                 state = GameState.PAUSED;
@@ -268,6 +281,7 @@ public abstract class Plevel implements Screen {
         camera.update();
 
         game.getBatch().setProjectionMatrix(camera.combined);
+        renderLevelBackground();
 
         if (state == GameState.PLAYING) {
             AudioManager.get().updateLevelAmbience(delta);
@@ -282,6 +296,26 @@ public abstract class Plevel implements Screen {
         }
 
         debugRenderer.render(world, camera.combined);
+    }
+
+    private void renderLevelBackground() {
+        float viewportWidth = camera.viewportWidth;
+        float viewportHeight = camera.viewportHeight;
+        float left = camera.position.x - (viewportWidth / 2f);
+        float bottom = camera.position.y - (viewportHeight / 2f);
+
+        float glowWidth = viewportWidth * 1.35f;
+        float glowHeight = viewportHeight * 1.55f;
+        float glowX = camera.position.x + (viewportWidth * 0.22f) - (glowWidth / 2f);
+        float glowY = camera.position.y + (viewportHeight * 0.10f) - (glowHeight / 2f);
+
+        game.getBatch().begin();
+        game.getBatch().setColor(Color.WHITE);
+        game.getBatch().draw(backgroundGradient, left, bottom, viewportWidth, viewportHeight);
+        game.getBatch().setColor(1f, 1f, 1f, 0.92f);
+        game.getBatch().draw(backgroundGlow, glowX, glowY, glowWidth, glowHeight);
+        game.getBatch().setColor(1f, 1f, 1f, 1f);
+        game.getBatch().end();
     }
 
     private void resumeFromPause() {
@@ -333,7 +367,55 @@ public abstract class Plevel implements Screen {
         if (pauseMenu != null) {
             pauseMenu.dispose();
         }
+        if (backgroundGradient != null) {
+            backgroundGradient.dispose();
+        }
+        if (backgroundGlow != null) {
+            backgroundGlow.dispose();
+        }
         world.dispose();
         debugRenderer.dispose();
+    }
+
+    private Texture makeLevelGradientTexture(int width, int height, Color topColor, Color bottomColor) {
+        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+        for (int y = 0; y < height; y++) {
+            float t = y / (float) (height - 1);
+            float r = bottomColor.r + ((topColor.r - bottomColor.r) * t);
+            float g = bottomColor.g + ((topColor.g - bottomColor.g) * t);
+            float b = bottomColor.b + ((topColor.b - bottomColor.b) * t);
+            float a = bottomColor.a + ((topColor.a - bottomColor.a) * t);
+            pixmap.setColor(r, g, b, a);
+            pixmap.drawLine(0, y, width, y);
+        }
+        Texture texture = new Texture(pixmap);
+        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        pixmap.dispose();
+        return texture;
+    }
+
+    private Texture makeGlowTexture(int size, Color centerColor, Color edgeColor) {
+        Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        float center = size / 2f;
+        float radius = size / 2f;
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                float dx = x - center;
+                float dy = y - center;
+                float distance = (float) Math.sqrt((dx * dx) + (dy * dy));
+                float alpha = Math.max(0f, 1f - (distance / radius));
+                alpha = alpha * alpha;
+                float r = edgeColor.r + ((centerColor.r - edgeColor.r) * alpha);
+                float g = edgeColor.g + ((centerColor.g - edgeColor.g) * alpha);
+                float b = edgeColor.b + ((centerColor.b - edgeColor.b) * alpha);
+                float a = edgeColor.a + ((centerColor.a - edgeColor.a) * alpha);
+                pixmap.setColor(r, g, b, a);
+                pixmap.drawPixel(x, y);
+            }
+        }
+        Texture texture = new Texture(pixmap);
+        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        pixmap.dispose();
+        return texture;
     }
 }

@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.math.Matrix4;
 import ua.uni.gameplay.achievements.AchievementManager;
 import ua.uni.gameplay.achievements.Achievements;
 import ua.uni.gameplay.achievements.AchievementsRarity;
@@ -63,6 +64,7 @@ public class MainGame extends Game {
     private Texture popupPixel;
     private final GlyphLayout popupHeaderLayout = new GlyphLayout();
     private final GlyphLayout popupTitleLayout = new GlyphLayout();
+    private final Matrix4 popupProjection = new Matrix4();
     private Achievements activePopupAchievement;
     private float popupElapsed;
     private SpriteBatch batch;
@@ -252,6 +254,8 @@ public class MainGame extends Game {
 
         float screenW = Gdx.graphics.getWidth();
         float screenH = Gdx.graphics.getHeight();
+        popupProjection.setToOrtho2D(0f, 0f, screenW, screenH);
+        overlayBatch.setProjectionMatrix(popupProjection);
         float panelW = 460f;
         float panelH = 132f;
         float margin = 18f;
@@ -266,6 +270,7 @@ public class MainGame extends Game {
         popupHeaderLayout.setText(popupHeaderFont, LanguageButton.t("ACHIEVEMENT_UNLOCKED"));
         popupTitleLayout.setText(popupTitleFont, activePopupAchievement.getTitle());
 
+        Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
         overlayBatch.begin();
         overlayBatch.setColor(rarity.r, rarity.g, rarity.b, 0.10f * alpha);
         overlayBatch.draw(popupGlow, x - 120f, y - 48f, panelW + 240f, panelH + 96f);
@@ -449,6 +454,9 @@ public class MainGame extends Game {
 
     private void resetAchievementsForDebug() {
         achievementManager.resetAll();
+        if (playerDataSyncService != null) {
+            playerDataSyncService.syncProgressSnapshot("ACHIEVEMENTS_RESET", "debug-f8");
+        }
         activePopupAchievement = null;
         popupElapsed = 0f;
         if (getScreen() instanceof AchievementsButton) {
@@ -456,4 +464,6 @@ public class MainGame extends Game {
         }
         Gdx.app.log("Achievements", "Achievements reset with F8");
     }
+
+
 }
