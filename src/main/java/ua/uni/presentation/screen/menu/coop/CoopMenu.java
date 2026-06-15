@@ -35,6 +35,7 @@ import ua.uni.audio.services.AudioManager;
 import ua.uni.bootstrap.MainGame;
 import ua.uni.bootstrap.RuntimeProfile;
 import ua.uni.core.logging.AppLogger;
+import ua.uni.gameplay.levels.CoopRuinsLevel;
 import ua.uni.platform.online.CoopMatchState;
 import ua.uni.platform.online.CoopProtocol;
 import ua.uni.platform.online.NakamaSocket;
@@ -624,9 +625,14 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     }
 
     private void startSelectedLevel(int level) {
-        preserveConnectionOnDispose = false;
+        boolean useLiveCoopLevel = level == 2;
+        preserveConnectionOnDispose = useLiveCoopLevel;
         gameStarting = true;
         game.setCoopMatchState(new CoopMatchState(currentMatchId, selfUserId, hostUserId, level, players.size()));
+        if (useLiveCoopLevel) {
+            game.setScreen(new CoopRuinsLevel(game));
+            return;
+        }
         handoffLobbyConnection();
         game.setScreen(new CoopLevelPlayScreen(game, level));
     }
