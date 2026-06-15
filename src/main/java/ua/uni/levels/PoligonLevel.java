@@ -17,18 +17,24 @@ public class PoligonLevel extends Plevel {
     @Override
     protected void buildLevel() {
         spawnClone(2, 9);
-        spawnClone(4, 9);
-        spawnClone(6, 9);
+     //   spawnClone(4, 9);
+       // spawnClone(6, 9);
         spawnClone(8, 9);
 
-        EntityFactory.createObstacle(engine, world, "barbwire", 20f, 5f, 0f, 3f);
+
+        EntityFactory.createObstacle(engine, world, "item-big", 10f, 5f, 0f, 1.4f);
+        EntityFactory.createObstacle(engine, world, "item-small", 15f, 5f, 0f, 1.4f);
+        EntityFactory.createObstacle(engine, world, "item-slow", 20f, 5f, 0f, 1.4f);
+        EntityFactory.createObstacle(engine, world, "item-clone", 20f, 5f, 0f, 1.4f);
+
+        // EntityFactory.createObstacle(engine, world, "barbwire", 20f, 5f, 0f, 3f);
         EntityFactory.createObstacle(engine, world, "barbwire", 25f, 5f, 45f, 3f);
 
 
 
         // Arc arc = new Arc(world, 10, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "arc", 10f, 5f, 0f, 3f);
-        // Barbwire barbwire = new Barbwire(world, 20, 5, 3f);
+     //   EntityFactory.createObstacle(engine, world, "arc", 10f, 5f, 0f, 3f);
+   //     // Barbwire barbwire = new Barbwire(world, 20, 5, 3f);
         EntityFactory.createObstacle(engine, world, "barbwire", 20f, 5f, 0f, 3f);
         // Box box = new Box(world, 30, 5, 3f);
         EntityFactory.createObstacle(engine, world, "box", 30f, 5f, 0f, 3f);
