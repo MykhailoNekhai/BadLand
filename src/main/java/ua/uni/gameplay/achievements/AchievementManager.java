@@ -11,15 +11,22 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class AchievementManager {
+    private static final int LEVEL_SCORE = 1000;
+    private static final int COMMON_SCORE = 500;
+    private static final int RARE_SCORE = 1000;
+    private static final int EPIC_SCORE = 5000;
+    private static final int LEGENDARY_SCORE = 10000;
+
     public interface Listener {
         void onLevelStarted(int level);
         void onLevelCompleted(int level);
+        void onLevelFailed(int totalLosses);
         void onDeathRecorded(int totalDeaths);
         void onCoopSessionStarted();
         void onAchievementUnlocked(Achievements achievement);
     }
 
-    private static final int TOTAL_LEVELS = 10;
+    private static final int TOTAL_LEVELS = 20;
 
     private final AchievementsList catalog;
     private final UserAchievementState userState;
@@ -41,6 +48,8 @@ public class AchievementManager {
 
     public boolean onLevelComplete(int level) {
         boolean unlockedAny = false;
+        userState.addToTotalScore(LEVEL_SCORE);
+        int totalWins = userState.incrementTotalWins();
         String levelCode = "LEVEL_" + String.format("%02d", level);
         if (unlock(levelCode)) {
             unlockedAny = true;
@@ -52,6 +61,12 @@ public class AchievementManager {
         }
         userState.markLevelCompleted(level);
         if (hasCompletedAllLevels() && unlock("ALL_LEVELS_COMPLETE")) {
+            unlockedAny = true;
+        }
+        if (unlockWinMilestones(totalWins)) {
+            unlockedAny = true;
+        }
+        if (unlockScoreMilestones()) {
             unlockedAny = true;
         }
         if (listener != null) {
@@ -66,10 +81,21 @@ public class AchievementManager {
         if (totalDeaths >= 1 && unlock("DEATH_1_TOTAL")) unlockedAny = true;
         if (totalDeaths >= 5 && unlock("DEATH_5_TOTAL")) unlockedAny = true;
         if (totalDeaths >= 10 && unlock("DEATH_10_TOTAL")) unlockedAny = true;
+        if (unlockScoreMilestones()) unlockedAny = true;
         if (listener != null) {
             listener.onDeathRecorded(totalDeaths);
         }
         return unlockedAny;
+    }
+
+    public int onLevelFailed() {
+        int totalLosses = userState.incrementTotalLosses();
+        unlockLossMilestones(totalLosses);
+        unlockScoreMilestones();
+        if (listener != null) {
+            listener.onLevelFailed(totalLosses);
+        }
+        return totalLosses;
     }
 
     public boolean onPlayTime(float deltaSeconds) {
@@ -92,12 +118,16 @@ public class AchievementManager {
         if (totalSeconds >= 10 * 60 && unlock("PLAYTIME_10_MIN")) unlockedAny = true;
         if (totalSeconds >= 30 * 60 && unlock("PLAYTIME_30_MIN")) unlockedAny = true;
         if (totalSeconds >= 60 * 60 && unlock("PLAYTIME_60_MIN")) unlockedAny = true;
+        if (unlockScoreMilestones()) unlockedAny = true;
         return unlockedAny;
     }
 
     public boolean onCoopSessionStart() {
         boolean unlocked = unlock("COOP_SESSION");
         userState.incrementCoopSessions();
+        if (unlockScoreMilestones()) {
+            unlocked = true;
+        }
         if (listener != null) {
             listener.onCoopSessionStarted();
         }
@@ -108,6 +138,7 @@ public class AchievementManager {
         Achievements achievement = catalog.findByCode(code);
         boolean unlockedNow = userState.unlock(achievement.getCode());
         if (unlockedNow) {
+            userState.addToTotalScore(scoreForRarity(achievement.getRarity()));
             pendingUnlocked.offer(achievement);
             AppLogger.info("Achievements", "Unlocked: " + achievement.getCode() + " (" + achievement.getTitle() + ")");
             if (listener != null) {
@@ -145,8 +176,16 @@ public class AchievementManager {
         return userState.getTotalDeaths();
     }
 
+    public int getTotalWins() {
+        return userState.getTotalWins();
+    }
+
     public int getTotalPlaySeconds() {
         return userState.getTotalPlaySeconds();
+    }
+
+    public int getTotalLosses() {
+        return userState.getTotalLosses();
     }
 
     public int getCompletedLevelsCount() {
@@ -169,6 +208,10 @@ public class AchievementManager {
         return userState.getCoopSessionsCount();
     }
 
+    public int getTotalScore() {
+        return userState.getTotalScore();
+    }
+
     public void setListener(Listener listener) {
         this.listener = listener;
     }
@@ -178,7 +221,10 @@ public class AchievementManager {
         playtimeAccumulator = 0f;
 
         if (stats != null) {
+            userState.setTotalScore(stats.getTotalScore());
+            userState.setTotalWins(Math.max(stats.getTotalWins(), stats.getCompletedLevels()));
             userState.setTotalDeaths(stats.getTotalDeaths());
+            userState.setTotalLosses(stats.getTotalLosses());
             userState.setTotalPlaySeconds(stats.getTotalPlaySeconds());
             userState.setCoopSessionsCount(stats.getCoopSessions());
         }
@@ -198,6 +244,10 @@ public class AchievementManager {
                 userState.setUnlocked(row.getCode(), row.isUnlocked());
             }
         }
+
+        unlockWinMilestones(userState.getTotalWins());
+        unlockLossMilestones(userState.getTotalLosses());
+        unlockScoreMilestones();
     }
 
     public void resetAll() {
@@ -214,5 +264,49 @@ public class AchievementManager {
             }
         }
         return true;
+    }
+
+    private int scoreForRarity(AchievementsRarity rarity) {
+        return switch (rarity) {
+            case Common -> COMMON_SCORE;
+            case Rare -> RARE_SCORE;
+            case Epic -> EPIC_SCORE;
+            case Legendary -> LEGENDARY_SCORE;
+        };
+    }
+
+    private boolean unlockWinMilestones(int totalWins) {
+        boolean unlockedAny = false;
+        if (totalWins >= 1 && unlock("WINS_1_TOTAL")) unlockedAny = true;
+        if (totalWins >= 5 && unlock("WINS_5_TOTAL")) unlockedAny = true;
+        if (totalWins >= 10 && unlock("WINS_10_TOTAL")) unlockedAny = true;
+        if (totalWins >= 15 && unlock("WINS_15_TOTAL")) unlockedAny = true;
+        if (totalWins >= 20 && unlock("WINS_20_TOTAL")) unlockedAny = true;
+        return unlockedAny;
+    }
+
+    private boolean unlockLossMilestones(int totalLosses) {
+        boolean unlockedAny = false;
+        if (totalLosses >= 1 && unlock("LOSSES_1_TOTAL")) unlockedAny = true;
+        if (totalLosses >= 5 && unlock("LOSSES_5_TOTAL")) unlockedAny = true;
+        if (totalLosses >= 10 && unlock("LOSSES_10_TOTAL")) unlockedAny = true;
+        if (totalLosses >= 15 && unlock("LOSSES_15_TOTAL")) unlockedAny = true;
+        if (totalLosses >= 20 && unlock("LOSSES_20_TOTAL")) unlockedAny = true;
+        return unlockedAny;
+    }
+
+    private boolean unlockScoreMilestones() {
+        int totalScore = userState.getTotalScore();
+        boolean unlockedAny = false;
+        if (totalScore >= 1_000 && unlock("SCORE_1000_TOTAL")) unlockedAny = true;
+        if (userState.getTotalScore() >= 5_000 && unlock("SCORE_5000_TOTAL")) unlockedAny = true;
+        if (userState.getTotalScore() >= 10_000 && unlock("SCORE_10000_TOTAL")) unlockedAny = true;
+        if (userState.getTotalScore() >= 15_000 && unlock("SCORE_15000_TOTAL")) unlockedAny = true;
+        if (userState.getTotalScore() >= 20_000 && unlock("SCORE_20000_TOTAL")) unlockedAny = true;
+        if (userState.getTotalScore() >= 25_000 && unlock("SCORE_25000_TOTAL")) unlockedAny = true;
+        if (userState.getTotalScore() >= 30_000 && unlock("SCORE_30000_TOTAL")) unlockedAny = true;
+        if (userState.getTotalScore() >= 50_000 && unlock("SCORE_50000_TOTAL")) unlockedAny = true;
+        if (userState.getTotalScore() >= 100_000 && unlock("SCORE_100000_TOTAL")) unlockedAny = true;
+        return unlockedAny;
     }
 }

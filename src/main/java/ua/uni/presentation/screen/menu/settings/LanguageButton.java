@@ -149,6 +149,8 @@ public final class LanguageButton {
         put(en, uk, "CURRENT_NICKNAME", "CURRENT NICKNAME", "ПОТОЧНИЙ НІКНЕЙМ");
         put(en, uk, "ID", "ID", "ID");
         put(en, uk, "DEATHS", "DEATHS", "СМЕРТІ");
+        put(en, uk, "WINS", "WINS", "ВИГРАШІ");
+        put(en, uk, "LOSSES", "LOSSES", "ПРОГРАШІ");
         put(en, uk, "PLAY_TIME", "PLAY TIME", "ЧАС ГРИ");
         put(en, uk, "SCORE", "SCORE", "РАХУНОК");
         put(en, uk, "SOON", "SOON", "СКОРО");
@@ -174,6 +176,7 @@ public final class LanguageButton {
         put(en, uk, "HOURS_MINUTES_FMT", "%dh %dm", "%dг %dхв");
         put(en, uk, "SECONDS_FMT", "%ds", "%dс");
         put(en, uk, "RESET", "RESET", "СКИНУТИ");
+        put(en, uk, "RESET_ACHIEVEMENTS", "RESET ACHIEVEMENTS", "СКИНУТИ ДОСЯГНЕННЯ");
 
         TRANSLATIONS.put("EN", en);
         TRANSLATIONS.put("UK", uk);

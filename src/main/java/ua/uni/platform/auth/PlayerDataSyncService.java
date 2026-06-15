@@ -1,16 +1,9 @@
 package ua.uni.platform.auth;
 
 import com.badlogic.gdx.Gdx;
+import ua.uni.core.dto.*;
 import ua.uni.gameplay.achievements.AchievementManager;
 import ua.uni.gameplay.achievements.Achievements;
-import ua.uni.core.dto.AchievementProgressDto;
-import ua.uni.core.dto.LevelProgressDto;
-import ua.uni.core.dto.PlayerAchievementsDto;
-import ua.uni.core.dto.PlayerEventDto;
-import ua.uni.core.dto.PlayerProgressDto;
-import ua.uni.core.dto.PlayerSettingsDto;
-import ua.uni.core.dto.PlayerStatsDto;
-import ua.uni.core.dto.UserProfileDto;
 import ua.uni.bootstrap.MainGame;
 import ua.uni.core.exceptions.firebase.FirebaseNotFoundException;
 import ua.uni.core.logging.AppLogger;
@@ -139,6 +132,11 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
     }
 
     @Override
+    public void onLevelFailed(int totalLosses) {
+        syncProgressSnapshot("LEVEL_FAILED", "totalLosses=" + totalLosses);
+    }
+
+    @Override
     public void onDeathRecorded(int totalDeaths) {
         syncProgressSnapshot("PLAYER_DIED", "totalDeaths=" + totalDeaths);
     }
@@ -185,7 +183,10 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
     private PlayerStatsDto buildStatsDto() {
         AchievementManager achievements = game.getAchievementManager();
         return new PlayerStatsDto(
+                achievements.getTotalScore(),
+                achievements.getTotalWins(),
                 achievements.getTotalDeaths(),
+                achievements.getTotalLosses(),
                 achievements.getTotalPlaySeconds(),
                 achievements.getCompletedLevelsCount(),
                 achievements.getUnlockedCount(),
@@ -196,7 +197,7 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
     }
 
     private PlayerAchievementsDto buildAchievementsDto() {
-        AchievementManager achievements = game.getAchievementManager();
+        AchievementManager achievements = game.getAchievementManager ();
         List<AchievementProgressDto> rows = new ArrayList<>();
         for (Achievements achievement : achievements.getCatalog().getAll()) {
             boolean unlocked = achievements.isUnlocked(achievement.getCode());

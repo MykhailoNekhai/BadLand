@@ -255,6 +255,7 @@ public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener
             game.getAchievementManager().onLevelComplete(level);
             AudioManager.get().playLevelWin(0.95f);
         } else {
+            game.getAchievementManager().onLevelFailed();
             AudioManager.get().playLevelLose(0.95f);
         }
         cleanupMatchConnection();
