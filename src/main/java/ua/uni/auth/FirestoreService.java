@@ -9,6 +9,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import ua.uni.dto.PlayerAchievementsDto;
 import ua.uni.dto.PlayerDataDto;
+import ua.uni.dto.PlayerEventDto;
 import ua.uni.dto.PlayerProgressDto;
 import ua.uni.dto.PlayerSettingsDto;
 import ua.uni.dto.PlayerStatsDto;
@@ -105,6 +106,11 @@ public class FirestoreService {
         );
     }
 
+    public void appendPlayerEvent(String idToken, String uid, PlayerEventDto event) {
+        executeAuthorizedPost(documentUrl("users/" + uid + "/eventLogs"), idToken,
+                FirestoreDtoMapper.toDocumentBody(event).toString());
+    }
+
     private void saveDocument(String idToken, String documentPath, Object dto) {
         executeAuthorizedPatch(documentUrl(documentPath), idToken, FirestoreDtoMapper.toDocumentBody(dto).toString());
     }
@@ -140,6 +146,26 @@ public class FirestoreService {
                 .url(url)
                 .addHeader("Authorization", "Bearer " + idToken)
                 .patch(RequestBody.create(body, JSON))
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            String rawBody = response.body() != null ? response.body().string() : "";
+            if (!response.isSuccessful()) {
+                throw FirebaseErrorMapper.toException(response.code(), rawBody, null);
+            }
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            throw FirebaseErrorMapper.toException(0, null, e);
+        }
+    }
+
+    private void executeAuthorizedPost(String url, String idToken, String body) {
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + idToken)
+                .post(RequestBody.create(body, JSON))
                 .build();
 
         try (Response response = client.newCall(request).execute()) {

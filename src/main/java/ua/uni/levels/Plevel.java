@@ -49,6 +49,7 @@ public abstract class Plevel implements Screen {
 
     protected float cameraSpeed = 3f; // швидкість камери
     protected float finishLineX = 2000f; // Фінішна пряма рівня
+    protected int levelNumber;
     private float dynamicTimeStep;
     private PauseMenu pauseMenu;
     private ComponentMapper<PhysicsComponent> physMapper = ComponentMapper.getFor(PhysicsComponent.class);
@@ -88,7 +89,11 @@ public abstract class Plevel implements Screen {
 
         if (players.size() == 0) {
             state = GameState.GAME_OVER;
+            if (levelNumber > 0) {
+                game.getAchievementManager().onDeath();
+            }
             AudioManager.get().playLevelLose(0.95f);
+            Gdx.app.postRunnable(this::restartLevel);
             System.out.println("Гра завершена. Програв");
             return;
         }
@@ -107,6 +112,9 @@ public abstract class Plevel implements Screen {
 
         if (leaderX >= finishLineX) {
             state = GameState.VICTORY;
+            if (levelNumber > 0) {
+                game.getAchievementManager().onLevelComplete(levelNumber);
+            }
             AudioManager.get().playLevelWin(0.95f);
             System.out.println("Гра завершена. Перемога!");
         }
@@ -117,6 +125,9 @@ public abstract class Plevel implements Screen {
         baseParameters();
         createGround();
         buildLevel();
+        if (levelNumber > 0) {
+            game.getAchievementManager().onLevelStart(levelNumber);
+        }
         AudioManager.get().startLevelMusic();
     }
 

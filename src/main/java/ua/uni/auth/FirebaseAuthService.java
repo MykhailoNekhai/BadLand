@@ -11,6 +11,7 @@ import okhttp3.Response;
 
 public class FirebaseAuthService {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private static final MediaType FORM = MediaType.parse("application/x-www-form-urlencoded; charset=utf-8");
     private static final String ACTION_HANDLER_PATH = "/web/action/";
     private final OkHttpClient client = new OkHttpClient();
     private final Gson gson = new Gson();
@@ -69,6 +70,37 @@ public class FirebaseAuthService {
         String lastLoginAt = user.has("lastLoginAt") ? user.get("lastLoginAt").getAsString() : "";
         boolean emailVerified = user.has("emailVerified") && user.get("emailVerified").getAsBoolean();
         return new AccountMetadata(createdAt, lastLoginAt, emailVerified);
+    }
+
+    public AuthResult refreshIdToken(String refreshToken, String fallbackEmail) {
+        String url = "https://securetoken.googleapis.com/v1/token?key=" + config.getApiKey();
+        String body = "grant_type=refresh_token&refresh_token=" + refreshToken;
+        Request request = new Request.Builder()
+                .url(url)
+                .post(RequestBody.create(body, FORM))
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            String rawBody = response.body() != null ? response.body().string() : "";
+            if (!response.isSuccessful()) {
+                throw FirebaseErrorMapper.toException(response.code(), rawBody, null);
+            }
+            JsonObject json = gson.fromJson(rawBody, JsonObject.class);
+            if (json == null || !json.has("id_token") || !json.has("refresh_token") || !json.has("user_id")) {
+                throw FirebaseErrorMapper.toException(response.code(), rawBody, null);
+            }
+            return new AuthResult(
+                    json.get("id_token").getAsString(),
+                    json.get("user_id").getAsString(),
+                    json.get("refresh_token").getAsString(),
+                    fallbackEmail == null ? "" : fallbackEmail
+            );
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            throw FirebaseErrorMapper.toException(0, null, e);
+        }
     }
 
     private AuthResult authenticate(String endpoint, String email, String password) {

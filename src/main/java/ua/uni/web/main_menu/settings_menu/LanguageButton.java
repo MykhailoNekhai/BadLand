@@ -144,7 +144,9 @@ public final class LanguageButton {
         put(en, uk, "SECURITY", "SECURITY", "БЕЗПЕКА");
         put(en, uk, "CUSTOMIZE", "CUSTOMIZE", "КАСТОМІЗАЦІЯ");
         put(en, uk, "CHANGE_AVATAR", "CHANGE AVATAR", "ЗМІНИТИ АВАТАР");
+        put(en, uk, "CHANGE_NICKNAME", "CHANGE NICKNAME", "ЗМІНИТИ НІКНЕЙМ");
         put(en, uk, "NICKNAME", "NICKNAME", "НІКНЕЙМ");
+        put(en, uk, "CURRENT_NICKNAME", "CURRENT NICKNAME", "ПОТОЧНИЙ НІКНЕЙМ");
         put(en, uk, "ID", "ID", "ID");
         put(en, uk, "DEATHS", "DEATHS", "СМЕРТІ");
         put(en, uk, "PLAY_TIME", "PLAY TIME", "ЧАС ГРИ");
@@ -157,8 +159,13 @@ public final class LanguageButton {
         put(en, uk, "TRAILS", "TRAILS", "СЛІДИ");
         put(en, uk, "COSMETICS", "COSMETICS", "КОСМЕТИКА");
         put(en, uk, "AVATAR_CHANGE", "AVATAR CHANGE", "ЗМІНА АВАТАРА");
+        put(en, uk, "CHOOSE_PHOTO", "CHOOSE PHOTO", "ОБРАТИ ФОТО");
+        put(en, uk, "PASTE_PHOTO_PATH", "Paste photo path", "Вставте шлях до фото");
+        put(en, uk, "APPLY_PHOTO_PATH", "APPLY PHOTO PATH", "ЗАСТОСУВАТИ ШЛЯХ ДО ФОТО");
         put(en, uk, "UPLOAD_TARGET", "UPLOAD TARGET", "ЦІЛЬ ЗАВАНТАЖЕННЯ");
         put(en, uk, "FIREBASE_STORAGE", "FIREBASE STORAGE", "FIREBASE STORAGE");
+        put(en, uk, "LOCAL_JSON_PROFILE", "LOCAL JSON PROFILE", "ЛОКАЛЬНИЙ JSON ПРОФІЛЬ");
+        put(en, uk, "AVATAR_LOCAL_JSON_HINT", "Avatar path is stored locally in a JSON profile file.", "Шлях до аватара зберігається локально у JSON-файлі профілю.");
         put(en, uk, "LOCAL_PILOT", "LOCAL PILOT", "ЛОКАЛЬНИЙ ПІЛОТ");
         put(en, uk, "LOCAL_PROFILE", "LOCAL PROFILE", "ЛОКАЛЬНИЙ ПРОФІЛЬ");
         put(en, uk, "LOCAL", "LOCAL", "ЛОКАЛЬНО");

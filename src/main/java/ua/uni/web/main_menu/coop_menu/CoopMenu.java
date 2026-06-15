@@ -565,18 +565,28 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     }
 
     private void startSelectedLevel(int level) {
-        preserveConnectionOnDispose = true;
+        preserveConnectionOnDispose = false;
         gameStarting = true;
-        game.setCoopMatchState(new CoopMatchState(currentMatchId, selfUserId, hostUserId, level));
-        if (level == 1) {
-       //     game.setScreen(new CoopPoligonLevel(game));
-            return;
-        }
-        if (level == 2) {
-    //        game.setScreen(new CoopRuinsLevel(game));
-            return;
-        }
+        game.setCoopMatchState(new CoopMatchState(currentMatchId, selfUserId, hostUserId, level, players.size()));
+        handoffLobbyConnection();
         game.setScreen(new CoopLevelPlayScreen(game, level));
+    }
+
+    private void handoffLobbyConnection() {
+        if (currentMatchId != null && game.getNakamaMatchService().isConnected()) {
+            try {
+                game.getNakamaMatchService().leaveMatch(currentMatchId);
+            } catch (Exception e) {
+                AppLogger.error(LOG_TAG, "Failed to leave lobby during dedicated server handoff", e);
+            }
+        }
+        if (game.getNakamaMatchService().isConnected()) {
+            try {
+                game.getNakamaMatchService().disconnect();
+            } catch (Exception e) {
+                AppLogger.error(LOG_TAG, "Failed to disconnect Nakama during dedicated server handoff", e);
+            }
+        }
     }
 
     private void refreshLobbyUi(String message) {
