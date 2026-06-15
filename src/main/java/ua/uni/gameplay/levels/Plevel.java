@@ -67,7 +67,7 @@ public abstract class Plevel implements Screen {
 
     // Lazy spawning: об'єкти спавняться тільки коли камера наближається
     private static final float SPAWN_LOOKAHEAD = 50f;
-    private final List<PendingSpawn> pendingSpawns = new ArrayList<>();
+    final List<PendingSpawn> pendingSpawns = new ArrayList<>();
 
     protected static final class PendingSpawn {
         final String name;
@@ -408,7 +408,7 @@ public abstract class Plevel implements Screen {
         // SdebugRenderer.render(world, camera.combined);
     }
 
-    private void renderLevelBackground() {
+    void renderLevelBackground() {
         float vw = camera.viewportWidth;
         float vh = camera.viewportHeight;
         float left = camera.position.x - (vw / 2f);

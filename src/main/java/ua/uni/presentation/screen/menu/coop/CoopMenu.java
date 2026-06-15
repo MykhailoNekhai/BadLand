@@ -481,11 +481,11 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
             refreshLobbyUi(LanguageButton.t("ONLY_HOST_START"));
             return;
         }
-        if (players.size() < 2) {
-            refreshLobbyUi(LanguageButton.t("NEED_AT_LEAST_TWO"));
+        if (players.isEmpty()) {
+            refreshLobbyUi(LanguageButton.t("JOIN_OR_CREATE_FIRST"));
             return;
         }
-        if (!allPlayersReady()) {
+        if (players.size() > 1 && !allPlayersReady()) {
             refreshLobbyUi(LanguageButton.t("EVERYONE_READY"));
             return;
         }
@@ -626,9 +626,13 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
 
     private void startSelectedLevel(int level) {
         boolean useLiveCoopLevel = level == 2;
-        preserveConnectionOnDispose = useLiveCoopLevel;
+        boolean soloSkipStart = useLiveCoopLevel && players.size() <= 1;
+        preserveConnectionOnDispose = useLiveCoopLevel && !soloSkipStart;
         gameStarting = true;
         game.setCoopMatchState(new CoopMatchState(currentMatchId, selfUserId, hostUserId, level, players.size()));
+        if (soloSkipStart) {
+            handoffLobbyConnection();
+        }
         if (useLiveCoopLevel) {
             game.setScreen(new CoopRuinsLevel(game));
             return;
@@ -694,10 +698,17 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         readyButton.setDisabled(currentMatchId == null);
         levelPrevButton.setDisabled(!isHost || currentMatchId == null);
         levelNextButton.setDisabled(!isHost || currentMatchId == null);
-        startButton.setDisabled(!isHost || currentMatchId == null || !allPlayersReady() || players.size() < 2);
+        startButton.setDisabled(!canStartMatch());
         if (message != null) {
             statusLabel.setText(message);
         }
+    }
+
+    private boolean canStartMatch() {
+        if (!isHost || currentMatchId == null || players.isEmpty()) {
+            return false;
+        }
+        return players.size() == 1 || allPlayersReady();
     }
 
     @Override

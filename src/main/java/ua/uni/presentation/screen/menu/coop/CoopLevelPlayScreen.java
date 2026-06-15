@@ -339,7 +339,7 @@ public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener
                 }
             }
         }
-        builder.append('\n').append("Prototype of Level 01 objects loaded from story assets");
+        builder.append('\n').append("Standard co-op level active.");
         builder.append('\n').append("Yellow = you, Blue = other players, Red = deadly object hitbox, Green = finish");
         builder.append('\n').append("WASD = move    ESC = leave match");
         statusLabel.setText(builder.toString());
