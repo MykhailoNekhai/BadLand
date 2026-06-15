@@ -18,6 +18,7 @@ import ua.uni.achivments.AchievementsRarity;
 import ua.uni.auth.FirebaseAuthService;
 import ua.uni.auth.FirebaseConfig;
 import ua.uni.auth.FirestoreService;
+import ua.uni.auth.PlayerDataSyncService;
 import ua.uni.auth.SessionManager;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.config.GameSettings;
@@ -28,6 +29,8 @@ import ua.uni.online.NakamaSessionService;
 import ua.uni.online.NakamaSocket;
 import ua.uni.online.OnlineConfig;
 import ua.uni.online.OnlineSessionStore;
+import ua.uni.online.gameplay.GameplayReservationService;
+import ua.uni.online.gameplay.StaticGameplayReservationService;
 import ua.uni.utilite.ConfigLoader;
 import ua.uni.web.login_menu.LoginMenu;
 import ua.uni.web.main_menu.Menu;
@@ -42,12 +45,14 @@ public class MainGame extends Game {
     private FirebaseAuthService authService;
     private FirestoreService firestoreService;
     private SessionManager sessionManager;
+    private PlayerDataSyncService playerDataSyncService;
     private OnlineConfig onlineConfig;
     private NakamaClient nakamaClient;
     private com.heroiclabs.nakama.Client onlineClient;
     private OnlineSessionStore onlineSessionStore;
     private NakamaSessionService nakamaSessionService;
     private NakamaMatchService nakamaMatchService;
+    private GameplayReservationService gameplayReservationService;
     private CoopMatchState coopMatchState;
     private AchievementManager achievementManager;
     private SpriteBatch overlayBatch;
@@ -87,7 +92,11 @@ public class MainGame extends Game {
         nakamaSessionService = new NakamaSessionService(onlineClient, onlineConfig, onlineSessionStore);
         nakamaMatchService = new NakamaMatchService(
                 new NakamaSocket(onlineClient, onlineConfig.getHost(), onlineConfig.getSocketPort(), onlineConfig.isSsl()));
+        gameplayReservationService = new StaticGameplayReservationService(onlineConfig);
         achievementManager = new AchievementManager();
+        playerDataSyncService = new PlayerDataSyncService(this);
+        achievementManager.setListener(playerDataSyncService);
+        GameSettings.setSettingsChangeListener(playerDataSyncService::syncSettings);
         initAchievementPopupUi();
         setScreen(new IntroScreen(this));
     }
@@ -116,6 +125,14 @@ public class MainGame extends Game {
         return sessionManager;
     }
 
+    public String getValidIdToken() {
+        return sessionManager.getValidIdToken(authService);
+    }
+
+    public PlayerDataSyncService getPlayerDataSyncService() {
+        return playerDataSyncService;
+    }
+
     public OnlineConfig getOnlineConfig() {
         return onlineConfig;
     }
@@ -126,6 +143,10 @@ public class MainGame extends Game {
 
     public NakamaMatchService getNakamaMatchService() {
         return nakamaMatchService;
+    }
+
+    public GameplayReservationService getGameplayReservationService() {
+        return gameplayReservationService;
     }
 
     public AchievementManager getAchievementManager() {
@@ -145,6 +166,10 @@ public class MainGame extends Game {
     }
 
     public Screen createStartupScreen() {
+        if (sessionManager.hasSession()) {
+            playerDataSyncService.bootstrapFromCloud();
+            playerDataSyncService.syncProfileHeartbeat();
+        }
         if (DEV_SKIP_LOGIN || sessionManager.hasSession()) {
             return new Menu(this);
         }

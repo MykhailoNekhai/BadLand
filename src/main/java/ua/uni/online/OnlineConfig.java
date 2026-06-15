@@ -13,9 +13,17 @@ public class OnlineConfig {
     private final boolean ssl;
     private final boolean trace;
     private final boolean createAccountsByDefault;
+    private final String gameplayHost;
+    private final int gameplayUdpPort;
+    private final String gameplayTokenSecret;
+    private final int gameplayTickRate;
+    private final int gameplaySnapshotRate;
+    private final int gameplayHealthPort;
 
     public OnlineConfig(boolean enabled, String host, int apiPort, int socketPort,
-                        String serverKey, boolean ssl, boolean trace, boolean createAccountsByDefault) {
+                        String serverKey, boolean ssl, boolean trace, boolean createAccountsByDefault,
+                        String gameplayHost, int gameplayUdpPort, String gameplayTokenSecret,
+                        int gameplayTickRate, int gameplaySnapshotRate, int gameplayHealthPort) {
         this.enabled = enabled;
         this.host = host;
         this.apiPort = apiPort;
@@ -24,6 +32,12 @@ public class OnlineConfig {
         this.ssl = ssl;
         this.trace = trace;
         this.createAccountsByDefault = createAccountsByDefault;
+        this.gameplayHost = gameplayHost;
+        this.gameplayUdpPort = gameplayUdpPort;
+        this.gameplayTokenSecret = gameplayTokenSecret;
+        this.gameplayTickRate = gameplayTickRate;
+        this.gameplaySnapshotRate = gameplaySnapshotRate;
+        this.gameplayHealthPort = gameplayHealthPort;
     }
 
     public boolean isEnabled() {
@@ -58,6 +72,30 @@ public class OnlineConfig {
         return createAccountsByDefault;
     }
 
+    public String getGameplayHost() {
+        return gameplayHost;
+    }
+
+    public int getGameplayUdpPort() {
+        return gameplayUdpPort;
+    }
+
+    public String getGameplayTokenSecret() {
+        return gameplayTokenSecret;
+    }
+
+    public int getGameplayTickRate() {
+        return gameplayTickRate;
+    }
+
+    public int getGameplaySnapshotRate() {
+        return gameplaySnapshotRate;
+    }
+
+    public int getGameplayHealthPort() {
+        return gameplayHealthPort;
+    }
+
     public static OnlineConfig loadFromResources() {
         Properties properties = new Properties();
         try (InputStream input = OnlineConfig.class.getClassLoader()
@@ -74,7 +112,15 @@ public class OnlineConfig {
             boolean ssl = Boolean.parseBoolean(properties.getProperty("ssl", "false"));
             boolean trace = Boolean.parseBoolean(properties.getProperty("trace", "false"));
             boolean createAccountsByDefault = Boolean.parseBoolean(properties.getProperty("createAccountsByDefault", "true"));
-            return new OnlineConfig(enabled, host, apiPort, socketPort, serverKey, ssl, trace, createAccountsByDefault);
+            String gameplayHost = properties.getProperty("gameplayHost", host).trim();
+            int gameplayUdpPort = parsePort(properties, "gameplayUdpPort");
+            String gameplayTokenSecret = required(properties, "gameplayTokenSecret");
+            int gameplayTickRate = Integer.parseInt(properties.getProperty("gameplayTickRate", "30"));
+            int gameplaySnapshotRate = Integer.parseInt(properties.getProperty("gameplaySnapshotRate", "15"));
+            int gameplayHealthPort = Integer.parseInt(properties.getProperty("gameplayHealthPort", "8081"));
+            return new OnlineConfig(enabled, host, apiPort, socketPort, serverKey, ssl, trace,
+                    createAccountsByDefault, gameplayHost, gameplayUdpPort, gameplayTokenSecret,
+                    gameplayTickRate, gameplaySnapshotRate, gameplayHealthPort);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load nakama config", e);
         }

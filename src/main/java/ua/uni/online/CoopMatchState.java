@@ -5,12 +5,14 @@ public class CoopMatchState {
     private final String localUserId;
     private final String hostUserId;
     private final int selectedLevel;
+    private final int expectedPlayers;
 
-    public CoopMatchState(String matchId, String localUserId, String hostUserId, int selectedLevel) {
+    public CoopMatchState(String matchId, String localUserId, String hostUserId, int selectedLevel, int expectedPlayers) {
         this.matchId = matchId;
         this.localUserId = localUserId;
         this.hostUserId = hostUserId;
         this.selectedLevel = selectedLevel;
+        this.expectedPlayers = expectedPlayers;
     }
 
     public String getMatchId() {
@@ -27,6 +29,10 @@ public class CoopMatchState {
 
     public int getSelectedLevel() {
         return selectedLevel;
+    }
+
+    public int getExpectedPlayers() {
+        return expectedPlayers;
     }
 
     public boolean isHost() {

@@ -1,17 +1,31 @@
 package ua.uni.achivments;
 
+import ua.uni.dto.AchievementProgressDto;
+import ua.uni.dto.LevelProgressDto;
+import ua.uni.dto.PlayerAchievementsDto;
+import ua.uni.dto.PlayerProgressDto;
+import ua.uni.dto.PlayerStatsDto;
 import ua.uni.logging.AppLogger;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class AchievementManager {
+    public interface Listener {
+        void onLevelStarted(int level);
+        void onLevelCompleted(int level);
+        void onDeathRecorded(int totalDeaths);
+        void onCoopSessionStarted();
+        void onAchievementUnlocked(Achievements achievement);
+    }
+
     private static final int TOTAL_LEVELS = 10;
 
     private final AchievementsList catalog;
     private final UserAchievementState userState;
     private final Queue<Achievements> pendingUnlocked = new ArrayDeque<>();
     private float playtimeAccumulator;
+    private Listener listener;
 
     public AchievementManager() {
         catalog = new AchievementsList();
@@ -20,6 +34,9 @@ public class AchievementManager {
 
     public void onLevelStart(int level) {
         userState.incrementLevelAttemptIfNotCompleted(level);
+        if (listener != null) {
+            listener.onLevelStarted(level);
+        }
     }
 
     public boolean onLevelComplete(int level) {
@@ -37,6 +54,9 @@ public class AchievementManager {
         if (hasCompletedAllLevels() && unlock("ALL_LEVELS_COMPLETE")) {
             unlockedAny = true;
         }
+        if (listener != null) {
+            listener.onLevelCompleted(level);
+        }
         return unlockedAny;
     }
 
@@ -46,6 +66,9 @@ public class AchievementManager {
         if (totalDeaths >= 1 && unlock("DEATH_1_TOTAL")) unlockedAny = true;
         if (totalDeaths >= 5 && unlock("DEATH_5_TOTAL")) unlockedAny = true;
         if (totalDeaths >= 10 && unlock("DEATH_10_TOTAL")) unlockedAny = true;
+        if (listener != null) {
+            listener.onDeathRecorded(totalDeaths);
+        }
         return unlockedAny;
     }
 
@@ -73,7 +96,12 @@ public class AchievementManager {
     }
 
     public boolean onCoopSessionStart() {
-        return unlock("COOP_SESSION");
+        boolean unlocked = unlock("COOP_SESSION");
+        userState.incrementCoopSessions();
+        if (listener != null) {
+            listener.onCoopSessionStarted();
+        }
+        return unlocked;
     }
 
     public boolean unlock(String code) {
@@ -82,6 +110,9 @@ public class AchievementManager {
         if (unlockedNow) {
             pendingUnlocked.offer(achievement);
             AppLogger.info("Achievements", "Unlocked: " + achievement.getCode() + " (" + achievement.getTitle() + ")");
+            if (listener != null) {
+                listener.onAchievementUnlocked(achievement);
+            }
         }
         return unlockedNow;
     }
@@ -124,6 +155,49 @@ public class AchievementManager {
 
     public int getTotalLevels() {
         return TOTAL_LEVELS;
+    }
+
+    public int getLevelAttempts(int level) {
+        return userState.getLevelAttempts(level);
+    }
+
+    public boolean isLevelCompleted(int level) {
+        return userState.isLevelCompleted(level);
+    }
+
+    public int getCoopSessionsCount() {
+        return userState.getCoopSessionsCount();
+    }
+
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
+
+    public void applyCloudState(PlayerProgressDto progress, PlayerStatsDto stats, PlayerAchievementsDto achievements) {
+        pendingUnlocked.clear();
+        playtimeAccumulator = 0f;
+
+        if (stats != null) {
+            userState.setTotalDeaths(stats.getTotalDeaths());
+            userState.setTotalPlaySeconds(stats.getTotalPlaySeconds());
+            userState.setCoopSessionsCount(stats.getCoopSessions());
+        }
+
+        if (progress != null && progress.getLevels() != null) {
+            for (LevelProgressDto level : progress.getLevels()) {
+                userState.setLevelAttempts(level.getLevelId(), level.getAttemptCount());
+                userState.setLevelCompleted(level.getLevelId(), level.isCompleted());
+            }
+        }
+
+        if (achievements != null && achievements.getAchievements() != null) {
+            for (Achievements achievement : catalog.getAll()) {
+                userState.setUnlocked(achievement.getCode(), false);
+            }
+            for (AchievementProgressDto row : achievements.getAchievements()) {
+                userState.setUnlocked(row.getCode(), row.isUnlocked());
+            }
+        }
     }
 
     public void resetAll() {

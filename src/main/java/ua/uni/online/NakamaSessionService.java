@@ -23,12 +23,13 @@ public class NakamaSessionService {
     }
 
     public Session authenticateFirebaseUser(String firebaseUid, String username) {
-        return authenticateCustom(firebaseUid, username, buildVars("provider", "firebase"));
+        return authenticateCustom(firebaseUid, sanitizeUsername(username, firebaseUid), buildVars("provider", "firebase"));
     }
 
     public Session authenticateDevice(String deviceId, String username) {
         try {
-            Session session = client.authenticateDevice(deviceId, config.isCreateAccountsByDefault(), username).get();
+            Session session = client.authenticateDevice(deviceId, config.isCreateAccountsByDefault(),
+                    sanitizeUsername(username, deviceId)).get();
             sessionStore.save(session);
             AppLogger.info(LOG_TAG, "Authenticated Nakama device session for userId=" + session.getUserId());
             return session;
@@ -41,7 +42,7 @@ public class NakamaSessionService {
     }
 
     public Session authenticateCustom(String customId, String username) {
-        return authenticateCustom(customId, username, Collections.emptyMap());
+        return authenticateCustom(customId, sanitizeUsername(username, customId), Collections.emptyMap());
     }
 
     public Session authenticateCustom(String customId, String username, Map<String, String> vars) {
@@ -80,6 +81,11 @@ public class NakamaSessionService {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted while refreshing Nakama session", e);
         } catch (ExecutionException e) {
+            if (shouldDiscardStoredSession(e)) {
+                sessionStore.clear();
+                AppLogger.info(LOG_TAG, "Stored Nakama session is no longer valid on the server; cleared local cache.");
+                return null;
+            }
             throw new IllegalStateException("Failed to refresh Nakama session", e);
         }
     }
@@ -120,9 +126,23 @@ public class NakamaSessionService {
                 Thread.currentThread().interrupt();
                 throw new IllegalStateException("Interrupted while refreshing Nakama session", e);
             } catch (ExecutionException e) {
+                if (shouldDiscardStoredSession(e)) {
+                    sessionStore.clear();
+                    AppLogger.info(LOG_TAG, "Refresh failed because the Nakama account no longer exists; cleared local cache.");
+                    throw new IllegalStateException("Stored Nakama session expired and the account no longer exists. Retry to create a fresh session.", e);
+                }
                 throw new IllegalStateException("Failed to refresh Nakama session", e);
             }
         }
+    }
+
+    private boolean shouldDiscardStoredSession(ExecutionException exception) {
+        Throwable cause = exception.getCause();
+        if (cause == null || cause.getMessage() == null) {
+            return false;
+        }
+        String message = cause.getMessage().toLowerCase();
+        return message.contains("not_found") || message.contains("user account not found");
     }
 
     public boolean hasStoredSession() {
@@ -133,5 +153,18 @@ public class NakamaSessionService {
         Map<String, String> vars = new HashMap<>();
         vars.put(key, value);
         return vars;
+    }
+
+    private String sanitizeUsername(String username, String fallbackSource) {
+        if (username != null && !username.isBlank()) {
+            return username.trim();
+        }
+        if (fallbackSource != null && !fallbackSource.isBlank()) {
+            String compact = fallbackSource.replaceAll("[^A-Za-z0-9_\\-]", "");
+            if (!compact.isBlank()) {
+                return compact.length() > 24 ? compact.substring(0, 24) : compact;
+            }
+        }
+        return "player";
     }
 }

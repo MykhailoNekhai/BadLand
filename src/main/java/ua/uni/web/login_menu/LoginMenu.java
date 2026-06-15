@@ -152,7 +152,8 @@ public class LoginMenu implements Screen {
                 return;
             }
             game.getSessionManager().save(result);
-            game.getNakamaSessionService().authenticateFirebaseUser(result.uid(),nicknameOrEmailPrefix);
+            game.getPlayerDataSyncService().bootstrapFromCloud();
+            game.getPlayerDataSyncService().syncProfileHeartbeat();
             AppLogger.info("Auth", "Login success. uid=" + result.uid());
             game.setScreen(new Menu(game));
         } catch (Exception e) {

@@ -3,8 +3,13 @@ package ua.uni.config;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Preferences;
+import ua.uni.dto.PlayerSettingsDto;
 
 public final class GameSettings {
+    public interface SettingsChangeListener {
+        void onSettingsChanged(String key);
+    }
+
     private static final String PREFS_NAME = "badland-settings";
 
     private static final String KEY_MUSIC_VOLUME = "musicVolume";
@@ -24,6 +29,8 @@ public final class GameSettings {
     private static int moveUp = Input.Keys.SPACE;
     private static int moveDown = Input.Keys.E;
     private static boolean loaded;
+    private static SettingsChangeListener settingsChangeListener;
+    private static boolean notificationsSuppressed;
 
     private GameSettings() {}
 
@@ -51,6 +58,7 @@ public final class GameSettings {
         musicVolume = clamp(value);
         prefs.putFloat(KEY_MUSIC_VOLUME, musicVolume);
         prefs.flush();
+        notifyChanged(KEY_MUSIC_VOLUME);
     }
 
     private static float clamp(float v) {
@@ -63,29 +71,73 @@ public final class GameSettings {
         language = value;
         prefs.putString(KEY_LANGUAGE, value);
         prefs.flush();
+        notifyChanged(KEY_LANGUAGE);
     }
 
     public static void setMoveLeft(int key) {
         moveLeft = key;
         prefs.putInteger(KEY_MOVE_LEFT, key);
         prefs.flush();
+        notifyChanged(KEY_MOVE_LEFT);
     }
 
     public static void setMoveRight(int key) {
         moveRight = key;
         prefs.putInteger(KEY_MOVE_RIGHT, key);
         prefs.flush();
+        notifyChanged(KEY_MOVE_RIGHT);
     }
 
     public static void setMoveUp(int key) {
         moveUp = key;
         prefs.putInteger(KEY_JUMP, key);
         prefs.flush();
+        notifyChanged(KEY_JUMP);
     }
 
     public static void setMoveDown(int key) {
         moveDown = key;
         prefs.putInteger(KEY_INTERACT, key);
         prefs.flush();
+        notifyChanged(KEY_INTERACT);
+    }
+
+    public static void setSettingsChangeListener(SettingsChangeListener listener) {
+        settingsChangeListener = listener;
+    }
+
+    public static void apply(PlayerSettingsDto dto) {
+        if (dto == null) {
+            return;
+        }
+        notificationsSuppressed = true;
+        try {
+            musicVolume = clamp(dto.getMusicVolume());
+            language = safeString(dto.getLanguage(), language);
+            moveLeft = dto.getMoveLeft();
+            moveRight = dto.getMoveRight();
+            moveUp = dto.getMoveUp();
+            moveDown = dto.getMoveDown();
+
+            prefs.putFloat(KEY_MUSIC_VOLUME, musicVolume);
+            prefs.putString(KEY_LANGUAGE, language);
+            prefs.putInteger(KEY_MOVE_LEFT, moveLeft);
+            prefs.putInteger(KEY_MOVE_RIGHT, moveRight);
+            prefs.putInteger(KEY_JUMP, moveUp);
+            prefs.putInteger(KEY_INTERACT, moveDown);
+            prefs.flush();
+        } finally {
+            notificationsSuppressed = false;
+        }
+    }
+
+    private static void notifyChanged(String key) {
+        if (!notificationsSuppressed && settingsChangeListener != null) {
+            settingsChangeListener.onSettingsChanged(key);
+        }
+    }
+
+    private static String safeString(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 }

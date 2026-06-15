@@ -3,6 +3,7 @@ package ua.uni.web.main_menu.account_menu;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -20,10 +21,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.google.gson.JsonObject;
+import java.nio.charset.StandardCharsets;
 import ua.uni.auth.FirebaseAuthService;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.config.GameSettings;
@@ -34,6 +38,9 @@ import ua.uni.web.main_menu.Menu;
 import ua.uni.web.main_menu.settings_menu.LanguageButton;
 
 public class AccountMenu implements Screen {
+    private static final int AVATAR_TEXTURE_SIZE = 256;
+    private static final int SIDE_PANEL_WIDTH = 390;
+    private static final int SIDE_PANEL_HEIGHT = 300;
     private final MainGame game;
     private Stage stage;
 
@@ -47,6 +54,8 @@ public class AccountMenu implements Screen {
     private Texture dotTex;
     private Texture sidePanelBg;
     private Texture profileIcon;
+    private Texture avatarFrame;
+    private Texture avatarTexture;
 
     private Actor activeLeftPanel;
     private Actor activeRightPanel;
@@ -78,10 +87,16 @@ public class AccountMenu implements Screen {
     private TextButton achievementsButton;
     private TextButton customizeButton;
     private TextButton changeAvatarButton;
+    private TextButton changeNicknameButton;
     private TextButton logoutButton;
+    private Image avatarImage;
+    private final LocalAccountProfileStore accountProfileStore = new LocalAccountProfileStore();
+    private final AccountProfileService accountProfileService;
+    private volatile boolean avatarPickerBusy;
 
     public AccountMenu(MainGame game) {
         this.game = game;
+        this.accountProfileService = new AccountProfileService(game, accountProfileStore);
     }
 
     @Override
@@ -111,7 +126,10 @@ public class AccountMenu implements Screen {
         sidePanelBg = gradientPanel(380, 640, 38, 14, 12,
                 new Color(0.08f, 0.10f, 0.15f, 0.98f),
                 new Color(0.16f, 0.10f, 0.05f, 0.98f));
+        avatarFrame = roundedRect(160, 160, 32, new Color(0f, 0f, 0f, 1f));
         profileIcon = new Texture(Gdx.files.internal("game-resourses/menu/user-profile.png"));
+        profileIcon.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        avatarTexture = loadAvatarTexture();
         profileIcon.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
@@ -176,6 +194,7 @@ public class AccountMenu implements Screen {
         achievementsButton = new TextButton(LanguageButton.t("SECURITY"), itemStyle);
         customizeButton = new TextButton(LanguageButton.t("CUSTOMIZE"), itemStyle);
         changeAvatarButton = new TextButton(LanguageButton.t("CHANGE_AVATAR"), itemStyle);
+        changeNicknameButton = new TextButton(LanguageButton.t("CHANGE_NICKNAME"), itemStyle);
 
         TextButton.TextButtonStyle readyStyle = new TextButton.TextButtonStyle();
         readyStyle.font = itemFont;
@@ -198,12 +217,18 @@ public class AccountMenu implements Screen {
 
         Table avatarBlock = new Table();
         avatarBlock.center().padTop(4f);
-        avatarBlock.add(new Image(new TextureRegionDrawable(itemBtn))).width(160).height(160).padBottom(10f).row();
+        avatarImage = new Image(new TextureRegionDrawable(currentAvatarTexture()));
+        avatarImage.setScaling(Scaling.stretch);
+        Stack avatarStack = new Stack();
+        avatarStack.add(new Image(new TextureRegionDrawable(avatarFrame)));
+        avatarStack.add(avatarImage);
+        avatarBlock.add(avatarStack).width(160).height(160).padBottom(10f).row();
         avatarBlock.add(nicknameLabel).center();
 
         panelContent.add(titleLabel).padTop(26).padBottom(18).row();
         panelContent.add(avatarBlock).width(560).padBottom(20).row();
         panelContent.add(changeAvatarButton).width(560).height(80).padBottom(10).row();
+        panelContent.add(changeNicknameButton).width(560).height(80).padBottom(10).row();
         panelContent.add(achievementsButton).width(560).height(80).padBottom(10).row();
         panelContent.add(customizeButton).width(560).height(80).padBottom(14).row();
         panelContent.add(readyButton).padBottom(14).row();
@@ -220,7 +245,7 @@ public class AccountMenu implements Screen {
 
         stage.addActor(panelWrap);
 
-        Actor[] revealList = {titleLabel, avatarBlock, changeAvatarButton, achievementsButton,
+        Actor[] revealList = {titleLabel, avatarBlock, changeAvatarButton, changeNicknameButton, achievementsButton,
                 customizeButton, readyButton};
         for (int i = 0; i < revealList.length; i++) {
             Actor actor = revealList[i];
@@ -244,8 +269,15 @@ public class AccountMenu implements Screen {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.72f);
+                openNativeAvatarPicker();
+            }
+        });
+        changeNicknameButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                AudioManager.get().playSelect(0.72f);
                 if (activeLeftPanel != null) closeSidePanel(true);
-                else openSidePanel(true, LanguageButton.t("CHANGE_AVATAR"), buildAvatarContent());
+                else openSidePanel(true, LanguageButton.t("CHANGE_NICKNAME"), buildNicknameContent());
             }
         });
         achievementsButton.addListener(new ChangeListener() {
@@ -359,16 +391,55 @@ public class AccountMenu implements Screen {
         return table;
     }
 
-    private Table buildAvatarContent() {
-        Label.LabelStyle sectionStyle = new Label.LabelStyle(smallFont, new Color(1f, 0.86f, 0.36f, 1f));
-        Label.LabelStyle valueStyle = new Label.LabelStyle(itemFont, new Color(0.98f, 0.95f, 0.88f, 1f));
+    private Table buildNicknameContent() {
+        Label.LabelStyle statusStyle = new Label.LabelStyle(smallFont, new Color(1f, 0.92f, 0.55f, 1f));
+
+        TextField.TextFieldStyle nicknameFieldStyle = new TextField.TextFieldStyle();
+        nicknameFieldStyle.font = smallFont;
+        nicknameFieldStyle.fontColor = Color.WHITE;
+        nicknameFieldStyle.messageFont = smallFont;
+        nicknameFieldStyle.messageFontColor = new Color(0.65f, 0.65f, 0.67f, 1f);
+        nicknameFieldStyle.cursor = new TextureRegionDrawable(solidTexture(3, 34, Color.WHITE));
+        nicknameFieldStyle.background = new TextureRegionDrawable(roundedRect(320, 70, 18, new Color(0.07f, 0.07f, 0.08f, 0.96f)));
+
+        TextButton.TextButtonStyle applyStyle = new TextButton.TextButtonStyle();
+        applyStyle.up = new TextureRegionDrawable(itemBtn);
+        applyStyle.down = new TextureRegionDrawable(itemBtn);
+        applyStyle.over = new TextureRegionDrawable(itemBtn);
+        applyStyle.font = smallFont;
+        applyStyle.fontColor = new Color(0.98f, 0.95f, 0.88f, 1f);
+        applyStyle.overFontColor = new Color(1f, 0.92f, 0.55f, 1f);
+        applyStyle.downFontColor = new Color(1f, 0.92f, 0.55f, 1f);
+
+        TextField nicknameField = new TextField(profileSnapshot.nickname(), nicknameFieldStyle);
+        nicknameField.setMessageText("Nickname");
+        Label statusLabel = new Label("", statusStyle);
+        statusLabel.setWrap(true);
+        TextButton applyButton = new TextButton("APPLY", applyStyle);
+        applyButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                AudioManager.get().playSelect(0.72f);
+                try {
+                    AccountProfileService.UpdateNicknameResult result =
+                            accountProfileService.updateNickname(nicknameField.getText());
+                    statusLabel.setText(result.message());
+                    if (result.success()) {
+                        nicknameField.setText(result.nickname());
+                        refreshLabels();
+                    }
+                } catch (Exception e) {
+                    statusLabel.setText("Save failed.");
+                    AppLogger.error("Account", "Nickname update failed", e);
+                }
+            }
+        });
 
         Table table = new Table();
-        table.center().padTop(20);
-        table.add(new Label(LanguageButton.t("AVATAR_CHANGE"), sectionStyle)).padBottom(6).row();
-        table.add(new Label(LanguageButton.t("SOON"), valueStyle)).padBottom(18).row();
-        table.add(new Label(LanguageButton.t("UPLOAD_TARGET"), sectionStyle)).padBottom(6).row();
-        table.add(new Label(LanguageButton.t("FIREBASE_STORAGE"), valueStyle)).row();
+        table.center().padTop(2);
+        table.add(nicknameField).width(320).height(54).padBottom(8).row();
+        table.add(applyButton).width(320).height(58).padBottom(8).row();
+        table.add(statusLabel).width(320).minHeight(42).row();
         return table;
     }
 
@@ -378,8 +449,8 @@ public class AccountMenu implements Screen {
 
         float screenW = stage.getViewport().getWorldWidth();
         float screenH = stage.getViewport().getWorldHeight();
-        int panelW = 380;
-        int panelH = 640;
+        int panelW = SIDE_PANEL_WIDTH;
+        int panelH = SIDE_PANEL_HEIGHT;
         float y = (screenH - panelH) / 2f;
         float startX = fromLeft ? -panelW - 20f : screenW + 20f;
         float endX = fromLeft ? 40f : screenW - panelW - 40f;
@@ -388,8 +459,8 @@ public class AccountMenu implements Screen {
         Label titleLabel = new Label(titleText, titleStyle);
 
         Table inner = new Table();
-        inner.top().padTop(28).padLeft(20).padRight(20).padBottom(20);
-        inner.add(titleLabel).center().padBottom(4).row();
+        inner.top().padTop(16).padLeft(16).padRight(16).padBottom(12);
+        inner.add(titleLabel).center().padBottom(2).row();
         inner.add(contentTable).expand().fill().row();
 
         Stack panelStack = new Stack();
@@ -410,7 +481,7 @@ public class AccountMenu implements Screen {
         Actor panelActor = fromLeft ? activeLeftPanel : activeRightPanel;
         if (panelActor == null) return;
         float screenW = stage.getViewport().getWorldWidth();
-        int panelW = 380;
+        int panelW = SIDE_PANEL_WIDTH;
         float exitX = fromLeft ? -panelW - 20f : screenW + 20f;
         panelActor.addAction(Actions.sequence(
                 Actions.moveTo(exitX, panelActor.getY(), 0.22f, Interpolation.sineIn),
@@ -427,6 +498,7 @@ public class AccountMenu implements Screen {
         nicknameLabel.setText(profileSnapshot.nickname());
         idLabel.setText(LanguageButton.t("ID") + ": " + profileSnapshot.id());
         changeAvatarButton.setText(LanguageButton.t("CHANGE_AVATAR"));
+        changeNicknameButton.setText(LanguageButton.t("CHANGE_NICKNAME"));
         achievementsButton.setText(LanguageButton.t("SECURITY"));
         customizeButton.setText(LanguageButton.t("CUSTOMIZE"));
         readyButton.setText(LanguageButton.t("BACK"));
@@ -508,6 +580,16 @@ public class AccountMenu implements Screen {
         t.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         pixmap.dispose();
         return t;
+    }
+
+    private Texture solidTexture(int w, int h, Color color) {
+        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        pixmap.setColor(color);
+        pixmap.fill();
+        Texture texture = new Texture(pixmap);
+        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        pixmap.dispose();
+        return texture;
     }
 
 
@@ -709,10 +791,137 @@ public class AccountMenu implements Screen {
         sliderKnob.dispose();
         dotTex.dispose();
         sidePanelBg.dispose();
+        avatarFrame.dispose();
+        profileIcon.dispose();
+        if (avatarTexture != null && avatarTexture != profileIcon) {
+            avatarTexture.dispose();
+        }
         itemFont.dispose();
         backFont.dispose();
         smallFont.dispose();
         titleFont.dispose();
+    }
+
+    private void applyAvatarPath(String path) {
+        if (path == null || path.isBlank()) {
+            accountProfileStore.saveAvatarPath("");
+            if (avatarTexture != null && avatarTexture != profileIcon) {
+                avatarTexture.dispose();
+            }
+            avatarTexture = profileIcon;
+            if (avatarImage != null) {
+                avatarImage.setDrawable(new TextureRegionDrawable(profileIcon));
+            }
+            return;
+        }
+        try {
+            Texture nextTexture = loadCroppedAvatarTexture(Gdx.files.absolute(path));
+            if (avatarTexture != null && avatarTexture != profileIcon) {
+                avatarTexture.dispose();
+            }
+            avatarTexture = nextTexture;
+            accountProfileStore.saveAvatarPath(path);
+            if (avatarImage != null) {
+                avatarImage.setDrawable(new TextureRegionDrawable(avatarTexture));
+                avatarImage.invalidateHierarchy();
+            }
+            AppLogger.info("Account", "Avatar selected from local file: " + path);
+        } catch (Exception e) {
+            AppLogger.error("Account", "Avatar selection failed", e);
+        }
+    }
+
+    private void openNativeAvatarPicker() {
+        if (avatarPickerBusy) {
+            AppLogger.info("Account", "Avatar picker is already running");
+            return;
+        }
+        if (!isMacOs()) {
+            AppLogger.info("Account", "Native avatar picker is currently supported only on macOS");
+            return;
+        }
+        avatarPickerBusy = true;
+        Thread pickerThread = new Thread(() -> {
+            try {
+                Process process = new ProcessBuilder(
+                        "/usr/bin/osascript",
+                        "-e",
+                        "POSIX path of (choose file with prompt \"Choose avatar image\" of type {\"public.image\"})")
+                        .start();
+                int exitCode = process.waitFor();
+                String selectedPath = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+                String errorOutput = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+                if (exitCode != 0) {
+                    if (!errorOutput.isBlank()) {
+                        AppLogger.info("Account", "Avatar picker closed: " + errorOutput);
+                    } else {
+                        AppLogger.info("Account", "Avatar picker closed without selection");
+                    }
+                    return;
+                }
+                if (selectedPath != null && !selectedPath.isBlank()) {
+                    final String avatarPath = selectedPath;
+                    Gdx.app.postRunnable(() -> applyAvatarPath(avatarPath));
+                    return;
+                }
+                AppLogger.info("Account", "Avatar picker closed without selection");
+            } catch (Exception e) {
+                AppLogger.error("Account", "Native avatar picker failed", e);
+            } finally {
+                avatarPickerBusy = false;
+            }
+        }, "account-avatar-picker");
+        pickerThread.setDaemon(true);
+        pickerThread.start();
+    }
+
+    private boolean isMacOs() {
+        String osName = System.getProperty("os.name", "");
+        return osName.toLowerCase().contains("mac");
+    }
+
+    private Texture loadAvatarTexture() {
+        String path = accountProfileStore.loadAvatarPath();
+        if (path.isBlank()) {
+            return profileIcon;
+        }
+        try {
+            FileHandle handle = Gdx.files.absolute(path);
+            if (!handle.exists()) {
+                return profileIcon;
+            }
+            return loadCroppedAvatarTexture(handle);
+        } catch (Exception e) {
+            AppLogger.error("Account", "Avatar load failed", e);
+            return profileIcon;
+        }
+    }
+
+    private Texture loadCroppedAvatarTexture(FileHandle handle) {
+        Pixmap source = new Pixmap(handle);
+        try {
+            int cropSize = Math.min(source.getWidth(), source.getHeight());
+            int srcX = Math.max(0, (source.getWidth() - cropSize) / 2);
+            int srcY = Math.max(0, (source.getHeight() - cropSize) / 2);
+
+            Pixmap cropped = new Pixmap(AVATAR_TEXTURE_SIZE, AVATAR_TEXTURE_SIZE, Pixmap.Format.RGBA8888);
+            try {
+                cropped.drawPixmap(source,
+                        srcX, srcY, cropSize, cropSize,
+                        0, 0, AVATAR_TEXTURE_SIZE, AVATAR_TEXTURE_SIZE);
+                Texture texture = new Texture(cropped);
+                texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+                return texture;
+            } finally {
+                cropped.dispose();
+            }
+        } finally {
+            source.dispose();
+        }
+    }
+
+    private Texture currentAvatarTexture() {
+        return avatarTexture != null ? avatarTexture : profileIcon;
     }
 
     private void sendResetPassword() {
@@ -736,7 +945,7 @@ public class AccountMenu implements Screen {
         }
         try {
             AudioManager.get().playSelect(0.72f);
-            game.getAuthService().sendEmailVerification(game.getSessionManager().getIdToken());
+            game.getAuthService().sendEmailVerification(game.getValidIdToken());
             AppLogger.info("Account", "Verification email sent again");
         } catch (Exception e) {
             AppLogger.error("Account", "Resend verification failed", e);
@@ -752,12 +961,15 @@ public class AccountMenu implements Screen {
         int totalAchievements = game.getAchievementManager().getTotalCount();
         boolean hasSession = game.getSessionManager().hasSession();
         String email = game.getSessionManager().getEmail().trim();
-        String nickname = nicknameFromEmail(email);
+        String nickname = accountProfileStore.loadNickname();
+        if (nickname.isBlank()) {
+            nickname = nicknameFromEmail(email);
+        }
 
         if (hasSession) {
             try {
                 JsonObject profile = game.getFirestoreService().getUserProfile(
-                        game.getSessionManager().getIdToken(),
+                        game.getValidIdToken(),
                         game.getSessionManager().getUid()
                 );
                 String firestoreNickname = stringField(profile, "nickname");
@@ -785,7 +997,7 @@ public class AccountMenu implements Screen {
         if (hasSession) {
             try {
                 FirebaseAuthService.AccountMetadata metadata = game.getAuthService()
-                        .getAccountMetadata(game.getSessionManager().getIdToken());
+                        .getAccountMetadata(game.getValidIdToken());
                 accountCreated = formatTimestamp(metadata.createdAt());
                 lastLogin = formatTimestamp(metadata.lastLoginAt());
             } catch (Exception e) {

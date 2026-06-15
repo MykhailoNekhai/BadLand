@@ -11,6 +11,7 @@ public class PoligonLevel extends Plevel {
 
     public PoligonLevel(MainGame game) {
         super(game);
+        levelNumber = 1;
     }
 
     // ОГОЛОШЕННЯ ОБ'ЄКТІВ

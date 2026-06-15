@@ -11,6 +11,7 @@ public class UserAchievementState {
     private static final String KEY_PREFIX = "ach_";
     private static final String KEY_TOTAL_DEATHS = "total_deaths";
     private static final String KEY_TOTAL_PLAY_SECONDS = "total_play_seconds";
+    private static final String KEY_COOP_SESSIONS = "coop_sessions";
     private static final String KEY_LEVEL_ATTEMPTS_PREFIX = "level_attempts_";
     private static final String KEY_LEVEL_COMPLETED_PREFIX = "level_completed_";
 
@@ -38,6 +39,13 @@ public class UserAchievementState {
         return true;
     }
 
+    public void setUnlocked(String code, boolean value) {
+        String normalized = normalizeCode(code);
+        unlocked.put(normalized, value);
+        preferences.putBoolean(KEY_PREFIX + normalized, value);
+        preferences.flush();
+    }
+
     public int getTotalDeaths() {
         return preferences.getInteger(KEY_TOTAL_DEATHS, 0);
     }
@@ -47,6 +55,11 @@ public class UserAchievementState {
         preferences.putInteger(KEY_TOTAL_DEATHS, total);
         preferences.flush();
         return total;
+    }
+
+    public void setTotalDeaths(int totalDeaths) {
+        preferences.putInteger(KEY_TOTAL_DEATHS, Math.max(0, totalDeaths));
+        preferences.flush();
     }
 
     public int incrementLevelAttemptIfNotCompleted(int level) {
@@ -63,6 +76,11 @@ public class UserAchievementState {
 
     public int getLevelAttempts(int level) {
         return preferences.getInteger(KEY_LEVEL_ATTEMPTS_PREFIX + level, 0);
+    }
+
+    public void setLevelAttempts(int level, int attempts) {
+        preferences.putInteger(KEY_LEVEL_ATTEMPTS_PREFIX + level, Math.max(0, attempts));
+        preferences.flush();
     }
 
     public boolean isLevelCompleted(int level) {
@@ -84,12 +102,33 @@ public class UserAchievementState {
         preferences.flush();
     }
 
+    public void setLevelCompleted(int level, boolean completed) {
+        preferences.putBoolean(KEY_LEVEL_COMPLETED_PREFIX + level, completed);
+        preferences.flush();
+    }
+
     public int getTotalPlaySeconds() {
         return preferences.getInteger(KEY_TOTAL_PLAY_SECONDS, 0);
     }
 
     public void setTotalPlaySeconds(int totalSeconds) {
         preferences.putInteger(KEY_TOTAL_PLAY_SECONDS, Math.max(0, totalSeconds));
+        preferences.flush();
+    }
+
+    public int incrementCoopSessions() {
+        int total = preferences.getInteger(KEY_COOP_SESSIONS, 0) + 1;
+        preferences.putInteger(KEY_COOP_SESSIONS, total);
+        preferences.flush();
+        return total;
+    }
+
+    public int getCoopSessionsCount() {
+        return preferences.getInteger(KEY_COOP_SESSIONS, 0);
+    }
+
+    public void setCoopSessionsCount(int count) {
+        preferences.putInteger(KEY_COOP_SESSIONS, Math.max(0, count));
         preferences.flush();
     }
 
