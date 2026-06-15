@@ -42,16 +42,19 @@ public class ShadowSystem extends IteratingSystem {
         PlayerComponent player = playerMapper.get(entity);
         PhysicsComponent phys = physMapper.get(entity);
 // перевірка на null
-        if (phys.body == null || player.isDead) return;
+        if (phys.body == null || player.isDead) {
+            return;
+        }
 
         if (player.receivedBonus != null) {
             String bonusToApply = player.receivedBonus;
             player.receivedBonus = null;
 
+            // бонуси, спочатку на клони, потім всі інші
             if ("item-clone".equals(bonusToApply)) {
                 float currentScale = player.shadowSizeScale * 1.2f;
-                float spawnX = phys.body.getPosition().x - 0.5f;
-                float spawnY = phys.body.getPosition().y + 0.5f;
+                float spawnX = phys.body.getPosition().x - 0.7f;
+                float spawnY = phys.body.getPosition().y + 0.7f;
                 
                 Entity clone = EntityFactory.createPlayer(getEngine(), world, spawnX, spawnY, currentScale);
                 
@@ -77,31 +80,43 @@ public class ShadowSystem extends IteratingSystem {
 
                     if ("item-big".equals(bonusToApply)) {
                         playerComponent.shadowSizeScale += 0.5f;
-                        if (playerComponent.shadowSizeScale > 3.5f) playerComponent.shadowSizeScale = 3.5f;
+                        if (playerComponent.shadowSizeScale > 3.5f) {
+                            playerComponent.shadowSizeScale = 3.5f;
+                        }
                         playerComponent.needsResize = true;
                         playerComponent.speedModifier *= 0.85f;
 
-                        if (playerComponent.speedModifier < 0.4f) playerComponent.speedModifier = 0.4f;
+                        if (playerComponent.speedModifier < 0.4f) {
+                            playerComponent.speedModifier = 0.4f;
+                        }
                         playerComponent.verticalSpeed *= 0.85f;
                         physicsComponent.body.setGravityScale(physicsComponent.body.getGravityScale() * 1.15f);
                         
                     } else if ("item-small".equals(bonusToApply)) {
                         playerComponent.shadowSizeScale -= 0.5f;
-                        if (playerComponent.shadowSizeScale < 0.5f) playerComponent.shadowSizeScale = 0.5f;
+                        if (playerComponent.shadowSizeScale < 0.5f) {
+                            playerComponent.shadowSizeScale = 0.5f;
+                        }
                         playerComponent.needsResize = true;
                         playerComponent.speedModifier *= 1.15f;
 
-                        if (playerComponent.speedModifier > 2.0f) playerComponent.speedModifier = 2.0f;
+                        if (playerComponent.speedModifier > 2.0f) {
+                            playerComponent.speedModifier = 2.0f;
+                        }
                         playerComponent.verticalSpeed *= 1.15f;
                         physicsComponent.body.setGravityScale(physicsComponent.body.getGravityScale() * 0.85f);
                         
                     } else if ("item-slow".equals(bonusToApply)) {
                         playerComponent.speedModifier *= 0.6f;
-                        if (playerComponent.speedModifier < 0.3f) playerComponent.speedModifier = 0.3f;
+                        if (playerComponent.speedModifier < 0.3f) {
+                            playerComponent.speedModifier = 0.3f;
+                        }
                         
                     } else if ("item-fast".equals(bonusToApply)) {
                         playerComponent.speedModifier *= 1.5f;
-                        if (playerComponent.speedModifier > 3.0f) playerComponent.speedModifier = 3.0f;
+                        if (playerComponent.speedModifier > 3.0f) {
+                            playerComponent.speedModifier = 3.0f;
+                        }
                     }
                 }
             }
@@ -168,8 +183,12 @@ public class ShadowSystem extends IteratingSystem {
         float targetAngle = velY * 0.1f;
 
         // 0.78 не вище та не нижче 45 градусів
-        if (targetAngle > 0.78f) targetAngle = 0.78f;
-        if (targetAngle < -0.78f) targetAngle = -0.78f;
+        if (targetAngle > 0.78f) {
+            targetAngle = 0.78f;
+        }
+        if (targetAngle < -0.78f) {
+            targetAngle = -0.78f;
+        }
 
         float currentAngle = phys.body.getAngle();
 
@@ -184,10 +203,12 @@ public class ShadowSystem extends IteratingSystem {
 
         phys.body.applyTorque(angleError * 15f, true);
     }
-
+// метод, що змінює розмір об'єкту (нюанси рушія)
     private void resizePlayer(Entity entity, PlayerComponent player, PhysicsComponent phys) {
         TextureComponent textureComp = texMapper.get(entity);
-        if (textureComp == null) return;
+        if (textureComp == null) {
+            return;
+        }
         
         float baseSize = 1.2f;
         float newSize = baseSize * player.shadowSizeScale;
