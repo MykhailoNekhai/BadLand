@@ -23,8 +23,10 @@ import ua.uni.audio.services.AudioManager;
 import ua.uni.config.GameSettings;
 import ua.uni.game.MainGame;
 import ua.uni.systems.PhysicsSystem;
+import ua.uni.systems.PullSystem;
 import ua.uni.systems.RenderSystem;
 import ua.uni.systems.ShadowSystem;
+import ua.uni.systems.BonusSystem;
 import ua.uni.utilite.EntityFactory;
 import ua.uni.utilite.GameContactListener;
 import ua.uni.web.main_menu.pause_menu.PauseMenu;
@@ -32,7 +34,7 @@ import ua.uni.web.main_menu.pause_menu.PauseMenu;
 import java.lang.reflect.Constructor;
 
 public abstract class Plevel implements Screen {
-    protected static final float TIMESTEP = 1 / 35f;
+    protected static final float TIMESTEP = 1 / 15f;
     protected static final int VELOCITY_ITERATIONS = 8;
     protected static final int POSITION_ITERATIONS = 3;
     protected static final float SHADOW_SIZE = 1.2f;
@@ -81,6 +83,20 @@ public abstract class Plevel implements Screen {
             if (phys.body.getPosition().x < deathLineX || playerComp.isDead) {
                 world.destroyBody(phys.body);
                 engine.removeEntity(player);
+            }
+        }
+
+        // тут шматок коду перевіряє чи далеко від нас об'єкт позаду та видаляє задля продуктивності
+        float edgeX = leftCameraEdge - 25f;
+        ImmutableArray<Entity> obstacles = engine.getEntitiesFor(Family.all(PhysicsComponent.class).exclude(PlayerComponent.class).get());
+        for (int i = 0; i < obstacles.size(); ++i) {
+            Entity obstacle = obstacles.get(i);
+            PhysicsComponent phys = physMapper.get(obstacle);
+            if (phys != null && phys.body != null) {
+                if (phys.body.getPosition().x < edgeX) {
+                    world.destroyBody(phys.body);
+                    engine.removeEntity(obstacle);
+                }
             }
         }
 
@@ -136,9 +152,9 @@ public abstract class Plevel implements Screen {
 
         int refreshRate = Gdx.graphics.getDisplayMode().refreshRate;
         System.out.println("Refresh rate: " + refreshRate);
-        if (refreshRate == 60) {
+        if (refreshRate == 0) {
             System.out.println("Refresh rate is 0, setting to 60");
-            refreshRate = 240;
+            refreshRate = 60;
         }
 
         dynamicTimeStep = 4.0f / refreshRate;
@@ -146,8 +162,10 @@ public abstract class Plevel implements Screen {
 
         engine = new PooledEngine();
         engine.addSystem(new PhysicsSystem());
-        engine.addSystem(new ShadowSystem());
+        engine.addSystem(new ShadowSystem(world));
         engine.addSystem(new RenderSystem(game.getBatch()));
+        engine.addSystem(new PullSystem());
+        engine.addSystem(new BonusSystem(world));
         pauseMenu = new PauseMenu(game, this::resumeFromPause, this::restartLevel, this::checkpointAction);
     }
 
@@ -215,7 +233,7 @@ public abstract class Plevel implements Screen {
 */
         ImmutableArray<Entity> players = engine.getEntitiesFor(Family.all(PlayerComponent.class, PhysicsComponent.class).get());
 
-        if (isGameStarted && players.size() > 0) {
+        if (isGameStarted && state == GameState.PLAYING && players.size() > 0) {
             float minCameraSpeed = 3f;
             float leaderX = -Float.MAX_VALUE;
 
@@ -251,6 +269,8 @@ public abstract class Plevel implements Screen {
         } else {
             engine.getSystem(RenderSystem.class).update(delta);
         }
+
+        debugRenderer.render(world, camera.combined);
     }
 
     private void resumeFromPause() {
