@@ -1,4 +1,3 @@
-
 {
   "sharp-rock-1": {
     "friction": 0.8,
@@ -96,10 +95,15 @@
     "baseWidth": 40.0
   },
   "saloon-door-2": {
-    "friction": 0.8,
+    "bodyType": "Dynamic",
+    "friction": 0.5,
     "restitution": 0.1,
-    "density": 0.0,
-    "baseWidth": 52.0
+    "density": 1.0,
+    "baseWidth": 52.0,
+    "isHinged": true,
+    "centerX": 40.650001525878906,
+    "centerY": 176.875,
+    "angularDamping" : 5.0
   },
   "sirpa-4": {
     "friction": 0.8,
@@ -454,12 +458,6 @@
     "restitution": 0.1,
     "density": 0.0,
     "baseWidth": 137.0
-  },
-  "saloon-door": {
-    "friction": 0.8,
-    "restitution": 0.1,
-    "density": 0.0,
-    "baseWidth": 52.0
   },
   "spike-bot-2": {
     "friction": 0.8,
@@ -934,5 +932,64 @@
     "restitution": 0.1,
     "density": 0.0,
     "baseWidth": 1006
+  },
+  "item-big": {
+
+    "isBonus" : true,
+    "bodyType" : "Dynamic",
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 5.0,
+    "baseWidth": 66
+  },
+  "item-small": {
+    "isBonus" : true,
+    "bodyType" : "Dynamic",
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 47
+  },
+  "item-slow": {
+    "isBonus" : true,
+    "bodyType" : "Dynamic",
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 56
+  },
+  "item-superclone": {
+    "isBonus" : true,
+    "bodyType" : "Dynamic",
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 74
+  },
+  "item-clone": {
+    "isBonus" : true,
+    "bodyType" : "Dynamic",
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 69
+  },
+  "item-fastforward": {
+    "isBonus" : true,
+    "bodyType" : "Dynamic",
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 71
+  },
+  "saloon-door": {
+    "bodyType": "Dynamic",
+    "friction": 0.5,
+    "restitution": 0.1,
+    "density": 1.0,
+    "baseWidth": 50.0,
+    "isHinged": true,
+    "centerX": 40.30000305175781,
+    "centerY": 16.2499942779541
   }
 }

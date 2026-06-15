@@ -5,6 +5,8 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
+import com.badlogic.gdx.math.Vector2;
 import ua.uni.components.*;
 import ua.uni.config.ObjectConfig;
 
@@ -83,11 +85,40 @@ public class EntityFactory {
 
         entity.add(physComp);
 
+        if (config.isHinged && config.centerX >= 0 && config.centerY >= 0) {
+            float pixelWidth = textureComp.texture.getWidth();
+            float pixelHeight = textureComp.texture.getHeight();
+            float offsetX_pixels = config.centerX - (pixelWidth / 2f);
+            float offsetY_pixels = config.centerY - (pixelHeight / 2f);
+            float localAnchorX = offsetX_pixels * realScale;
+            float localAnchorY = offsetY_pixels * realScale;
+
+            Vector2 hingeWorld = physComp.body.getWorldPoint(new Vector2(localAnchorX, localAnchorY));
+
+            BodyDef bodyDef1 = new BodyDef();
+            bodyDef1.type = BodyDef.BodyType.StaticBody;
+            bodyDef1.position.set(hingeWorld);
+            Body nailBody = world.createBody(bodyDef1);
+
+            RevoluteJointDef jointDef = new RevoluteJointDef();
+            jointDef.bodyA = nailBody;
+            jointDef.bodyB = physComp.body;
+            jointDef.localAnchorA.set(0, 0);
+            jointDef.localAnchorB.set(localAnchorX, localAnchorY);
+
+            world.createJoint(jointDef);
+        }
+
         if (config.isDeadly) {
             entity.add(engine.createComponent(DeadlyComponent.class));
         }
         if (config.isPlayer) {
             entity.add(engine.createComponent(PlayerComponent.class));
+        }
+        if (config.isBonus) {
+            BonusComponent bonus = engine.createComponent(BonusComponent.class);
+            bonus.type = objectName;
+            entity.add(bonus);
         }
 
         engine.addEntity(entity);
