@@ -40,7 +40,7 @@ import ua.uni.presentation.screen.menu.settings.LanguageButton;
 public class AccountMenu implements Screen {
     private static final int AVATAR_TEXTURE_SIZE = 256;
     private static final int SIDE_PANEL_WIDTH = 390;
-    private static final int SIDE_PANEL_HEIGHT = 300;
+    private static final int SIDE_PANEL_HEIGHT = 380;
     private final MainGame game;
     private Stage stage;
 
@@ -350,16 +350,12 @@ public class AccountMenu implements Screen {
         TextButton changeEmail = new TextButton(LanguageButton.t("CHANGE_EMAIL"), itemStyle);
         TextButton resetPassword = new TextButton(LanguageButton.t("RESET_PASSWORD"), itemStyle);
         TextButton logout = new TextButton(LanguageButton.t("LOG_OUT"), itemStyle);
-        Label hint = new Label(profileSnapshot.hasSession()
-                ? LanguageButton.t("SESSION_EMAIL_HINT")
-                : LanguageButton.t("LOGIN_FIRST_FIREBASE"), hintStyle);
-        hint.setWrap(true);
-
         changeEmail.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.72f);
-                AppLogger.info("Account", "Change email flow placeholder");
+                if (activeLeftPanel != null) closeSidePanel(true);
+                else openSidePanel(true, LanguageButton.t("CHANGE_EMAIL"), buildChangeEmailContent());
             }
         });
         resetPassword.addListener(new ChangeListener() {
@@ -382,7 +378,6 @@ public class AccountMenu implements Screen {
         table.add(changeEmail).width(320).height(78).padBottom(10).row();
         table.add(resetPassword).width(320).height(78).padBottom(10).row();
         table.add(logout).width(320).height(78).padBottom(16).row();
-        table.add(hint).width(320);
         return table;
     }
 
@@ -448,6 +443,66 @@ public class AccountMenu implements Screen {
         Table table = new Table();
         table.center().padTop(2);
         table.add(nicknameField).width(320).height(54).padBottom(8).row();
+        table.add(applyButton).width(320).height(58).padBottom(8).row();
+        table.add(statusLabel).width(320).minHeight(42).row();
+        return table;
+    }
+
+    private Table buildChangeEmailContent() {
+        Label.LabelStyle statusStyle = new Label.LabelStyle(smallFont, new Color(1f, 0.92f, 0.55f, 1f));
+
+        TextField.TextFieldStyle fieldStyle = new TextField.TextFieldStyle();
+        fieldStyle.font = smallFont;
+        fieldStyle.fontColor = Color.WHITE;
+        fieldStyle.messageFont = smallFont;
+        fieldStyle.messageFontColor = new Color(0.65f, 0.65f, 0.67f, 1f);
+        fieldStyle.cursor = new TextureRegionDrawable(solidTexture(3, 34, Color.WHITE));
+        fieldStyle.background = new TextureRegionDrawable(roundedRect(320, 70, 18, new Color(0.07f, 0.07f, 0.08f, 0.96f)));
+
+        TextButton.TextButtonStyle applyStyle = new TextButton.TextButtonStyle();
+        applyStyle.up = new TextureRegionDrawable(itemBtn);
+        applyStyle.down = new TextureRegionDrawable(itemBtn);
+        applyStyle.over = new TextureRegionDrawable(itemBtn);
+        applyStyle.font = smallFont;
+        applyStyle.fontColor = new Color(0.98f, 0.95f, 0.88f, 1f);
+        applyStyle.overFontColor = new Color(1f, 0.92f, 0.55f, 1f);
+        applyStyle.downFontColor = new Color(1f, 0.92f, 0.55f, 1f);
+
+        TextField emailField = new TextField("", fieldStyle);
+        emailField.setMessageText("New email");
+        Label statusLabel = new Label("", statusStyle);
+        statusLabel.setWrap(true);
+        TextButton applyButton = new TextButton("APPLY", applyStyle);
+
+        applyButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                AudioManager.get().playSelect(0.72f);
+                String newEmail = emailField.getText().trim();
+                if (newEmail.isBlank() || !newEmail.contains("@") || !newEmail.contains(".")) {
+                    statusLabel.setText("Invalid email.");
+                    return;
+                }
+                if (!profileSnapshot.hasSession()) {
+                    statusLabel.setText("Not logged in.");
+                    return;
+                }
+                try {
+                    String idToken = game.getValidIdToken();
+                    FirebaseAuthService.AuthResult result = game.getAuthService().updateEmail(idToken, newEmail);
+                    game.getSessionManager().save(result);
+                    statusLabel.setText("Email updated!");
+                    refreshLabels();
+                } catch (Exception e) {
+                    statusLabel.setText("Failed: check email or re-login.");
+                    AppLogger.error("Account", "Email update failed", e);
+                }
+            }
+        });
+
+        Table table = new Table();
+        table.center().padTop(2);
+        table.add(emailField).width(320).height(54).padBottom(8).row();
         table.add(applyButton).width(320).height(58).padBottom(8).row();
         table.add(statusLabel).width(320).minHeight(42).row();
         return table;
@@ -845,9 +900,47 @@ public class AccountMenu implements Screen {
                 avatarImage.invalidateHierarchy();
             }
             AppLogger.info("Account", "Avatar selected from local file: " + path);
+            uploadAvatarToCloud(path);
         } catch (Exception e) {
             AppLogger.error("Account", "Avatar selection failed", e);
         }
+    }
+
+    private void uploadAvatarToCloud(String localPath) {
+        if (!game.getSessionManager().hasSession()) {
+            return;
+        }
+        final byte[] imageBytes;
+        try {
+            imageBytes = Gdx.files.absolute(localPath).readBytes();
+        } catch (Exception e) {
+            AppLogger.error("Account", "Could not read avatar bytes for upload", e);
+            return;
+        }
+        Thread thread = new Thread(() -> {
+            try {
+                String token = game.getValidIdToken();
+                String uid = game.getSessionManager().getUid();
+                String url = game.getStorageService().uploadAvatar(token, uid, imageBytes);
+                ua.uni.core.dto.UserProfileDto profile = game.getFirestoreService().getUserProfileDto(token, uid);
+                if (profile == null) {
+                    profile = new ua.uni.core.dto.UserProfileDto();
+                    profile.setUid(uid);
+                    profile.setEmail(game.getSessionManager().getEmail());
+                    profile.setLanguage(ua.uni.core.config.GameSettings.getLanguage());
+                    long now = System.currentTimeMillis();
+                    profile.setCreatedAt(now);
+                    profile.setLastSeenAt(now);
+                }
+                profile.setAvatarUrl(url);
+                game.getFirestoreService().saveUserProfile(token, uid, profile);
+                AppLogger.info("Account", "Avatar uploaded to Firebase Storage");
+            } catch (Exception e) {
+                AppLogger.error("Account", "Avatar cloud upload failed", e);
+            }
+        }, "avatar-upload");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void openNativeAvatarPicker() {

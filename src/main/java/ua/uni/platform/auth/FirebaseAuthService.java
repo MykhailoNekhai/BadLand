@@ -37,6 +37,20 @@ public class FirebaseAuthService {
         post("accounts:sendOobCode", payload);
     }
 
+    public AuthResult updateEmail(String idToken, String newEmail) {
+        JsonObject payload = new JsonObject();
+        payload.addProperty("idToken", idToken);
+        payload.addProperty("email", newEmail);
+        payload.addProperty("returnSecureToken", true);
+        JsonObject json = post("accounts:update", payload);
+        return new AuthResult(
+                json.get("idToken").getAsString(),
+                json.get("localId").getAsString(),
+                json.get("refreshToken").getAsString(),
+                json.get("email").getAsString()
+        );
+    }
+
     public void sendPasswordResetEmail(String email) {
         JsonObject payload = new JsonObject();
         payload.addProperty("requestType", "PASSWORD_RESET");

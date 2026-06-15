@@ -8,6 +8,7 @@ public class UserProfileDto {
     private long createdAt;
     private long lastSeenAt;
     private boolean emailVerified;
+    private String avatarUrl;
 
     public UserProfileDto() {
     }
@@ -77,5 +78,13 @@ public class UserProfileDto {
 
     public void setEmailVerified(boolean emailVerified) {
         this.emailVerified = emailVerified;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

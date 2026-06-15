@@ -22,7 +22,12 @@ final class LocalAccountProfileStore {
 
     String loadAvatarPath() {
         ProfileData data = read();
-        return data.avatarPath == null ? "" : data.avatarPath.trim();
+        String path = data.avatarPath == null ? "" : data.avatarPath.trim();
+        if (!path.isBlank()) {
+            return path;
+        }
+        FileHandle cached = Gdx.files.local("avatar_cached.bin");
+        return cached.exists() ? cached.path() : "";
     }
 
     void saveAvatarPath(String avatarPath) {

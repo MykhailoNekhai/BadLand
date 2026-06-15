@@ -1,6 +1,7 @@
 package ua.uni.platform.auth;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import ua.uni.core.dto.*;
 import ua.uni.gameplay.achievements.AchievementManager;
 import ua.uni.gameplay.achievements.Achievements;
@@ -85,12 +86,34 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
 
                 game.getFirestoreService().appendPlayerEvent(token, uid,
                         new PlayerEventDto("CLOUD_BOOTSTRAP", System.currentTimeMillis(), "cloud-first"));
+
+                if (profile != null) {
+                    cacheAvatarIfMissing(token, profile);
+                }
             } catch (FirebaseNotFoundException missingProfile) {
                 seedCloudFromLocal("seed-missing-profile");
             } catch (Exception e) {
                 AppLogger.error(TAG, "Cloud bootstrap failed", e);
             }
         });
+    }
+
+    private void cacheAvatarIfMissing(String token, UserProfileDto profile) {
+        String avatarUrl = profile.getAvatarUrl();
+        if (avatarUrl == null || avatarUrl.isBlank()) {
+            return;
+        }
+        FileHandle cachedFile = Gdx.files.local("avatar_cached.bin");
+        if (cachedFile.exists()) {
+            return;
+        }
+        try {
+            byte[] bytes = game.getStorageService().downloadBytes(avatarUrl, token);
+            cachedFile.writeBytes(bytes, false);
+            AppLogger.info(TAG, "Avatar cached from cloud");
+        } catch (Exception e) {
+            AppLogger.error(TAG, "Avatar cache download failed", e);
+        }
     }
 
     public void syncSettings(String reason) {
@@ -172,7 +195,8 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
         for (int level = 1; level <= totalLevels; level++) {
             boolean completed = achievements.isLevelCompleted(level);
             int attempts = achievements.getLevelAttempts(level);
-            levels.add(new LevelProgressDto(level, completed, 0L, 0, attempts, completed && attempts <= 1, 0L));
+            int deaths = achievements.getLevelDeaths(level);
+            levels.add(new LevelProgressDto(level, completed, 0L, deaths, attempts, completed && attempts <= 1, 0L));
             if (completed) {
                 highestUnlocked = Math.max(highestUnlocked, Math.min(totalLevels, level + 1));
             }

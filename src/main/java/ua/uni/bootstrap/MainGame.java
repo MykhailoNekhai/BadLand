@@ -18,6 +18,7 @@ import ua.uni.gameplay.achievements.Achievements;
 import ua.uni.gameplay.achievements.AchievementsRarity;
 import ua.uni.platform.auth.FirebaseAuthService;
 import ua.uni.platform.auth.FirebaseConfig;
+import ua.uni.platform.auth.FirebaseStorageService;
 import ua.uni.platform.auth.FirestoreService;
 import ua.uni.platform.auth.PlayerDataSyncService;
 import ua.uni.platform.auth.SessionManager;
@@ -45,6 +46,7 @@ public class MainGame extends Game {
     private FirebaseConfig firebaseConfig;
     private FirebaseAuthService authService;
     private FirestoreService firestoreService;
+    private FirebaseStorageService storageService;
     private SessionManager sessionManager;
     private PlayerDataSyncService playerDataSyncService;
     private OnlineConfig onlineConfig;
@@ -86,6 +88,7 @@ public class MainGame extends Game {
         firebaseConfig = FirebaseConfig.loadFromResources();
         authService = new FirebaseAuthService(firebaseConfig);
         firestoreService = new FirestoreService(firebaseConfig);
+        storageService = new FirebaseStorageService(firebaseConfig);
         sessionManager = new SessionManager();
         onlineConfig = OnlineConfig.loadFromResources();
         nakamaClient = new NakamaClient(onlineConfig);
@@ -121,6 +124,10 @@ public class MainGame extends Game {
 
     public FirestoreService getFirestoreService() {
         return firestoreService;
+    }
+
+    public FirebaseStorageService getStorageService() {
+        return storageService;
     }
 
     public SessionManager getSessionManager() {
