@@ -100,9 +100,8 @@ public class AchievementsButton implements Screen {
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter pTitle = new FreeTypeFontGenerator.FreeTypeFontParameter();
         pTitle.size = 96;
-        pTitle.color = Color.WHITE;
-        pTitle.borderWidth = 2f;
-        pTitle.borderColor = Color.BLACK;
+        pTitle.color = Color.BLACK;
+        pTitle.borderWidth = 0f;
         pTitle.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(pTitle);
         FreeTypeFontGenerator.FreeTypeFontParameter pCard = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -132,13 +131,13 @@ public class AchievementsButton implements Screen {
     }
 
     private void buildUi() {
-        Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, Color.WHITE);
+        Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, Color.BLACK);
         titleLabel = new Label(LanguageButton.t("ACHIEVEMENTS"), titleStyle);
-        Table titleTable = new Table();
-        titleTable.setFillParent(true);
-        titleTable.top().center().padTop(18);
-        titleTable.add(titleLabel);
-        stage.addActor(titleTable);
+        titleLabel.pack();
+        float titleX = (stage.getViewport().getWorldWidth() - titleLabel.getWidth()) / 2f;
+        float titleY = stage.getViewport().getWorldHeight() - titleLabel.getHeight() - 4f;
+        titleLabel.setPosition(titleX, titleY);
+        stage.addActor(titleLabel);
 
         List<Achievements> all = new ArrayList<>(game.getAchievementManager().getCatalog().getAll());
         all.sort(Comparator.comparingInt(achievement -> achievement.getRarity().ordinal()));

@@ -39,9 +39,11 @@ import ua.uni.presentation.screen.menu.pause.PauseMenu;
 import ua.uni.gameplay.stats.LevelStats;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class Plevel implements Screen {
-    protected static final float TIMESTEP = 1 / 15f;
+    protected static final float TIMESTEP = 1 / 35f;
     protected static final int VELOCITY_ITERATIONS = 8;
     protected static final int POSITION_ITERATIONS = 3;
     protected static final float SHADOW_SIZE = 1.2f;
@@ -55,12 +57,37 @@ public abstract class Plevel implements Screen {
 
     private Texture backgroundGradient;
     private Texture backgroundGlow;
+    private Texture backgroundGlowInner;
 
     protected boolean isGameStarted = false; // потрібен для початку руху камери
     protected Viewport viewport;
 
     protected float finishLineX = 2000f; // Фінішна пряма рівня
     protected int levelNumber;
+
+    // Lazy spawning: об'єкти спавняться тільки коли камера наближається
+    private static final float SPAWN_LOOKAHEAD = 50f;
+    private final List<PendingSpawn> pendingSpawns = new ArrayList<>();
+
+    protected static final class PendingSpawn {
+        final String name;
+        final float x, y, angle, size, spinSpeed;
+        final boolean isSaw;
+        PendingSpawn(String n, float x, float y, float a, float s) {
+            name=n; this.x=x; this.y=y; angle=a; size=s; spinSpeed=0; isSaw=false;
+        }
+        PendingSpawn(String n, float x, float y, float a, float s, float sp) {
+            name=n; this.x=x; this.y=y; angle=a; size=s; spinSpeed=sp; isSaw=true;
+        }
+    }
+
+    protected void scheduleObstacle(String name, float x, float y, float angle, float size) {
+        pendingSpawns.add(new PendingSpawn(name, x, y, angle, size));
+    }
+
+    protected void scheduleSaw(String name, float x, float y, float angle, float size, float spinSpeed) {
+        pendingSpawns.add(new PendingSpawn(name, x, y, angle, size, spinSpeed));
+    }
     private float dynamicTimeStep;
     private PauseMenu pauseMenu;
     private ComponentMapper<PhysicsComponent> physMapper = ComponentMapper.getFor(PhysicsComponent.class);
@@ -81,6 +108,19 @@ public abstract class Plevel implements Screen {
     protected void mainGameLogic() {
         if (state != GameState.PLAYING) {
             return;
+        }
+
+        // Lazy spawning: спавнимо об'єкти в міру руху камери
+        if (!pendingSpawns.isEmpty()) {
+            float spawnEdge = camera.position.x + (camera.viewportWidth / 2f) + SPAWN_LOOKAHEAD;
+            for (int i = pendingSpawns.size() - 1; i >= 0; i--) {
+                PendingSpawn p = pendingSpawns.get(i);
+                if (p.x <= spawnEdge) {
+                    if (p.isSaw) EntityFactory.createSaw(engine, world, p.name, p.x, p.y, p.angle, p.size, p.spinSpeed);
+                    else         EntityFactory.createObstacle(engine, world, p.name, p.x, p.y, p.angle, p.size);
+                    pendingSpawns.remove(i);
+                }
+            }
         }
 
         ImmutableArray<Entity> players = engine.getEntitiesFor(Family.all(PlayerComponent.class, PhysicsComponent.class).get());
@@ -133,7 +173,7 @@ public abstract class Plevel implements Screen {
                 levelStats.loseScore++;
                 state = GameState.GAME_OVER;
                 if (levelNumber > 0) {
-                    game.getAchievementManager().onDeath();
+                    game.getAchievementManager().onDeath(levelNumber);
                 }
                 AudioManager.get().playLevelLose(0.95f);
                 Gdx.app.postRunnable(this::restartLevel);
@@ -229,12 +269,19 @@ public abstract class Plevel implements Screen {
         engine.addSystem(new BonusSystem(world));
         engine.addSystem(new PositionalAudioSystem(camera));
         pauseMenu = new PauseMenu(game, this::resumeFromPause, this::restartLevel, this::checkpointAction);
-        backgroundGradient = makeLevelGradientTexture(64, 256,
-                new Color(0.18f, 0.24f, 0.32f, 1f),
-                new Color(0.04f, 0.05f, 0.08f, 1f));
-        backgroundGlow = makeGlowTexture(420,
-                new Color(0.88f, 0.76f, 0.46f, 0.30f),
-                new Color(0.88f, 0.76f, 0.46f, 0f));
+        backgroundGradient = makeMultiStopGradient(64, 512, new Color[]{
+                new Color(0.03f, 0.03f, 0.03f, 1f),
+                new Color(0.07f, 0.06f, 0.05f, 1f),
+                new Color(0.13f, 0.12f, 0.10f, 1f),
+                new Color(0.19f, 0.17f, 0.14f, 1f),
+                new Color(0.24f, 0.21f, 0.17f, 1f),
+        });
+        backgroundGlow = makeGlowTexture(480,
+                new Color(1.0f, 0.78f, 0.25f, 0.34f),
+                new Color(0.90f, 0.55f, 0.10f, 0f));
+        backgroundGlowInner = makeGlowTexture(220,
+                new Color(1.0f, 0.95f, 0.60f, 0.72f),
+                new Color(1.0f, 0.80f, 0.30f, 0f));
     }
 
     protected abstract void buildLevel();
@@ -268,7 +315,7 @@ public abstract class Plevel implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.5f, 0.8f, 1f, 1);
+        Gdx.gl.glClearColor(0.03f, 0.03f, 0.03f, 1f);
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (state == GameState.PLAYING) {
@@ -362,21 +409,27 @@ public abstract class Plevel implements Screen {
     }
 
     private void renderLevelBackground() {
-        float viewportWidth = camera.viewportWidth;
-        float viewportHeight = camera.viewportHeight;
-        float left = camera.position.x - (viewportWidth / 2f);
-        float bottom = camera.position.y - (viewportHeight / 2f);
+        float vw = camera.viewportWidth;
+        float vh = camera.viewportHeight;
+        float left = camera.position.x - (vw / 2f);
+        float bottom = camera.position.y - (vh / 2f);
 
-        float glowWidth = viewportWidth * 1.35f;
-        float glowHeight = viewportHeight * 1.55f;
-        float glowX = camera.position.x + (viewportWidth * 0.22f) - (glowWidth / 2f);
-        float glowY = camera.position.y + (viewportHeight * 0.10f) - (glowHeight / 2f);
+        float glowCx = camera.position.x + (vw * 0.22f);
+        float glowCy = camera.position.y + (vh * 0.10f);
+
+        float outerW = vw * 1.45f;
+        float outerH = vh * 1.65f;
+        float innerW = vw * 0.65f;
+        float innerH = vh * 0.75f;
 
         game.getBatch().begin();
         game.getBatch().setColor(Color.WHITE);
-        game.getBatch().draw(backgroundGradient, left, bottom, viewportWidth, viewportHeight);
-        game.getBatch().setColor(1f, 1f, 1f, 0.92f);
-        game.getBatch().draw(backgroundGlow, glowX, glowY, glowWidth, glowHeight);
+        game.getBatch().draw(backgroundGradient, left, bottom, vw, vh);
+        game.getBatch().setColor(1f, 1f, 1f, 1f);
+        game.getBatch().draw(backgroundGlow,
+                glowCx - outerW / 2f, glowCy - outerH / 2f, outerW, outerH);
+        game.getBatch().draw(backgroundGlowInner,
+                glowCx - innerW / 2f, glowCy - innerH / 2f, innerW, innerH);
         game.getBatch().setColor(1f, 1f, 1f, 1f);
         game.getBatch().end();
     }
@@ -436,12 +489,9 @@ public abstract class Plevel implements Screen {
         if (pauseMenu != null) {
             pauseMenu.dispose();
         }
-        if (backgroundGradient != null) {
-            backgroundGradient.dispose();
-        }
-        if (backgroundGlow != null) {
-            backgroundGlow.dispose();
-        }
+        if (backgroundGradient != null) backgroundGradient.dispose();
+        if (backgroundGlow != null) backgroundGlow.dispose();
+        if (backgroundGlowInner != null) backgroundGlowInner.dispose();
         if (world != null) {
             world.dispose();
         }
@@ -453,15 +503,21 @@ public abstract class Plevel implements Screen {
         }
     }
 
-    private Texture makeLevelGradientTexture(int width, int height, Color topColor, Color bottomColor) {
+    private Texture makeMultiStopGradient(int width, int height, Color[] stops) {
+        // stops[0] = bottom, stops[last] = top
         Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+        int n = stops.length;
         for (int y = 0; y < height; y++) {
             float t = y / (float) (height - 1);
-            float r = bottomColor.r + ((topColor.r - bottomColor.r) * t);
-            float g = bottomColor.g + ((topColor.g - bottomColor.g) * t);
-            float b = bottomColor.b + ((topColor.b - bottomColor.b) * t);
-            float a = bottomColor.a + ((topColor.a - bottomColor.a) * t);
-            pixmap.setColor(r, g, b, a);
+            float segF = t * (n - 1);
+            int seg = Math.min((int) segF, n - 2);
+            float lt = segF - seg;
+            Color c0 = stops[seg], c1 = stops[seg + 1];
+            pixmap.setColor(
+                    c0.r + (c1.r - c0.r) * lt,
+                    c0.g + (c1.g - c0.g) * lt,
+                    c0.b + (c1.b - c0.b) * lt,
+                    1f);
             pixmap.drawLine(0, y, width, y);
         }
         Texture texture = new Texture(pixmap);

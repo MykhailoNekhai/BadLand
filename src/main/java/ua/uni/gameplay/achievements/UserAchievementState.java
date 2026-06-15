@@ -17,6 +17,7 @@ public class UserAchievementState {
     private static final String KEY_COOP_SESSIONS = "coop_sessions";
     private static final String KEY_LEVEL_ATTEMPTS_PREFIX = "level_attempts_";
     private static final String KEY_LEVEL_COMPLETED_PREFIX = "level_completed_";
+    private static final String KEY_LEVEL_DEATHS_PREFIX = "level_deaths_";
 
     private final Preferences preferences = Gdx.app.getPreferences(PREFS_NAME);
     private final Map<String, Boolean> unlocked = new HashMap<>();
@@ -155,6 +156,23 @@ public class UserAchievementState {
 
     public void setLevelCompleted(int level, boolean completed) {
         preferences.putBoolean(KEY_LEVEL_COMPLETED_PREFIX + level, completed);
+        preferences.flush();
+    }
+
+    public int incrementLevelDeaths(int level) {
+        String key = KEY_LEVEL_DEATHS_PREFIX + level;
+        int count = preferences.getInteger(key, 0) + 1;
+        preferences.putInteger(key, count);
+        preferences.flush();
+        return count;
+    }
+
+    public int getLevelDeaths(int level) {
+        return preferences.getInteger(KEY_LEVEL_DEATHS_PREFIX + level, 0);
+    }
+
+    public void setLevelDeaths(int level, int count) {
+        preferences.putInteger(KEY_LEVEL_DEATHS_PREFIX + level, Math.max(0, count));
         preferences.flush();
     }
 

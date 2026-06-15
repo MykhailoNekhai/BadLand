@@ -75,6 +75,13 @@ public class AchievementManager {
         return unlockedAny;
     }
 
+    public boolean onDeath(int level) {
+        if (level > 0) {
+            userState.incrementLevelDeaths(level);
+        }
+        return onDeath();
+    }
+
     public boolean onDeath() {
         int totalDeaths = userState.incrementTotalDeaths();
         boolean unlockedAny = false;
@@ -156,6 +163,10 @@ public class AchievementManager {
         return userState.isUnlocked(code);
     }
 
+    public int getLevelDeaths(int level) {
+        return userState.getLevelDeaths(level);
+    }
+
     public AchievementsList getCatalog() {
         return catalog;
     }
@@ -233,6 +244,7 @@ public class AchievementManager {
             for (LevelProgressDto level : progress.getLevels()) {
                 userState.setLevelAttempts(level.getLevelId(), level.getAttemptCount());
                 userState.setLevelCompleted(level.getLevelId(), level.isCompleted());
+                userState.setLevelDeaths(level.getLevelId(), level.getDeathCount());
             }
         }
 

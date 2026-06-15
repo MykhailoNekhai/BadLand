@@ -10,8 +10,11 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
@@ -31,8 +34,6 @@ import com.heroiclabs.nakama.UserPresence;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.bootstrap.MainGame;
 import ua.uni.bootstrap.RuntimeProfile;
-//import ua.uni.gameplay.levels.CoopPoligonLevel;
-// import ua.uni.gameplay.levels.CoopRuinsLevel;
 import ua.uni.core.logging.AppLogger;
 import ua.uni.platform.online.CoopMatchState;
 import ua.uni.platform.online.CoopProtocol;
@@ -63,13 +64,16 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     private Texture bg;
     private Texture fg;
     private Texture panel;
-    private Texture buttonTex;
+    private Texture panelVignette;
+    private Texture itemBtn;
+    private Texture halfItemBtn;
     private Texture fieldTex;
-    private Texture vignette;
     private Texture dotTex;
+
     private BitmapFont titleFont;
-    private BitmapFont uiFont;
-    private BitmapFont statusFont;
+    private BitmapFont itemFont;
+    private BitmapFont smallFont;
+
     private TextField matchIdField;
     private Label roleLabel;
     private Label sessionLabel;
@@ -81,7 +85,14 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     private TextButton startButton;
     private TextButton levelPrevButton;
     private TextButton levelNextButton;
+
+    private TextButton.TextButtonStyle itemStyle;
+    private TextButton.TextButtonStyle halfItemStyle;
+    private TextButton.TextButtonStyle readyOnStyle;
+    private TextButton.TextButtonStyle readyOffStyle;
+
     private int trailHead;
+    private float elapsed;
     private int selectedLevel = 1;
     private String currentMatchId;
     private String hostUserId;
@@ -106,33 +117,43 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         fg = new Texture(Gdx.files.internal("game-resourses/menu/coop_fg_generated.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         fg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        panel = roundedRect(860, 620, 42, Color.BLACK);
-        buttonTex = roundedRect(280, 82, 28, new Color(0f, 0f, 0f, 0.92f));
-        fieldTex = roundedRect(580, 76, 24, new Color(0.07f, 0.07f, 0.08f, 0.96f));
-        vignette = makeVignette(1280, 720);
-        dotTex = softCircleTexture(14);
+
+        panel = gradientPanel(740, 1000, 48, 18, 12,
+                new Color(0.06f, 0.08f, 0.13f, 0.95f),
+                new Color(0.04f, 0.12f, 0.06f, 0.95f));
+        panelVignette = panelVignetteTexture(740, 1000, 48, 18, 12);
+        itemBtn = roundedRect(668, 80, 24, new Color(0f, 0f, 0f, 1f));
+        halfItemBtn = roundedRect(329, 76, 22, new Color(0f, 0f, 0f, 1f));
+        fieldTex = roundedRect(668, 76, 24, new Color(0.07f, 0.07f, 0.08f, 0.96f));
+        dotTex = softDotTexture(14);
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
+
         FreeTypeFontGenerator.FreeTypeFontParameter titleParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        titleParams.size = 100;
-        titleParams.color = Color.WHITE;
-        titleParams.borderWidth = 2f;
-        titleParams.borderColor = Color.BLACK;
+        titleParams.size = 68;
+        titleParams.color = new Color(0.40f, 0.92f, 0.40f, 1f);
+        titleParams.borderWidth = 1.8f;
+        titleParams.borderColor = new Color(0.03f, 0.08f, 0.03f, 1f);
         titleParams.characters = LanguageButton.FONT_CHARACTERS;
         titleFont = generator.generateFont(titleParams);
 
-        FreeTypeFontGenerator.FreeTypeFontParameter uiParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        uiParams.size = 40;
-        uiParams.color = Color.WHITE;
-        uiParams.characters = LanguageButton.FONT_CHARACTERS;
-        uiFont = generator.generateFont(uiParams);
+        FreeTypeFontGenerator.FreeTypeFontParameter itemParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        itemParams.size = 52;
+        itemParams.color = new Color(0.98f, 0.95f, 0.88f, 1f);
+        itemParams.borderWidth = 1.6f;
+        itemParams.borderColor = new Color(0.04f, 0.05f, 0.03f, 1f);
+        itemParams.characters = LanguageButton.FONT_CHARACTERS;
+        itemFont = generator.generateFont(itemParams);
 
-        FreeTypeFontGenerator.FreeTypeFontParameter statusParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        statusParams.size = 28;
-        statusParams.color = new Color(0.92f, 0.92f, 0.92f, 1f);
-        statusParams.characters = LanguageButton.FONT_CHARACTERS;
-        statusFont = generator.generateFont(statusParams);
+        FreeTypeFontGenerator.FreeTypeFontParameter smallParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        smallParams.size = 32;
+        smallParams.color = Color.WHITE;
+        smallParams.borderWidth = 1.0f;
+        smallParams.borderColor = Color.BLACK;
+        smallParams.characters = LanguageButton.FONT_CHARACTERS;
+        smallFont = generator.generateFont(smallParams);
+
         generator.dispose();
 
         buildUi();
@@ -140,22 +161,51 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     }
 
     private void buildUi() {
-        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
-        buttonStyle.up = new TextureRegionDrawable(buttonTex);
-        buttonStyle.over = new TextureRegionDrawable(buttonTex);
-        buttonStyle.down = new TextureRegionDrawable(buttonTex);
-        buttonStyle.font = uiFont;
+        Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleFont.getColor());
+        Label.LabelStyle infoStyle = new Label.LabelStyle(smallFont, new Color(0.92f, 0.92f, 0.88f, 1f));
+
+        itemStyle = new TextButton.TextButtonStyle();
+        itemStyle.up = new TextureRegionDrawable(itemBtn);
+        itemStyle.down = new TextureRegionDrawable(itemBtn);
+        itemStyle.over = new TextureRegionDrawable(itemBtn);
+        itemStyle.font = itemFont;
+        itemStyle.fontColor = new Color(0.98f, 0.95f, 0.88f, 1f);
+        itemStyle.overFontColor = new Color(0.55f, 1f, 0.55f, 1f);
+        itemStyle.downFontColor = new Color(0.55f, 1f, 0.55f, 1f);
+
+        halfItemStyle = new TextButton.TextButtonStyle();
+        halfItemStyle.up = new TextureRegionDrawable(halfItemBtn);
+        halfItemStyle.down = new TextureRegionDrawable(halfItemBtn);
+        halfItemStyle.over = new TextureRegionDrawable(halfItemBtn);
+        halfItemStyle.font = itemFont;
+        halfItemStyle.fontColor = new Color(0.98f, 0.95f, 0.88f, 1f);
+        halfItemStyle.overFontColor = new Color(0.55f, 1f, 0.55f, 1f);
+        halfItemStyle.downFontColor = new Color(0.55f, 1f, 0.55f, 1f);
+
+        readyOffStyle = itemStyle;
+
+        readyOnStyle = new TextButton.TextButtonStyle();
+        readyOnStyle.up = new TextureRegionDrawable(itemBtn);
+        readyOnStyle.down = new TextureRegionDrawable(itemBtn);
+        readyOnStyle.over = new TextureRegionDrawable(itemBtn);
+        readyOnStyle.font = itemFont;
+        readyOnStyle.fontColor = new Color(0.40f, 0.92f, 0.40f, 1f);
+        readyOnStyle.overFontColor = new Color(0.55f, 1f, 0.55f, 1f);
+        readyOnStyle.downFontColor = new Color(0.55f, 1f, 0.55f, 1f);
+
+        TextButton.TextButtonStyle backBtnStyle = new TextButton.TextButtonStyle();
+        backBtnStyle.font = itemFont;
+        backBtnStyle.fontColor = new Color(0.95f, 0.90f, 0.65f, 1f);
+        backBtnStyle.overFontColor = new Color(0.55f, 1f, 0.55f, 1f);
+        backBtnStyle.downFontColor = new Color(0.55f, 1f, 0.55f, 1f);
 
         TextField.TextFieldStyle fieldStyle = new TextField.TextFieldStyle();
-        fieldStyle.font = uiFont;
+        fieldStyle.font = itemFont;
         fieldStyle.fontColor = Color.WHITE;
-        fieldStyle.messageFont = statusFont;
+        fieldStyle.messageFont = smallFont;
         fieldStyle.messageFontColor = new Color(0.65f, 0.65f, 0.67f, 1f);
-        fieldStyle.cursor = new TextureRegionDrawable(solidTexture(3, 44, Color.WHITE));
+        fieldStyle.cursor = new TextureRegionDrawable(solidTexture(3, 60, Color.WHITE));
         fieldStyle.background = new TextureRegionDrawable(fieldTex);
-
-        Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, Color.WHITE);
-        Label.LabelStyle infoStyle = new Label.LabelStyle(statusFont, Color.WHITE);
 
         Label titleLabel = new Label(LanguageButton.t("COOP_LOBBY"), titleStyle);
         Label infoLabel = new Label(LanguageButton.t("COOP_LOBBY_INFO"), infoStyle);
@@ -164,10 +214,10 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         roleLabel = new Label("", infoStyle);
         sessionLabel = new Label("", infoStyle);
         matchLabel = new Label("", infoStyle);
+        levelLabel = new Label("", infoStyle);
         playersLabel = new Label("", infoStyle);
         playersLabel.setAlignment(Align.topLeft);
         playersLabel.setWrap(true);
-        levelLabel = new Label("", infoStyle);
         statusLabel = new Label("", infoStyle);
         statusLabel.setWrap(true);
         statusLabel.setAlignment(Align.center);
@@ -175,39 +225,39 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         matchIdField = new TextField("", fieldStyle);
         matchIdField.setMessageText(LanguageButton.t("ENTER_MATCH_ID"));
 
-        TextButton createButton = new TextButton(LanguageButton.t("CREATE_MATCH"), buttonStyle);
-        TextButton joinButton = new TextButton(LanguageButton.t("JOIN_MATCH"), buttonStyle);
-        TextButton leaveButton = new TextButton(LanguageButton.t("LEAVE_MATCH"), buttonStyle);
-        TextButton backButton = new TextButton(LanguageButton.t("BACK"), buttonStyle);
-        readyButton = new TextButton(LanguageButton.t("READY_OFF"), buttonStyle);
-        startButton = new TextButton(LanguageButton.t("START"), buttonStyle);
-        levelPrevButton = new TextButton(LanguageButton.t("LEVEL_PREV"), buttonStyle);
-        levelNextButton = new TextButton(LanguageButton.t("LEVEL_NEXT"), buttonStyle);
+        TextButton createButton = new TextButton(LanguageButton.t("CREATE_MATCH"), itemStyle);
+        TextButton joinButton = new TextButton(LanguageButton.t("JOIN_MATCH"), itemStyle);
+        TextButton leaveButton = new TextButton(LanguageButton.t("LEAVE_MATCH"), itemStyle);
+        TextButton backButton = new TextButton(LanguageButton.t("BACK"), backBtnStyle);
+        readyButton = new TextButton(LanguageButton.t("READY_OFF"), readyOffStyle);
+        startButton = new TextButton(LanguageButton.t("START"), itemStyle);
+        levelPrevButton = new TextButton(LanguageButton.t("LEVEL_PREV"), halfItemStyle);
+        levelNextButton = new TextButton(LanguageButton.t("LEVEL_NEXT"), halfItemStyle);
 
         createButton.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playStart(0.8f);
                 createMatch();
             }
         });
         joinButton.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.72f);
                 joinMatch();
             }
         });
         leaveButton.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.70f);
                 leaveMatchAndDisconnect(LanguageButton.t("LEFT_LOBBY"));
             }
         });
         backButton.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.72f);
                 leaveMatchAndDisconnect(LanguageButton.t("CLOSED_COOP_LOBBY"));
                 game.setScreen(new Menu(game));
@@ -215,77 +265,86 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         });
         readyButton.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.68f);
                 toggleReady();
             }
         });
         startButton.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playStart(0.85f);
                 startMatchIfPossible();
             }
         });
         levelPrevButton.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.62f);
                 changeLevel(-1);
             }
         });
         levelNextButton.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.62f);
                 changeLevel(1);
             }
         });
 
-        Table content = new Table();
-        content.center();
-        content.defaults().padBottom(12f);
-        content.add(titleLabel).padBottom(4f).row();
-        content.add(infoLabel).width(690f).padBottom(16f).row();
-        content.add(roleLabel).width(690f).row();
-        content.add(sessionLabel).width(690f).row();
-        content.add(matchLabel).width(690f).row();
-        content.add(levelLabel).width(690f).padBottom(4f).row();
-
         Table levelRow = new Table();
-        levelRow.add(levelPrevButton).width(240f).height(76f).padRight(14f);
-        levelRow.add(levelNextButton).width(240f).height(76f);
-        content.add(levelRow).padBottom(16f).row();
+        levelRow.add(levelPrevButton).width(329).height(70).padRight(10);
+        levelRow.add(levelNextButton).width(329).height(70);
 
-        content.add(matchIdField).width(580f).height(76f).padBottom(18f).row();
-
-        Table buttonRowTop = new Table();
-        buttonRowTop.add(createButton).width(280f).height(82f).padRight(12f);
-        buttonRowTop.add(joinButton).width(280f).height(82f);
-        content.add(buttonRowTop).padBottom(10f).row();
-
-        Table buttonRowMid = new Table();
-        buttonRowMid.add(readyButton).width(280f).height(82f).padRight(12f);
-        buttonRowMid.add(startButton).width(280f).height(82f);
-        content.add(buttonRowMid).padBottom(10f).row();
-
-        Table buttonRowBottom = new Table();
-        buttonRowBottom.add(leaveButton).width(280f).height(82f).padRight(12f);
-        buttonRowBottom.add(backButton).width(280f).height(82f);
-        content.add(buttonRowBottom).padBottom(14f).row();
-
-        content.add(playersLabel).width(690f).height(110f).padBottom(12f).row();
-        content.add(statusLabel).width(690f).row();
+        Table panelContent = new Table();
+        panelContent.defaults().center().padLeft(36).padRight(36);
+        panelContent.add(titleLabel).padTop(26).padBottom(12).row();
+        panelContent.add(infoLabel).width(668).padBottom(8).row();
+        panelContent.add(roleLabel).width(668).padBottom(2).row();
+        panelContent.add(sessionLabel).width(668).padBottom(2).row();
+        panelContent.add(matchLabel).width(668).padBottom(2).row();
+        panelContent.add(levelLabel).width(668).padBottom(6).row();
+        panelContent.add(levelRow).padBottom(8).row();
+        panelContent.add(matchIdField).width(668).height(70).padBottom(8).row();
+        panelContent.add(createButton).width(668).height(76).padBottom(5).row();
+        panelContent.add(joinButton).width(668).height(76).padBottom(5).row();
+        panelContent.add(readyButton).width(668).height(76).padBottom(5).row();
+        panelContent.add(startButton).width(668).height(76).padBottom(5).row();
+        panelContent.add(leaveButton).width(668).height(76).padBottom(5).row();
+        panelContent.add(backButton).padBottom(8).row();
+        panelContent.add(playersLabel).width(668).height(90).padBottom(6).row();
+        panelContent.add(statusLabel).width(668).padBottom(12).row();
 
         Stack panelStack = new Stack();
         panelStack.add(new Image(new TextureRegionDrawable(panel)));
-        panelStack.add(content);
+        panelStack.add(new Image(new TextureRegionDrawable(panelVignette)));
+        panelStack.add(panelContent);
 
         Table panelWrap = new Table();
         panelWrap.setFillParent(true);
         panelWrap.center();
-        panelWrap.add(panelStack).width(860f).height(620f).padTop(16f);
+        panelWrap.add(panelStack).width(740).height(1000);
         stage.addActor(panelWrap);
+
+        Actor[] revealList = {titleLabel, infoLabel, matchIdField,
+                createButton, joinButton, readyButton, startButton, leaveButton, backButton};
+        for (int i = 0; i < revealList.length; i++) {
+            Actor a = revealList[i];
+            a.getColor().a = 0f;
+            a.addAction(Actions.sequence(
+                    Actions.delay(0.06f * i),
+                    Actions.fadeIn(0.30f, Interpolation.fade)
+            ));
+        }
+
+        panelStack.addAction(Actions.sequence(
+                Actions.delay(0.05f),
+                Actions.run(() -> panelStack.setOrigin(panelStack.getWidth() / 2f, panelStack.getHeight() / 2f)),
+                Actions.forever(Actions.sequence(
+                        Actions.scaleTo(1.005f, 1.005f, 2.2f, Interpolation.sine),
+                        Actions.scaleTo(1f, 1f, 2.2f, Interpolation.sine)
+                ))
+        ));
     }
 
     private void createMatch() {
@@ -625,6 +684,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         levelLabel.setText(level);
         playersLabel.setText(playersText.toString());
         readyButton.setText(isReady ? LanguageButton.t("READY_ON") : LanguageButton.t("READY_OFF"));
+        readyButton.setStyle(isReady ? readyOnStyle : readyOffStyle);
         readyButton.setDisabled(currentMatchId == null);
         levelPrevButton.setDisabled(!isHost || currentMatchId == null);
         levelNextButton.setDisabled(!isHost || currentMatchId == null);
@@ -722,6 +782,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
 
     @Override
     public void render(float delta) {
+        elapsed += delta;
         AudioManager.get().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             leaveMatchAndDisconnect(LanguageButton.t("CLOSED_COOP_LOBBY"));
@@ -730,23 +791,32 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         }
 
         updateTrail();
-        var batch = stage.getBatch();
+
         float w = stage.getViewport().getWorldWidth();
         float h = stage.getViewport().getWorldHeight();
+        var batch = stage.getBatch();
         batch.setProjectionMatrix(stage.getCamera().combined);
         batch.begin();
         batch.setColor(1f, 1f, 1f, 1f);
         batch.draw(bg, 0f, 0f, w, h);
         batch.setColor(1f, 1f, 1f, 0.95f);
         batch.draw(fg, 0f, 0f, w, h);
-        batch.setColor(0f, 0f, 0f, 0.18f);
-        batch.draw(vignette, 0f, 0f, w, h);
         batch.setColor(1f, 1f, 1f, 1f);
         batch.end();
 
         stage.act(delta);
         stage.draw();
-        drawTrail();
+
+        batch.begin();
+        for (int i = 0; i < TRAIL_LEN; i++) {
+            int idx = (trailHead - 1 - i + TRAIL_LEN) % TRAIL_LEN;
+            float ta = (TRAIL_LEN - i) / (float) TRAIL_LEN * 0.45f;
+            float ts = 8f - i * 0.4f;
+            batch.setColor(0.40f, 0.95f, 0.40f, ta);
+            batch.draw(dotTex, trailX[idx] - ts, trailY[idx] - ts, ts * 2f, ts * 2f);
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.end();
     }
 
     private void updateTrail() {
@@ -755,21 +825,6 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         trailX[trailHead] = mouseTmp.x;
         trailY[trailHead] = mouseTmp.y;
         trailHead = (trailHead + 1) % TRAIL_LEN;
-    }
-
-    private void drawTrail() {
-        var batch = stage.getBatch();
-        batch.setProjectionMatrix(stage.getCamera().combined);
-        batch.begin();
-        for (int i = 0; i < TRAIL_LEN; i++) {
-            int idx = (trailHead - 1 - i + TRAIL_LEN) % TRAIL_LEN;
-            float alpha = (TRAIL_LEN - i) / (float) TRAIL_LEN * 0.45f;
-            float size = 8f - i * 0.4f;
-            batch.setColor(0.78f, 0.92f, 0.42f, alpha);
-            batch.draw(dotTex, trailX[idx] - size, trailY[idx] - size, size * 2f, size * 2f);
-        }
-        batch.setColor(1f, 1f, 1f, 1f);
-        batch.end();
     }
 
     @Override
@@ -798,13 +853,14 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         if (bg != null) bg.dispose();
         if (fg != null) fg.dispose();
         if (panel != null) panel.dispose();
-        if (buttonTex != null) buttonTex.dispose();
+        if (panelVignette != null) panelVignette.dispose();
+        if (itemBtn != null) itemBtn.dispose();
+        if (halfItemBtn != null) halfItemBtn.dispose();
         if (fieldTex != null) fieldTex.dispose();
-        if (vignette != null) vignette.dispose();
         if (dotTex != null) dotTex.dispose();
         if (titleFont != null) titleFont.dispose();
-        if (uiFont != null) uiFont.dispose();
-        if (statusFont != null) statusFont.dispose();
+        if (itemFont != null) itemFont.dispose();
+        if (smallFont != null) smallFont.dispose();
     }
 
     private String getOrCreateDeviceId() {
@@ -880,25 +936,79 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         return message;
     }
 
-    private Texture makeVignette(int w, int h) {
-        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+    private Texture gradientPanel(int w, int h, int radius, int padX, int padY, Color topColor, Color bottomColor) {
+        Pixmap p = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        p.setColor(0f, 0f, 0f, 0f);
+        p.fill();
+        int innerH = h - 2 * padY;
+        for (int y = padY; y < h - padY; y++) {
+            int x0, x1;
+            if (y < padY + radius) {
+                int dy = (padY + radius) - y;
+                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
+                x0 = padX + radius - dx;
+                x1 = w - padX - radius + dx;
+            } else if (y >= h - padY - radius) {
+                int dy = y - (h - padY - radius - 1);
+                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
+                x0 = padX + radius - dx;
+                x1 = w - padX - radius + dx;
+            } else {
+                x0 = padX;
+                x1 = w - padX - 1;
+            }
+            float t = (y - padY) / (float) (innerH - 1);
+            float r = topColor.r + (bottomColor.r - topColor.r) * t;
+            float g = topColor.g + (bottomColor.g - topColor.g) * t;
+            float b = topColor.b + (bottomColor.b - topColor.b) * t;
+            float a = topColor.a + (bottomColor.a - topColor.a) * t;
+            p.setColor(r, g, b, a);
+            p.drawLine(x0, y, x1, y);
+        }
+        Texture tex = new Texture(p);
+        tex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        p.dispose();
+        return tex;
+    }
+
+    private Texture panelVignetteTexture(int w, int h, int radius, int padX, int padY) {
+        Pixmap p = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        p.setColor(0f, 0f, 0f, 0f);
+        p.fill();
         int cx = w / 2;
         int cy = h / 2;
-        float maxDist = (float) Math.sqrt((cx * cx) + (cy * cy));
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                float dx = x - cx;
-                float dy = y - cy;
-                float t = (float) Math.sqrt((dx * dx) + (dy * dy)) / maxDist;
-                float a = Math.min(1f, Math.max(0f, (t - 0.26f) * 1.18f));
-                pixmap.setColor(0f, 0f, 0f, a);
-                pixmap.drawPixel(x, y);
+        float max = (float) Math.sqrt((double) (cx * cx) + (double) (cy * cy));
+        for (int y = padY; y < h - padY; y++) {
+            int x0, x1;
+            if (y < padY + radius) {
+                int dy = (padY + radius) - y;
+                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
+                x0 = padX + radius - dx;
+                x1 = w - padX - radius + dx;
+            } else if (y >= h - padY - radius) {
+                int dy = y - (h - padY - radius - 1);
+                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
+                x0 = padX + radius - dx;
+                x1 = w - padX - radius + dx;
+            } else {
+                x0 = padX;
+                x1 = w - padX - 1;
+            }
+            for (int x = x0; x <= x1; x++) {
+                float dx2 = x - cx;
+                float dy2 = y - cy;
+                float d = (float) Math.sqrt((double) (dx2 * dx2) + (double) (dy2 * dy2)) / max;
+                float a = Math.max(0f, Math.min(1f, (d - 0.55f) * 1.4f));
+                if (a > 0f) {
+                    p.setColor(0f, 0f, 0f, a * 0.45f);
+                    p.drawPixel(x, y);
+                }
             }
         }
-        Texture texture = new Texture(pixmap);
-        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        pixmap.dispose();
-        return texture;
+        Texture tex = new Texture(p);
+        tex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        p.dispose();
+        return tex;
     }
 
     private Texture roundedRect(int w, int h, int r, Color color) {
@@ -928,25 +1038,30 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         return texture;
     }
 
-    private Texture softCircleTexture(int diameter) {
-        Pixmap pixmap = new Pixmap(diameter, diameter, Pixmap.Format.RGBA8888);
-        float center = (diameter - 1) * 0.5f;
-        float radius = center;
+    private Texture softDotTexture(int diameter) {
+        Pixmap p = new Pixmap(diameter, diameter, Pixmap.Format.RGBA8888);
+        p.setColor(0f, 0f, 0f, 0f);
+        p.fill();
+        float cx = diameter / 2f;
+        float cy = diameter / 2f;
+        float maxR = diameter / 2f;
         for (int y = 0; y < diameter; y++) {
             for (int x = 0; x < diameter; x++) {
-                float dx = x - center;
-                float dy = y - center;
-                float dist = (float) Math.sqrt((dx * dx) + (dy * dy));
-                float t = Math.min(1f, dist / radius);
-                float alpha = 1f - (t * t);
-                pixmap.setColor(1f, 1f, 1f, alpha);
-                pixmap.drawPixel(x, y);
+                float dx = x - cx;
+                float dy = y - cy;
+                float d = (float) Math.sqrt(dx * dx + dy * dy);
+                float t = Math.min(1f, d / maxR);
+                float a = (1f - t) * (1f - t);
+                if (a > 0f) {
+                    p.setColor(1f, 1f, 1f, a);
+                    p.drawPixel(x, y);
+                }
             }
         }
-        Texture texture = new Texture(pixmap);
-        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        pixmap.dispose();
-        return texture;
+        Texture tex = new Texture(p);
+        tex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        p.dispose();
+        return tex;
     }
 
     private static final class LobbyPlayer {
