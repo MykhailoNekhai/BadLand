@@ -422,11 +422,17 @@ public abstract class Plevel implements Screen {
     @Override
     public void hide() {
         AudioManager.get().stopLevelMusic();
+        if (engine != null) {
+            engine.removeAllEntities();
+        }
     }
 
     @Override
     public void dispose() {
         AudioManager.get().stopLevelMusic();
+        if (engine != null) {
+            engine.removeAllEntities();
+        }
         if (pauseMenu != null) {
             pauseMenu.dispose();
         }
@@ -436,9 +442,15 @@ public abstract class Plevel implements Screen {
         if (backgroundGlow != null) {
             backgroundGlow.dispose();
         }
-        world.dispose();
-        debugRenderer.dispose();
-        if (shapeRenderer != null) shapeRenderer.dispose();
+        if (world != null) {
+            world.dispose();
+        }
+        if (debugRenderer != null) {
+            debugRenderer.dispose();
+        }
+        if (shapeRenderer != null) {
+            shapeRenderer.dispose();
+        }
     }
 
     private Texture makeLevelGradientTexture(int width, int height, Color topColor, Color bottomColor) {
