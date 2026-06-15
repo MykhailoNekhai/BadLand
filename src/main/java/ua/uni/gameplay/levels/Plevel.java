@@ -14,6 +14,7 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -27,9 +28,11 @@ import ua.uni.gameplay.ecs.systems.PullSystem;
 import ua.uni.gameplay.ecs.systems.RenderSystem;
 import ua.uni.gameplay.ecs.systems.ShadowSystem;
 import ua.uni.gameplay.ecs.systems.BonusSystem;
+import ua.uni.gameplay.ecs.systems.PositionalAudioSystem;
 import ua.uni.gameplay.factory.EntityFactory;
 import ua.uni.gameplay.physics.GameContactListener;
 import ua.uni.presentation.screen.menu.pause.PauseMenu;
+import ua.uni.gameplay.stats.LevelStats;
 
 import java.lang.reflect.Constructor;
 
@@ -40,6 +43,7 @@ public abstract class Plevel implements Screen {
     protected static final float SHADOW_SIZE = 1.2f;
 
     protected Box2DDebugRenderer debugRenderer;
+    protected ShapeRenderer shapeRenderer;
     protected Engine engine;
     protected World world;
     protected OrthographicCamera camera;
@@ -49,13 +53,14 @@ public abstract class Plevel implements Screen {
     protected boolean isGameStarted = false; // потрібен для початку руху камери
     protected Viewport viewport;
 
-    protected float cameraSpeed = 3f; // швидкість камери
     protected float finishLineX = 2000f; // Фінішна пряма рівня
     protected int levelNumber;
     private float dynamicTimeStep;
     private PauseMenu pauseMenu;
     private ComponentMapper<PhysicsComponent> physMapper = ComponentMapper.getFor(PhysicsComponent.class);
     private ComponentMapper<PlayerComponent> playerMapper = ComponentMapper.getFor(PlayerComponent.class);
+    private float lastCameraSpeed = 3f;
+    public LevelStats levelStats = new LevelStats();
 
     protected enum GameState {
         PLAYING, PAUSED, GAME_OVER, VICTORY
@@ -81,7 +86,21 @@ public abstract class Plevel implements Screen {
             PhysicsComponent phys = physMapper.get(player);
             PlayerComponent playerComp = playerMapper.get(player);
 
-            if (phys.body.getPosition().x < deathLineX || playerComp.isDead) {
+            if (playerComp.isFinished && phys.body.getPosition().x > finishLineX + SHADOW_SIZE) {
+                levelStats.collectedClones++;
+                world.destroyBody(phys.body);
+                engine.removeEntity(player);
+                continue;
+            }
+
+            if (phys.body.getPosition().x < deathLineX) {
+                AudioManager.get().playSideDeathSound();
+                levelStats.deathScore++;
+                world.destroyBody(phys.body);
+                engine.removeEntity(player);
+            } else if (playerComp.isDead) {
+                AudioManager.get().playSquishSound();
+                levelStats.deathScore++;
                 world.destroyBody(phys.body);
                 engine.removeEntity(player);
             }
@@ -104,35 +123,31 @@ public abstract class Plevel implements Screen {
         players = engine.getEntitiesFor(Family.all(PlayerComponent.class, PhysicsComponent.class).get());
 
         if (players.size() == 0) {
-            state = GameState.GAME_OVER;
-            if (levelNumber > 0) {
-                game.getAchievementManager().onDeath();
-            }
-            AudioManager.get().playLevelLose(0.95f);
-            Gdx.app.postRunnable(this::restartLevel);
-            System.out.println("Гра завершена. Програв");
-            return;
-        }
-
-        float leaderX = -Float.MAX_VALUE;
-        for (int i = 0; i < players.size(); ++i) {
-            Entity player = players.get(i);
-
-            PhysicsComponent phys = physMapper.get(player);
-
-            float x = phys.body.getPosition().x;
-            if (x > leaderX) {
-                leaderX = x;
+            if (!levelStats.levelFinished) {
+                levelStats.loseScore++;
+                state = GameState.GAME_OVER;
+                if (levelNumber > 0) {
+                    game.getAchievementManager().onDeath();
+                }
+                AudioManager.get().playLevelLose(0.95f);
+                Gdx.app.postRunnable(this::restartLevel);
+                System.out.println("Гра завершена. Програв");
+                return;
             }
         }
 
-        if (leaderX >= finishLineX) {
-            state = GameState.VICTORY;
-            if (levelNumber > 0) {
-                game.getAchievementManager().onLevelComplete(levelNumber);
+        if (levelStats.levelFinished) {
+            float leftCameraEdgeCheck = camera.position.x - (camera.viewportWidth / 2f);
+            if (leftCameraEdgeCheck >= finishLineX) {
+                levelStats.winScore++;
+                state = GameState.VICTORY;
+                if (levelNumber > 0) {
+                    game.getAchievementManager().onLevelComplete(levelNumber);
+                }
+                AudioManager.get().playLevelWin(0.95f);
+                System.out.println("Гра завершена. Перемога!");
+
             }
-            AudioManager.get().playLevelWin(0.95f);
-            System.out.println("Гра завершена. Перемога!");
         }
     }
 
@@ -151,15 +166,44 @@ public abstract class Plevel implements Screen {
         EntityFactory.createPlayer(engine, world, x, y, SHADOW_SIZE);
     }
 
+    protected void createPortal(float x) {
+        this.finishLineX = x;
+        Entity portal = new Entity();
+        portal.add(new ua.uni.gameplay.ecs.components.FinishComponent());
+        
+        BodyDef bdef = new BodyDef();
+        bdef.type = BodyDef.BodyType.StaticBody;
+        bdef.position.set(x, 9f);
+        Body body = world.createBody(bdef);
+        
+        FixtureDef fdef = new FixtureDef();
+        com.badlogic.gdx.physics.box2d.PolygonShape shape = new com.badlogic.gdx.physics.box2d.PolygonShape();
+        shape.setAsBox(0.5f, 18f);
+        fdef.shape = shape;
+        fdef.isSensor = true;
+        body.createFixture(fdef);
+        shape.dispose();
+        
+        body.setUserData(portal);
+        
+        PhysicsComponent phys = new PhysicsComponent();
+        phys.body = body;
+        portal.add(phys);
+        
+        engine.addEntity(portal);
+
+    }
+
     private void baseParameters() {
         world = new World(new Vector2(0, -9.81f), true);
         debugRenderer = new Box2DDebugRenderer();
+        shapeRenderer = new ShapeRenderer();
         camera = new OrthographicCamera();
         viewport = new FitViewport(32f, 18f, camera);
         viewport.apply();
         camera.position.set(16f, 9f, 0f);
 
-        world.setContactListener(new GameContactListener());
+        world.setContactListener(new GameContactListener(levelStats));
 
         int refreshRate = Gdx.graphics.getDisplayMode().refreshRate;
         System.out.println("Refresh rate: " + refreshRate);
@@ -177,6 +221,7 @@ public abstract class Plevel implements Screen {
         engine.addSystem(new RenderSystem(game.getBatch()));
         engine.addSystem(new PullSystem());
         engine.addSystem(new BonusSystem(world));
+        engine.addSystem(new PositionalAudioSystem(camera));
         pauseMenu = new PauseMenu(game, this::resumeFromPause, this::restartLevel, this::checkpointAction);
     }
 
@@ -212,6 +257,7 @@ public abstract class Plevel implements Screen {
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.5f, 0.8f, 1f, 1);
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (state == GameState.PLAYING) {
                 state = GameState.PAUSED;
@@ -244,22 +290,34 @@ public abstract class Plevel implements Screen {
 */
         ImmutableArray<Entity> players = engine.getEntitiesFor(Family.all(PlayerComponent.class, PhysicsComponent.class).get());
 
-        if (isGameStarted && state == GameState.PLAYING && players.size() > 0) {
-            float minCameraSpeed = 3f;
-            float leaderX = -Float.MAX_VALUE;
+        if (isGameStarted && state == GameState.PLAYING && (players.size() > 0 || levelStats.levelFinished)) {
+            float baseMinCameraSpeed = 3f;
+            float actualCameraSpeed = lastCameraSpeed;
 
-            for (int i = 0; i < players.size(); ++i) {
-                    float x = physMapper.get(players.get(i)).body.getPosition().x;
+            if (players.size() > 0) {
+                float leaderX = -Float.MAX_VALUE;
+                float leaderSpeedModifier = 1.0f;
+
+                for (int i = 0; i < players.size(); ++i) {
+                    com.badlogic.ashley.core.Entity player = players.get(i);
+                    float x = physMapper.get(player).body.getPosition().x;
                     if (x > leaderX) {
                         leaderX = x;
+                        ua.uni.gameplay.ecs.components.PlayerComponent playerComp = playerMapper.get(player);
+                        if (playerComp != null) {
+                            leaderSpeedModifier = playerComp.speedModifier;
+                        }
                     }
                 }
+                float minCameraSpeed = baseMinCameraSpeed * leaderSpeedModifier;
 
-            float heroOffset = camera.viewportWidth * 0.3f;
-            float cameraX = leaderX + heroOffset;
-            float smoothness = 4.0f;
-            float neededSpeed = (cameraX - camera.position.x) * smoothness;
-            float actualCameraSpeed = Math.max(minCameraSpeed, neededSpeed);
+                float heroOffset = camera.viewportWidth * 0.3f;
+                float cameraX = leaderX + heroOffset;
+                float smoothness = 4.0f;
+                float neededSpeed = (cameraX - camera.position.x) * smoothness;
+                actualCameraSpeed = Math.max(minCameraSpeed, neededSpeed);
+                lastCameraSpeed = actualCameraSpeed;
+            }
 
             camera.position.x = camera.position.x + (actualCameraSpeed * delta);
         }
@@ -281,7 +339,13 @@ public abstract class Plevel implements Screen {
             engine.getSystem(RenderSystem.class).update(delta);
         }
 
-        debugRenderer.render(world, camera.combined);
+        shapeRenderer.setProjectionMatrix(camera.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0, 0, 0, 1);
+        shapeRenderer.rect(finishLineX, -5f, 100f, 30f);
+        shapeRenderer.end();
+
+        // SdebugRenderer.render(world, camera.combined);
     }
 
     private void resumeFromPause() {
@@ -335,5 +399,6 @@ public abstract class Plevel implements Screen {
         }
         world.dispose();
         debugRenderer.dispose();
+        if (shapeRenderer != null) shapeRenderer.dispose();
     }
 }

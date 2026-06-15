@@ -702,11 +702,14 @@
     "baseWidth": 6.0
   },
   "propeller-slim-large": {
-    "bodyType": "Kinematic",
+    "bodyType": "Dynamic",
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
-    "baseWidth": 370.0
+    "baseWidth": 736.0,
+    "isHinged": true,
+    "centerX": 379.2003173828125,
+    "centerY": 376.27520751953125
   },
   "sponge-8": {
     "friction": 0.8,
@@ -793,11 +796,14 @@
     "baseWidth": 244.0
   },
   "propeller-small": {
-    "bodyType": "Kinematic",
+    "bodyType": "Dynamic",
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
-    "baseWidth": 110.0
+    "baseWidth": 218.0,
+    "isHinged": true,
+    "centerX": 104.20000457763672,
+    "centerY": 104.40000915527344
   },
   "part-3": {
     "friction": 0.8,
@@ -842,11 +848,14 @@
     "baseWidth": 204.0
   },
   "propeller-slim-large-2": {
-    "bodyType": "Kinematic",
+    "bodyType": "Dynamic",
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
-    "baseWidth": 135.0
+    "baseWidth": 268.0,
+    "isHinged": true,
+    "centerX": 110.20001220703125,
+    "centerY": 515.0000610351562
   },
   "sponge-3": {
     "friction": 0.8,
@@ -885,11 +894,14 @@
     "baseWidth": 26.0
   },
   "propeller-large": {
-    "bodyType": "Kinematic",
+    "bodyType": "Dynamic",
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
-    "baseWidth": 248.0
+    "baseWidth": 494.0,
+    "isHinged": true,
+    "centerX": 267.40008544921875,
+    "centerY": 239.40003967285156
   },
   "barbwire": {
     "friction": 0.8,
@@ -974,13 +986,13 @@
     "density": 0.0,
     "baseWidth": 69
   },
-  "item-fastforward": {
+  "item-speed": {
     "isBonus" : true,
     "bodyType" : "Dynamic",
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
-    "baseWidth": 71
+    "baseWidth": 1254
   },
   "saloon-door": {
     "bodyType": "Dynamic",
@@ -991,5 +1003,11 @@
     "isHinged": true,
     "centerX": 40.30000305175781,
     "centerY": 16.2499942779541
+  },
+  "godzilla": {
+    "friction": 0.8,
+    "restitution": 0.1,
+    "density": 0.0,
+    "baseWidth": 1122
   }
 }
