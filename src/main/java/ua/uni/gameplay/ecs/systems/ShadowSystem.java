@@ -12,6 +12,7 @@ import com.badlogic.gdx.utils.Array;
 import ua.uni.gameplay.ecs.components.PhysicsComponent;
 import ua.uni.gameplay.ecs.components.PlayerComponent;
 import ua.uni.gameplay.ecs.components.TextureComponent;
+import ua.uni.gameplay.ecs.components.WingComponent;
 import ua.uni.core.config.GameSettings;
 import ua.uni.utility.physics.BodyEditorLoader;
 import com.badlogic.gdx.physics.box2d.World;
@@ -26,6 +27,7 @@ public class ShadowSystem extends IteratingSystem {
     private final ComponentMapper<PlayerComponent> playerMapper = ComponentMapper.getFor(PlayerComponent.class);
     private final ComponentMapper<PhysicsComponent> physMapper = ComponentMapper.getFor(PhysicsComponent.class);
     private final ComponentMapper<TextureComponent> texMapper = ComponentMapper.getFor(TextureComponent.class);
+    private final ComponentMapper<WingComponent> wingMapper = ComponentMapper.getFor(WingComponent.class);
 
     private final World world;
 
@@ -112,10 +114,10 @@ public class ShadowSystem extends IteratingSystem {
                             playerComponent.speedModifier = 0.3f;
                         }
                         
-                    } else if ("item-fast".equals(bonusToApply)) {
-                        playerComponent.speedModifier *= 1.5f;
-                        if (playerComponent.speedModifier > 3.0f) {
-                            playerComponent.speedModifier = 3.0f;
+                    } else if ("item-speed".equals(bonusToApply)) {
+                        playerComponent.speedModifier *= 2.2f;
+                        if (playerComponent.speedModifier > 10.0f) {
+                            playerComponent.speedModifier = 10.0f;
                         }
                     }
                 }
@@ -127,10 +129,17 @@ public class ShadowSystem extends IteratingSystem {
         }
 
 // зчитування клавіш
-        player.moveUp = Gdx.input.isKeyPressed(GameSettings.getMoveUp());
-        player.moveDown = Gdx.input.isKeyPressed(GameSettings.getMoveDown());
-        player.moveLeft = Gdx.input.isKeyPressed(GameSettings.getMoveLeft());
-        player.moveRight = Gdx.input.isKeyPressed(GameSettings.getMoveRight());
+        if (!player.isFinished) {
+            player.moveUp = Gdx.input.isKeyPressed(GameSettings.getMoveUp());
+            player.moveDown = Gdx.input.isKeyPressed(GameSettings.getMoveDown());
+            player.moveLeft = Gdx.input.isKeyPressed(GameSettings.getMoveLeft());
+            player.moveRight = Gdx.input.isKeyPressed(GameSettings.getMoveRight());
+        } else {
+            player.moveUp = false;
+            player.moveDown = false;
+            player.moveLeft = false;
+            player.moveRight = true;
+        }
 
         // формуємо вектор movement від якого і будемо відштовхуватись при руху
         Vector2 movement = new Vector2(0, 0);
@@ -158,6 +167,32 @@ public class ShadowSystem extends IteratingSystem {
 
         if (player.moveLeft) {
             movement.x += player.backwardSpeed * massRatio * player.speedModifier;
+        }
+
+        WingComponent wings = wingMapper.get(entity);
+        if (wings != null) {
+            TextureComponent tex = texMapper.get(entity);
+            if (player.moveUp) {
+                wings.isVisible = true;
+                // Трохи повільніший рух (було 35f)
+                wings.flapTime += deltaTime * 26f; 
+                // Амплітуда руху крил: вгору стандартно, а вниз - набагато сильніше
+                float amplitude = tex.height * 0.45f;
+                float sinValue = (float)Math.sin(wings.flapTime);
+                if (sinValue < 0) {
+                    sinValue *= 1.6f; // посилюємо рух вниз на 60%
+                }
+                wings.currentYOffset = sinValue * amplitude;
+            } else {
+                // Плавне згортання: крила повертаються в центр тіла (де вони ховаються на чорному фоні)
+                wings.currentYOffset += (0f - wings.currentYOffset) * 12f * deltaTime;
+                
+                // Коли вони вже повністю сховались - відключаємо малювання
+                if (Math.abs(wings.currentYOffset) < 1f) {
+                    wings.isVisible = false;
+                    wings.flapTime = 0f;
+                }
+            }
         }
 
         // застосовуємо силу на наш об'єкт

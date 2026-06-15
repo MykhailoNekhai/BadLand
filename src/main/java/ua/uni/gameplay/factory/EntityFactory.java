@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 import com.badlogic.gdx.math.Vector2;
@@ -27,6 +28,14 @@ public class EntityFactory {
 
         PhysicsComponent physComp = entity.getComponent(PhysicsComponent.class);
         physComp.body.setAngularVelocity(spinSpeed);
+
+        if (objectName != null && (objectName.toLowerCase().contains("saw") || objectName.toLowerCase().contains("shredder") || objectName.toLowerCase().contains("propeller"))) {
+            SoundSourceComponent audio = engine.createComponent(SoundSourceComponent.class);
+            audio.sound = ua.uni.audio.services.AudioManager.get().getCircsawLoopSound();
+            audio.maxDistance = 16f;
+            audio.baseVolume = 0.5f;
+            entity.add(audio);
+        }
 
         return entity;
     }
@@ -116,12 +125,26 @@ public class EntityFactory {
         }
         if (config.isPlayer) {
             entity.add(engine.createComponent(PlayerComponent.class));
+            entity.add(engine.createComponent(WingComponent.class));
         }
         if (config.isBonus) {
             BonusComponent bonus = engine.createComponent(BonusComponent.class);
             bonus.type = objectName;
             entity.add(bonus);
         }
+
+        MaterialComponent matComp = engine.createComponent(MaterialComponent.class);
+        String lowerName = objectName.toLowerCase();
+        if (lowerName.contains("rock") || lowerName.contains("stone")) {
+            matComp.material = "rock";
+        } else if (lowerName.contains("pipe") || lowerName.contains("chain") || lowerName.contains("shredder") || lowerName.contains("propeller") || lowerName.contains("gear") || lowerName.contains("lazer") || lowerName.contains("turret") || lowerName.contains("saw") || lowerName.contains("grenade") || lowerName.contains("wire")) {
+            matComp.material = "metal";
+        } else if (lowerName.contains("sponge") || lowerName.contains("avatar") || lowerName.contains("rubber") || lowerName.contains("burdock")) {
+            matComp.material = "rubber";
+        } else {
+            matComp.material = "wood";
+        }
+        entity.add(matComp);
 
         engine.addEntity(entity);
 

@@ -33,6 +33,19 @@ public final class AudioManager {
     private final Sound levelLose;
     private final Sound[] menuAmbience;
     private final Sound[] levelAmbience;
+    private final Sound[] cloneSounds;
+    private final Sound biggerSound;
+    private final Sound smallerSound;
+    private final Sound slowerSound;
+    private final Sound fastSound;
+    private final Sound[] flySounds;
+    private final Sound circsawLoopSound;
+    private final Sound[] impactMetalSounds;
+    private final Sound[] impactWoodSounds;
+    private final Sound[] impactRockSounds;
+    private final Sound[] impactRubberSounds;
+    private final Sound squishSound;
+    private final Sound sideDeathSound;
 
     private boolean menuMusicWanted;
     private boolean levelMusicWanted;
@@ -41,6 +54,9 @@ public final class AudioManager {
     private float nextMenuAmbientAt = MENU_AMBIENT_FIRST_DELAY;
     private float levelAmbientElapsed;
     private float nextLevelAmbientAt = LEVEL_AMBIENT_FIRST_DELAY;
+    private float flySoundCooldown = 0f;
+    private long lastImpactTime = 0;
+    private long lastDeathTime = 0;
 
     private AudioManager() {
         menuMusic = Gdx.audio.newMusic(Gdx.files.internal("game-resourses/audio/catalog/used/menu/background/menu_music.mp3"));
@@ -123,6 +139,61 @@ public final class AudioManager {
                 Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/catalog/used/level/ambience/14-servo4.wav")),
                 Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/catalog/used/level/ambience/15-servo5.wav"))
         };
+
+        cloneSounds = new Sound[] {
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/56-clone1.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/57-clone2.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/58-clone3.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/59-clone4.wav"))
+        };
+
+        biggerSound = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/52-BIGGERZ_03.wav"));
+        smallerSound = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/64-smaller NEW.wav"));
+        slowerSound = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/63-slower.wav"));
+        fastSound = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/66-timefast.wav"));
+
+        flySounds = new Sound[] {
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/214-fly1 pro tools filt1.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/215-fly1 pro tools filt2.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/216-fly1 pro tools filt3.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/217-fly1.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/218-fly2 pro tools filt1.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/219-fly2 pro tools filt2.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/220-fly2 pro tools filt3.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/221-fly2.wav"))
+        };
+
+        circsawLoopSound = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/160-Circsaw loop.wav"));
+
+        impactMetalSounds = new Sound[] {
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/201-PLhitM1.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/202-PLhitM2.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/203-PLhitM3.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/204-PLhitM4.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/205-PLhitM5.wav"))
+        };
+
+        impactWoodSounds = new Sound[] {
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/207-PLhitW1.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/208-PLhitW2.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/209-PLhitW3.wav"))
+        };
+
+        impactRockSounds = new Sound[] {
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/86-rockshort1.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/87-rockshort2.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/88-rockshort3.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/89-rockshort4.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/90-rockshort5.wav")),
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/91-rockshort6.wav"))
+        };
+
+        impactRubberSounds = new Sound[] {
+                Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/206-PLhitR1.wav"))
+        };
+
+        squishSound = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/223-squish.wav"));
+        sideDeathSound = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/222-sidedeath pro tools filt.wav"));
     }
 
     public static AudioManager get() {
@@ -255,6 +326,77 @@ public final class AudioManager {
         menuAmbience[index].play(volume * v);
     }
 
+    public void playRandomCloneSound(float volume) {
+        float v = GameSettings.getMusicVolume();
+        if (v <= 0f || cloneSounds.length == 0) {
+            return;
+        }
+        int index = MathUtils.random(cloneSounds.length - 1);
+        cloneSounds[index].play(volume * v);
+    }
+
+    public void playBiggerSound(float volume) {
+        float v = GameSettings.getMusicVolume();
+        if (v > 0f) biggerSound.play(volume * v);
+    }
+
+    public void playSmallerSound(float volume) {
+        float v = GameSettings.getMusicVolume();
+        if (v > 0f) smallerSound.play(volume * v);
+    }
+
+    public void playSlowerSound(float volume) {
+        float v = GameSettings.getMusicVolume();
+        if (v > 0f) slowerSound.play(volume * v);
+    }
+
+    public void playFastSound(float volume) {
+        float v = GameSettings.getMusicVolume();
+        if (v > 0f) fastSound.play(volume * v);
+    }
+
+    public void playImpactSound(float impulse, String material) {
+        long currentTime = com.badlogic.gdx.utils.TimeUtils.millis();
+        if (currentTime - lastImpactTime < 50) return; // небольшая задержка, чтобы 50 клонов не оглушили за 1 кадр
+        lastImpactTime = currentTime;
+
+        Sound[] targetSounds;
+        if ("metal".equals(material)) targetSounds = impactMetalSounds;
+        else if ("rock".equals(material)) targetSounds = impactRockSounds;
+        else if ("wood".equals(material)) targetSounds = impactWoodSounds;
+        else targetSounds = impactRubberSounds;
+
+        if (targetSounds.length == 0) return;
+
+        float v = GameSettings.getMusicVolume();
+        if (v > 0f) {
+            // Импульс может быть от 2 до 50+, делаем нелинейную громкость
+            float volume = Math.min(impulse / 15f, 1.0f) * v * 0.8f;
+            int index = MathUtils.random(targetSounds.length - 1);
+            targetSounds[index].play(volume);
+        }
+    }
+
+    public void playSquishSound() {
+        long currentTime = com.badlogic.gdx.utils.TimeUtils.millis();
+        if (currentTime - lastDeathTime < 50) return;
+        lastDeathTime = currentTime;
+        float v = GameSettings.getMusicVolume();
+        if (v > 0f) squishSound.play(v);
+    }
+
+    public void playSideDeathSound() {
+        long currentTime = com.badlogic.gdx.utils.TimeUtils.millis();
+        if (currentTime - lastDeathTime < 50) return;
+        lastDeathTime = currentTime;
+        float v = GameSettings.getMusicVolume();
+        if (v > 0f) sideDeathSound.play(v);
+    }
+
+    public Sound getCircsawLoopSound() {
+        return circsawLoopSound;
+    }
+
     public void updateMenuAmbience(float delta) {
         if (menuContextDepth <= 0) {
             return;
@@ -271,6 +413,24 @@ public final class AudioManager {
         if (!levelMusicWanted) {
             return;
         }
+
+        // Таймер взмахов крыльев уменьшается всегда
+        if (flySoundCooldown > 0f) {
+            flySoundCooldown -= delta;
+        }
+
+        if (Gdx.input.isKeyPressed(GameSettings.getMoveUp())) {
+            if (flySoundCooldown <= 0f) {
+                float v = GameSettings.getMusicVolume();
+                if (v > 0f && flySounds.length > 0) {
+                    int index = MathUtils.random(flySounds.length - 1);
+                    flySounds[index].play(0.4f * v);
+                }
+                // Более строгая задержка между звуками (250-350 миллисекунд)
+                flySoundCooldown = MathUtils.random(0.25f, 0.35f); 
+            }
+        }
+
         levelAmbientElapsed += delta;
         if (levelAmbientElapsed < nextLevelAmbientAt) {
             return;
@@ -306,6 +466,23 @@ public final class AudioManager {
         for (Sound sound : levelAmbience) {
             sound.dispose();
         }
+        for (Sound sound : cloneSounds) {
+            sound.dispose();
+        }
+        biggerSound.dispose();
+        smallerSound.dispose();
+        slowerSound.dispose();
+        fastSound.dispose();
+        for (Sound sound : flySounds) {
+            sound.dispose();
+        }
+        for (Sound sound : impactMetalSounds) sound.dispose();
+        for (Sound sound : impactWoodSounds) sound.dispose();
+        for (Sound sound : impactRockSounds) sound.dispose();
+        for (Sound sound : impactRubberSounds) sound.dispose();
+        circsawLoopSound.dispose();
+        squishSound.dispose();
+        sideDeathSound.dispose();
         INSTANCE = null;
     }
 }

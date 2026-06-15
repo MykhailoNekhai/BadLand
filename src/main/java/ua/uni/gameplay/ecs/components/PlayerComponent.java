@@ -23,6 +23,7 @@ public class PlayerComponent implements Component, Pool.Poolable{
     public boolean moveDown = false;
     public boolean moveLeft = false;
     public boolean moveRight = false;
+    public boolean isFinished = false;
 
 
     @Override
@@ -42,5 +43,6 @@ public class PlayerComponent implements Component, Pool.Poolable{
         moveDown = false;
         moveLeft = false;
         moveRight = false;
+        isFinished = false;
     }
 }

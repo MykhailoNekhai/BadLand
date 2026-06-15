@@ -128,7 +128,16 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         if (leaderX == -Float.MAX_VALUE) {
             return;
         }
-        float minCameraSpeed = 3f;
+        float leaderSpeedModifier = 1.0f;
+        for (com.badlogic.ashley.core.Entity player : getLocalPlayers()) {
+            ua.uni.gameplay.ecs.components.PlayerComponent pc = playerMapper.get(player);
+            if (pc != null) {
+                leaderSpeedModifier = Math.max(leaderSpeedModifier, pc.speedModifier);
+            }
+        }
+        float baseMinCameraSpeed = 3f;
+        float minCameraSpeed = baseMinCameraSpeed * leaderSpeedModifier;
+
         float heroOffset = camera.viewportWidth * 0.3f;
         float cameraX = leaderX + heroOffset;
         float smoothness = 4.0f;
