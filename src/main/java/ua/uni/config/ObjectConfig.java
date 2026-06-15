@@ -11,8 +11,12 @@ public class ObjectConfig {
     public float density = 0.0f;
     public float baseWidth = 100.0f;
     public boolean isDeadly = false;
+    public boolean isBonus = false;
     public boolean isPlayer = false;
     public float linearDamping = 0.0f;
     public float gravityScale = 1.0f;
     public float angularDamping = 0.0f;
+    public boolean isHinged = false;
+    public float centerX = -1f;
+    public float centerY = -1f;
 }
