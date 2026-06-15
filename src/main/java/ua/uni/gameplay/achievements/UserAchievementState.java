@@ -9,7 +9,10 @@ import java.util.Map;
 public class UserAchievementState {
     private static final String PREFS_NAME = "shadowflight_achievements";
     private static final String KEY_PREFIX = "ach_";
+    private static final String KEY_TOTAL_SCORE = "total_score";
+    private static final String KEY_TOTAL_WINS = "total_wins";
     private static final String KEY_TOTAL_DEATHS = "total_deaths";
+    private static final String KEY_TOTAL_LOSSES = "total_losses";
     private static final String KEY_TOTAL_PLAY_SECONDS = "total_play_seconds";
     private static final String KEY_COOP_SESSIONS = "coop_sessions";
     private static final String KEY_LEVEL_ATTEMPTS_PREFIX = "level_attempts_";
@@ -46,6 +49,38 @@ public class UserAchievementState {
         preferences.flush();
     }
 
+    public int getTotalScore() {
+        return preferences.getInteger(KEY_TOTAL_SCORE, 0);
+    }
+
+    public int addToTotalScore(int delta) {
+        int total = Math.max(0, preferences.getInteger(KEY_TOTAL_SCORE, 0) + delta);
+        preferences.putInteger(KEY_TOTAL_SCORE, total);
+        preferences.flush();
+        return total;
+    }
+
+    public void setTotalScore(int totalScore) {
+        preferences.putInteger(KEY_TOTAL_SCORE, Math.max(0, totalScore));
+        preferences.flush();
+    }
+
+    public int getTotalWins() {
+        return preferences.getInteger(KEY_TOTAL_WINS, 0);
+    }
+
+    public int incrementTotalWins() {
+        int total = preferences.getInteger(KEY_TOTAL_WINS, 0) + 1;
+        preferences.putInteger(KEY_TOTAL_WINS, total);
+        preferences.flush();
+        return total;
+    }
+
+    public void setTotalWins(int totalWins) {
+        preferences.putInteger(KEY_TOTAL_WINS, Math.max(0, totalWins));
+        preferences.flush();
+    }
+
     public int getTotalDeaths() {
         return preferences.getInteger(KEY_TOTAL_DEATHS, 0);
     }
@@ -59,6 +94,22 @@ public class UserAchievementState {
 
     public void setTotalDeaths(int totalDeaths) {
         preferences.putInteger(KEY_TOTAL_DEATHS, Math.max(0, totalDeaths));
+        preferences.flush();
+    }
+
+    public int getTotalLosses() {
+        return preferences.getInteger(KEY_TOTAL_LOSSES, 0);
+    }
+
+    public int incrementTotalLosses() {
+        int total = preferences.getInteger(KEY_TOTAL_LOSSES, 0) + 1;
+        preferences.putInteger(KEY_TOTAL_LOSSES, total);
+        preferences.flush();
+        return total;
+    }
+
+    public void setTotalLosses(int totalLosses) {
+        preferences.putInteger(KEY_TOTAL_LOSSES, Math.max(0, totalLosses));
         preferences.flush();
     }
 

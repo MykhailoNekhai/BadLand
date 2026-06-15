@@ -87,6 +87,7 @@ public class AccountMenu implements Screen {
     private TextButton achievementsButton;
     private TextButton customizeButton;
     private TextButton changeAvatarButton;
+    private TextButton resetAchievementsButton;
     private TextButton changeNicknameButton;
     private TextButton logoutButton;
     private Image avatarImage;
@@ -194,6 +195,7 @@ public class AccountMenu implements Screen {
         achievementsButton = new TextButton(LanguageButton.t("SECURITY"), itemStyle);
         customizeButton = new TextButton(LanguageButton.t("CUSTOMIZE"), itemStyle);
         changeAvatarButton = new TextButton(LanguageButton.t("CHANGE_AVATAR"), itemStyle);
+        resetAchievementsButton = new TextButton(LanguageButton.t("RESET_ACHIEVEMENTS"), itemStyle);
         changeNicknameButton = new TextButton(LanguageButton.t("CHANGE_NICKNAME"), itemStyle);
 
         TextButton.TextButtonStyle readyStyle = new TextButton.TextButtonStyle();
@@ -227,8 +229,9 @@ public class AccountMenu implements Screen {
 
         panelContent.add(titleLabel).padTop(26).padBottom(18).row();
         panelContent.add(avatarBlock).width(560).padBottom(20).row();
-        panelContent.add(changeAvatarButton).width(560).height(80).padBottom(10).row();
         panelContent.add(changeNicknameButton).width(560).height(80).padBottom(10).row();
+        panelContent.add(changeAvatarButton).width(560).height(80).padBottom(10).row();
+        panelContent.add(resetAchievementsButton).width(560).height(80).padBottom(10).row();
         panelContent.add(achievementsButton).width(560).height(80).padBottom(10).row();
         panelContent.add(customizeButton).width(560).height(80).padBottom(14).row();
         panelContent.add(readyButton).padBottom(14).row();
@@ -241,11 +244,11 @@ public class AccountMenu implements Screen {
         Table panelWrap = new Table();
         panelWrap.setFillParent(true);
         panelWrap.center();
-        panelWrap.add(panelStack).width(620).height(820);
+        panelWrap.add(panelStack).width(620).height(910);
 
         stage.addActor(panelWrap);
 
-        Actor[] revealList = {titleLabel, avatarBlock, changeAvatarButton, changeNicknameButton, achievementsButton,
+        Actor[] revealList = {titleLabel, avatarBlock, changeNicknameButton, changeAvatarButton, resetAchievementsButton, achievementsButton,
                 customizeButton, readyButton};
         for (int i = 0; i < revealList.length; i++) {
             Actor actor = revealList[i];
@@ -270,6 +273,13 @@ public class AccountMenu implements Screen {
             public void changed(ChangeEvent event, Actor actor) {
                 AudioManager.get().playSelect(0.72f);
                 openNativeAvatarPicker();
+            }
+        });
+        resetAchievementsButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                AudioManager.get().playSelect(0.72f);
+                resetAchievements();
             }
         });
         changeNicknameButton.addListener(new ChangeListener() {
@@ -498,10 +508,19 @@ public class AccountMenu implements Screen {
         nicknameLabel.setText(profileSnapshot.nickname());
         idLabel.setText(LanguageButton.t("ID") + ": " + profileSnapshot.id());
         changeAvatarButton.setText(LanguageButton.t("CHANGE_AVATAR"));
+        resetAchievementsButton.setText(LanguageButton.t("RESET_ACHIEVEMENTS"));
         changeNicknameButton.setText(LanguageButton.t("CHANGE_NICKNAME"));
         achievementsButton.setText(LanguageButton.t("SECURITY"));
         customizeButton.setText(LanguageButton.t("CUSTOMIZE"));
         readyButton.setText(LanguageButton.t("BACK"));
+    }
+
+    private void resetAchievements() {
+        game.getAchievementManager().resetAll();
+        if (game.getPlayerDataSyncService() != null) {
+            game.getPlayerDataSyncService().syncProgressSnapshot("ACHIEVEMENTS_RESET", "manual-reset");
+        }
+        refreshLabels();
     }
 
     private static int indexOf(String[] arr, String value) {

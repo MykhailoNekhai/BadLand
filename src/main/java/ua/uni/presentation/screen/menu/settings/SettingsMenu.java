@@ -117,7 +117,7 @@ public class SettingsMenu implements Screen {
                 new Color(1f, 0.93f, 0.62f, 1f),
                 new Color(1f, 0.85f, 0.40f, 0.55f));
         dotTex = softDotTexture(14);
-        sidePanelBg = gradientPanel(380, 640, 38, 14, 12,
+        sidePanelBg = gradientPanel(500, 640, 38, 14, 12,
                 new Color(0.08f, 0.10f, 0.15f, 0.98f),
                 new Color(0.16f, 0.10f, 0.05f, 0.98f));
 
@@ -309,20 +309,67 @@ public class SettingsMenu implements Screen {
     }
 
     private Table buildStatisticsContent() {
+        int totalScore = game.getAchievementManager().getTotalScore();
         int deaths = game.getAchievementManager().getTotalDeaths();
+        int wins = game.getAchievementManager().getTotalWins();
+        int losses = game.getAchievementManager().getTotalLosses();
         int unlocked = game.getAchievementManager().getUnlockedCount();
         int total = game.getAchievementManager().getTotalCount();
+        int playSeconds = game.getAchievementManager().getTotalPlaySeconds();
 
         Label.LabelStyle sectionStyle = new Label.LabelStyle(smallFont, new Color(1f, 0.86f, 0.36f, 1f));
         Label.LabelStyle valueStyle = new Label.LabelStyle(itemFont, new Color(0.98f, 0.95f, 0.88f, 1f));
 
         Table t = new Table();
-        t.center().padTop(28);
-        t.add(new Label(LanguageButton.t("TOTAL_DEATHS"), sectionStyle)).padBottom(6).row();
-        t.add(new Label(String.valueOf(deaths), valueStyle)).padBottom(26).row();
-        t.add(new Label(LanguageButton.t("ACHIEVEMENTS_PROGRESS"), sectionStyle)).padBottom(6).row();
-        t.add(new Label(unlocked + " / " + total, valueStyle)).row();
+        t.top().left().padTop(10);
+        t.defaults().left();
+
+        t.add(new Label(LanguageButton.t("SCORE"), sectionStyle)).left().padBottom(6).row();
+        t.add(new Label(String.valueOf(totalScore), valueStyle)).left().padBottom(18).row();
+
+        float statsWidth = 400f;
+        float columnGap = 24f;
+        float halfWidth = (statsWidth - columnGap) / 2f;
+
+        Table rowTwo = new Table();
+        rowTwo.left();
+        rowTwo.add(new Label(LanguageButton.t("WINS"), sectionStyle)).left().width(halfWidth).padRight(columnGap);
+        rowTwo.add(new Label(LanguageButton.t("LOSSES"), sectionStyle)).left().width(halfWidth);
+        t.add(rowTwo).left().width(statsWidth).padBottom(6).row();
+
+        Table rowTwoValues = new Table();
+        rowTwoValues.left();
+        rowTwoValues.add(new Label(String.valueOf(wins), valueStyle)).left().width(halfWidth).padRight(columnGap);
+        rowTwoValues.add(new Label(String.valueOf(losses), valueStyle)).left().width(halfWidth);
+        t.add(rowTwoValues).left().width(statsWidth).padBottom(18).row();
+
+        Table rowThree = new Table();
+        rowThree.left();
+        rowThree.add(new Label(LanguageButton.t("ACHIEVEMENTS"), sectionStyle)).left().width(halfWidth).padRight(columnGap);
+        rowThree.add(new Label(LanguageButton.t("DEATHS"), sectionStyle)).left().width(halfWidth);
+        t.add(rowThree).left().width(statsWidth).padBottom(6).row();
+
+        Table rowThreeValues = new Table();
+        rowThreeValues.left();
+        rowThreeValues.add(new Label(unlocked + " / " + total, valueStyle)).left().width(halfWidth).padRight(columnGap);
+        rowThreeValues.add(new Label(String.valueOf(deaths), valueStyle)).left().width(halfWidth);
+        t.add(rowThreeValues).left().width(statsWidth).padBottom(18).row();
+
+        t.add(new Label(LanguageButton.t("PLAY_TIME"), sectionStyle)).left().padBottom(6).row();
+        t.add(new Label(formatPlayTime(playSeconds), valueStyle)).left().row();
         return t;
+    }
+
+    private String formatPlayTime(int totalSeconds) {
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        if (hours > 0) {
+            return LanguageButton.tf("HOURS_MINUTES_FMT", hours, minutes);
+        }
+        if (minutes > 0) {
+            return LanguageButton.tf("MINUTES_FMT", minutes);
+        }
+        return LanguageButton.tf("SECONDS_FMT", totalSeconds);
     }
 
     private Table buildCreditsContent() {
@@ -331,17 +378,18 @@ public class SettingsMenu implements Screen {
         Label.LabelStyle nameStyle = new Label.LabelStyle(smallFont, new Color(0.98f, 0.95f, 0.88f, 1f));
 
         Table t = new Table();
-        t.center().padTop(20);
-        Label shadowFlight = new Label("SHADOW FLIGHT", heroStyle);
-        shadowFlight.setAlignment(com.badlogic.gdx.utils.Align.center);
-        Label team = new Label(LanguageButton.t("CREDITS_TEAM"), heroStyle);
-        team.setAlignment(com.badlogic.gdx.utils.Align.center);
-        t.add(shadowFlight).center().padBottom(2).row();
-        t.add(team).center().padBottom(28).row();
-        t.add(new Label(LanguageButton.t("DEVELOPED_BY") + ":", sectionStyle)).padBottom(6).row();
-        t.add(new Label("........", nameStyle)).padBottom(10).row();
-        t.add(new Label("........", nameStyle)).padBottom(22).row();
-        t.add(new Label(LanguageButton.t("YEAR"), nameStyle)).row();
+        t.top().left().padTop(20);
+        t.defaults().left();
+        Label teamTitle = new Label("SHADOW FLIGHT TEAM", heroStyle);
+        teamTitle.setAlignment(com.badlogic.gdx.utils.Align.left);
+        t.add(teamTitle).left().padBottom(28).row();
+        t.add(new Label(LanguageButton.t("DEVELOPED_BY") + ":", sectionStyle)).left().padBottom(6).row();
+        t.add(new Label("Mykhailo Nekhai", nameStyle)).left().padBottom(10).row();
+        t.add(new Label("https://github.com/MykhailoNekhai", nameStyle)).left().padBottom(18).row();
+        t.add(new Label("Shakhin-Krupchan Damir", nameStyle)).left().padBottom(10).row();
+        t.add(new Label("https://github.com/Damir047", nameStyle)).left().padBottom(18).row();
+        t.add(new Label("ChatGPT & Claude & Codex & Gemini", nameStyle)).left().padBottom(10).row();
+        t.add(new Label(LanguageButton.t("YEAR"), nameStyle)).left().row();
         return t;
     }
 
@@ -351,8 +399,8 @@ public class SettingsMenu implements Screen {
 
         float screenW = stage.getViewport().getWorldWidth();
         float screenH = stage.getViewport().getWorldHeight();
-        int panelW = 380;
-        int panelH = 640;
+        int panelW = 500;
+        int panelH = 700;
         float y = (screenH - panelH) / 2f;
         float startX = fromLeft ? -panelW - 20f : screenW + 20f;
         float endX = fromLeft ? 40f : screenW - panelW - 40f;
@@ -383,7 +431,7 @@ public class SettingsMenu implements Screen {
         Actor panel = fromLeft ? activeLeftPanel : activeRightPanel;
         if (panel == null) return;
         float screenW = stage.getViewport().getWorldWidth();
-        int panelW = 380;
+        int panelW = 500;
         float exitX = fromLeft ? -panelW - 20f : screenW + 20f;
         panel.addAction(Actions.sequence(
                 Actions.moveTo(exitX, panel.getY(), 0.22f, Interpolation.sineIn),

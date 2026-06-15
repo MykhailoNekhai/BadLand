@@ -1,7 +1,10 @@
 package ua.uni.core.dto;
 
 public class PlayerStatsDto {
+    private int totalScore;
+    private int totalWins;
     private int totalDeaths;
+    private int totalLosses;
     private int totalPlaySeconds;
     private int completedLevels;
     private int unlockedAchievements;
@@ -12,9 +15,12 @@ public class PlayerStatsDto {
     public PlayerStatsDto() {
     }
 
-    public PlayerStatsDto(int totalDeaths, int totalPlaySeconds, int completedLevels,
+    public PlayerStatsDto(int totalScore, int totalWins, int totalDeaths, int totalLosses, int totalPlaySeconds, int completedLevels,
                           int unlockedAchievements, int totalAchievements, int coopSessions, long lastPlayedAt) {
+        this.totalScore = totalScore;
+        this.totalWins = totalWins;
         this.totalDeaths = totalDeaths;
+        this.totalLosses = totalLosses;
         this.totalPlaySeconds = totalPlaySeconds;
         this.completedLevels = completedLevels;
         this.unlockedAchievements = unlockedAchievements;
@@ -23,12 +29,36 @@ public class PlayerStatsDto {
         this.lastPlayedAt = lastPlayedAt;
     }
 
+    public int getTotalScore() {
+        return totalScore;
+    }
+
+    public void setTotalScore(int totalScore) {
+        this.totalScore = totalScore;
+    }
+
+    public int getTotalWins() {
+        return totalWins;
+    }
+
+    public void setTotalWins(int totalWins) {
+        this.totalWins = totalWins;
+    }
+
     public int getTotalDeaths() {
         return totalDeaths;
     }
 
     public void setTotalDeaths(int totalDeaths) {
         this.totalDeaths = totalDeaths;
+    }
+
+    public int getTotalLosses() {
+        return totalLosses;
+    }
+
+    public void setTotalLosses(int totalLosses) {
+        this.totalLosses = totalLosses;
     }
 
     public int getTotalPlaySeconds() {
