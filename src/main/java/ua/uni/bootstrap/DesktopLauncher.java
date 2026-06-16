@@ -22,7 +22,9 @@ public class DesktopLauncher {
         }
         config.setTitle(title);
         config.setWindowedMode(1280, 720);
-        config.useVsync(true);
+        config.useVsync(false);
+        config.setForegroundFPS(240);
+        config.setIdleFPS(240);
         new Lwjgl3Application(new MainGame(), config);
     }
 }

@@ -43,7 +43,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Plevel implements Screen {
-    protected static final float TIMESTEP = 1 / 35f;
+    protected static final int TARGET_FPS = 240;
+    protected static final float TIMESTEP = 1f / TARGET_FPS;
+    private static final float MAX_FRAME_TIME = 0.25f;
     protected static final int VELOCITY_ITERATIONS = 8;
     protected static final int POSITION_ITERATIONS = 3;
     protected static final float SHADOW_SIZE = 1.2f;
@@ -88,7 +90,7 @@ public abstract class Plevel implements Screen {
     protected void scheduleSaw(String name, float x, float y, float angle, float size, float spinSpeed) {
         pendingSpawns.add(new PendingSpawn(name, x, y, angle, size, spinSpeed));
     }
-    private float dynamicTimeStep;
+    private float physicsAccumulator;
     private PauseMenu pauseMenu;
     private ComponentMapper<PhysicsComponent> physMapper = ComponentMapper.getFor(PhysicsComponent.class);
     private ComponentMapper<PlayerComponent> playerMapper = ComponentMapper.getFor(PlayerComponent.class);
@@ -235,16 +237,6 @@ public abstract class Plevel implements Screen {
 
         world.setContactListener(new GameContactListener(levelStats));
 
-        int refreshRate = Gdx.graphics.getDisplayMode().refreshRate;
-        System.out.println("Refresh rate: " + refreshRate);
-        if (refreshRate == 0) {
-            System.out.println("Refresh rate is 0, setting to 60");
-            refreshRate = 60;
-        }
-
-        dynamicTimeStep = 3.75f / refreshRate;
-        System.out.println("Dynamic time step: " + dynamicTimeStep);
-
         engine = new PooledEngine();
         engine.addSystem(new PhysicsSystem());
         engine.addSystem(new ShadowSystem(world));
@@ -382,9 +374,14 @@ public abstract class Plevel implements Screen {
 
         if (state == GameState.PLAYING) {
             AudioManager.get().updateLevelAmbience(delta);
-            world.step(dynamicTimeStep, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-            engine.update(delta);
-            mainGameLogic();
+            float frameTime = Math.min(delta, MAX_FRAME_TIME);
+            physicsAccumulator += frameTime;
+            while (physicsAccumulator >= TIMESTEP) {
+                world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+                engine.update(TIMESTEP);
+                mainGameLogic();
+                physicsAccumulator -= TIMESTEP;
+            }
         } else if (state == GameState.PAUSED) {
             engine.getSystem(RenderSystem.class).update(delta);
             pauseMenu.render(delta);
