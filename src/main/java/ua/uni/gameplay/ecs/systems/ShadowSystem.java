@@ -55,8 +55,8 @@ public class ShadowSystem extends IteratingSystem {
             // бонуси, спочатку на клони, потім всі інші
             if ("item-clone".equals(bonusToApply)) {
                 float currentScale = player.shadowSizeScale * 1.2f;
-                float spawnX = phys.body.getPosition().x - 0.7f;
-                float spawnY = phys.body.getPosition().y + 0.7f;
+               float spawnX = phys.body.getPosition().x - 0.8f;
+                float spawnY = phys.body.getPosition().y + 0.8f;
                 
                 Entity clone = EntityFactory.createPlayer(getEngine(), world, spawnX, spawnY, currentScale);
                 
@@ -134,6 +134,11 @@ public class ShadowSystem extends IteratingSystem {
             player.moveDown = Gdx.input.isKeyPressed(GameSettings.getMoveDown());
             player.moveLeft = Gdx.input.isKeyPressed(GameSettings.getMoveLeft());
             player.moveRight = Gdx.input.isKeyPressed(GameSettings.getMoveRight());
+        } else if (player.isSucked) {
+            player.moveUp = false;
+            player.moveDown = false;
+            player.moveLeft = false;
+            player.moveRight = false;
         } else {
             player.moveUp = false;
             player.moveDown = false;
@@ -203,12 +208,14 @@ public class ShadowSystem extends IteratingSystem {
         // нижче обмеження по скорості
         Vector2 velocity = phys.body.getLinearVelocity();
 
-        if (velocity.x > player.maxFowardSpeed * player.speedModifier) {
-            phys.body.setLinearVelocity(player.maxFowardSpeed * player.speedModifier, velocity.y);
-        }
+        if (!player.isSucked) {
+            if (velocity.x > player.maxFowardSpeed * player.speedModifier) {
+                phys.body.setLinearVelocity(player.maxFowardSpeed * player.speedModifier, velocity.y);
+            }
 
-        if (velocity.x < player.maxBackwardSpeed * player.speedModifier) {
-            phys.body.setLinearVelocity(player.maxBackwardSpeed * player.speedModifier, velocity.y);
+            if (velocity.x < player.maxBackwardSpeed * player.speedModifier) {
+                phys.body.setLinearVelocity(player.maxBackwardSpeed * player.speedModifier, velocity.y);
+            }
         }
 
         float velY = phys.body.getLinearVelocity().y;

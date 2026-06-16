@@ -182,7 +182,7 @@ public abstract class Plevel implements Screen {
             }
         }
 
-        if (levelStats.levelFinished) {
+        if (levelStats.levelFinished && players.size() == 0) {
             float leftCameraEdgeCheck = camera.position.x - (camera.viewportWidth / 2f);
             if (leftCameraEdgeCheck >= finishLineX) {
                 levelStats.winScore++;
@@ -192,7 +192,9 @@ public abstract class Plevel implements Screen {
                 }
                 AudioManager.get().playLevelWin(0.95f);
                 System.out.println("Гра завершена. Перемога!");
-
+                Gdx.app.postRunnable(() -> {
+                    game.setScreen(new ua.uni.presentation.screen.menu.main.Menu(game));
+                });
             }
         }
     }
@@ -200,8 +202,8 @@ public abstract class Plevel implements Screen {
     @Override
     public void show() {
         baseParameters();
-        createGround();
         buildLevel();
+        createGround();
         if (levelNumber > 0) {
             game.getAchievementManager().onLevelStart(levelNumber);
         }
@@ -214,30 +216,12 @@ public abstract class Plevel implements Screen {
 
     protected void createPortal(float x) {
         this.finishLineX = x;
-        Entity portal = new Entity();
-        portal.add(new ua.uni.gameplay.ecs.components.FinishComponent());
+        // Замінюємо старий прозорий портал на Годзіллу, яка буде засмоктувати
+        EntityFactory.createObstacle(engine, world, "godzilla", x, 8f, 0f, 13f);
         
-        BodyDef bdef = new BodyDef();
-        bdef.type = BodyDef.BodyType.StaticBody;
-        bdef.position.set(x, 9f);
-        Body body = world.createBody(bdef);
-        
-        FixtureDef fdef = new FixtureDef();
-        com.badlogic.gdx.physics.box2d.PolygonShape shape = new com.badlogic.gdx.physics.box2d.PolygonShape();
-        shape.setAsBox(0.5f, 18f);
-        fdef.shape = shape;
-        fdef.isSensor = true;
-        body.createFixture(fdef);
-        shape.dispose();
-        
-        body.setUserData(portal);
-        
-        PhysicsComponent phys = new PhysicsComponent();
-        phys.body = body;
-        portal.add(phys);
-        
-        engine.addEntity(portal);
-
+        // Прямокутник, який повністю перекриє камеру
+        // Ширина камери 32f, тож ставимо великий об'єкт за Годзіллою (x + 16f).
+        EntityFactory.createObstacle(engine, world, "filler-1", x + 16f, 9f, 0f, 35f); 
     }
 
     private void baseParameters() {
@@ -258,7 +242,7 @@ public abstract class Plevel implements Screen {
             refreshRate = 60;
         }
 
-        dynamicTimeStep = 4.0f / refreshRate;
+        dynamicTimeStep = 3.75f / refreshRate;
         System.out.println("Dynamic time step: " + dynamicTimeStep);
 
         engine = new PooledEngine();
@@ -268,6 +252,7 @@ public abstract class Plevel implements Screen {
         engine.addSystem(new PullSystem());
         engine.addSystem(new BonusSystem(world));
         engine.addSystem(new PositionalAudioSystem(camera));
+        engine.addSystem(new ua.uni.gameplay.ecs.systems.GodzillaPullSystem(world, levelStats));
         pauseMenu = new PauseMenu(game, this::resumeFromPause, this::restartLevel, this::checkpointAction);
         backgroundGradient = makeMultiStopGradient(64, 512, new Color[]{
                 new Color(0.03f, 0.03f, 0.03f, 1f),
@@ -311,6 +296,14 @@ public abstract class Plevel implements Screen {
         Body ceilBody = world.createBody(roofBody);
         ceilBody.createFixture(roofFix);
         ceilShape.dispose();
+
+        // Розставляємо wood-edge один за одним (без пробілів) зверху та знизу аж до фінішу + 40 (щоб камера не бачила кінця текстур)
+        int variant = 1;
+        for (float x = 0; x <= finishLineX + 40f; x += 10f) {
+            EntityFactory.createObstacle(engine, world, "wood-edge-" + variant, x, 17.80f, 0f, 10f);
+            EntityFactory.createObstacle(engine, world, "wood-edge-" + variant, x, 0.15f, 180f, 10f);
+            variant = (variant % 6) + 1;
+        }
     }
 
     @Override

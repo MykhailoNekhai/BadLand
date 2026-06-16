@@ -24,7 +24,7 @@ public class PlayerComponent implements Component, Pool.Poolable{
     public boolean moveLeft = false;
     public boolean moveRight = false;
     public boolean isFinished = false;
-
+    public boolean isSucked = false;
 
     @Override
     public void reset() {
@@ -44,5 +44,6 @@ public class PlayerComponent implements Component, Pool.Poolable{
         moveLeft = false;
         moveRight = false;
         isFinished = false;
+        isSucked = false;
     }
 }

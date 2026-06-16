@@ -268,13 +268,14 @@
     "baseWidth": 605.0
   },
   "gear-2": {
+    "bodyType": "Kinematic",
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
-    "baseWidth": 597.0
+    "baseWidth": 736.0
   },
   "turret": {
-    "friction": 0.8,
+    "friction":0.8,
     "restitution": 0.1,
     "density": 0.0,
     "baseWidth": 167.0
@@ -489,7 +490,7 @@
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
-    "baseWidth": 446.0
+    "baseWidth": 888.0
   },
   "button": {
     "friction": 0.8,
@@ -702,7 +703,7 @@
     "baseWidth": 6.0
   },
   "propeller-slim-large": {
-    "bodyType": "Dynamic",
+    "bodyType": "Kinematic",
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
@@ -784,6 +785,7 @@
     "baseWidth": 208.0
   },
   "gear": {
+    "bodyType": "Kinematic",
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
@@ -796,14 +798,11 @@
     "baseWidth": 244.0
   },
   "propeller-small": {
-    "bodyType": "Dynamic",
+    "bodyType": "Kinematic",
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
-    "baseWidth": 218.0,
-    "isHinged": true,
-    "centerX": 104.20000457763672,
-    "centerY": 104.40000915527344
+    "baseWidth": 218.0
   },
   "part-3": {
     "friction": 0.8,
@@ -894,14 +893,11 @@
     "baseWidth": 26.0
   },
   "propeller-large": {
-    "bodyType": "Dynamic",
+    "bodyType": "Kinematic",
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
     "baseWidth": 494.0,
-    "isHinged": true,
-    "centerX": 267.40008544921875,
-    "centerY": 239.40003967285156
   },
   "barbwire": {
     "friction": 0.8,
@@ -1002,7 +998,8 @@
     "baseWidth": 50.0,
     "isHinged": true,
     "centerX": 40.30000305175781,
-    "centerY": 16.2499942779541
+    "centerY": 16.2499942779541,
+    "angularDamping": 0
   },
   "godzilla": {
     "friction": 0.8,

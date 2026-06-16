@@ -20,7 +20,11 @@ import ua.uni.utility.physics.BodyEditorLoader;
 public class EntityFactory {
 
     public static Entity createObstacle(Engine engine, World world, String objectName, float x, float y, float angleDegrees, float size) {
-        return buildBaseEntity(engine, world, objectName, x, y, angleDegrees, size);
+        Entity entity = buildBaseEntity(engine, world, objectName, x, y, angleDegrees, size);
+        if ("godzilla".equals(objectName)) {
+            entity.add(engine.createComponent(ua.uni.gameplay.ecs.components.GodzillaComponent.class));
+        }
+        return entity;
     }
 
     public static Entity createSaw(Engine engine, World world, String objectName, float x, float y, float angleDegrees, float size, float spinSpeed) {

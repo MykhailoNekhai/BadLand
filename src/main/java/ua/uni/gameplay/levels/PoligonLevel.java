@@ -21,13 +21,17 @@ public class PoligonLevel extends Plevel {
      //   spawnClone(4, 9);
        // spawnClone(6, 9);
         spawnClone(8, 9);
-    //   createPortal(200f);
+        createPortal(300f);
 
 
         EntityFactory.createObstacle(engine, world, "item-big", 10f, 5f, 0f, 1.4f);
         EntityFactory.createObstacle(engine, world, "item-small", 15f, 5f, 0f, 1.4f);
         EntityFactory.createObstacle(engine, world, "item-clone", 20f, 5f, 0f, 1.4f);
         EntityFactory.createObstacle(engine, world, "item-speed", 50f, 5f, 0f, 1.4f);
+
+
+      //  EntityFactory.createObstacle(engine, world, "wood-edge-2", 10f, 5f, 0f, 30f);
+        // EntityFactory.createObstacle(engine, world, "wood-edge-1", 15, 3,
 /*
         EntityFactory.createObstacle(engine, world, "item-clone", 20f, 5f, 0f, 1.4f);
 
@@ -71,8 +75,6 @@ public class PoligonLevel extends Plevel {
         // BranchTip1 branchTip1 = new BranchTip1(world, 60, 5, 3f);
         EntityFactory.createObstacle(engine, world, "branch-tip-1", 60f, 5f, 0f, 3f);
         // BranchTip10 branchTip10 = new BranchTip10(world, 70, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "godzilla", 70f, 8f, 0f, 13f);
-        // BranchTip11 branchTip11 = new BranchTip11(world, 80, 5, 3f);
         EntityFactory.createObstacle(engine, world, "branch-tip-11", 80f, 5f, 0f, 3f);
         // BranchTip12 branchTip12 = new BranchTip12(world, 90, 5, 3f);
         EntityFactory.createObstacle(engine, world, "branch-tip-12", 90f, 5f, 0f, 3f);

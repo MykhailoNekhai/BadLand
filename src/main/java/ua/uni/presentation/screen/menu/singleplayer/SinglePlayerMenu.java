@@ -24,16 +24,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.bootstrap.MainGame;
-import ua.uni.gameplay.levels.ForestLevel;
-import ua.uni.gameplay.levels.CaveLevel;
-import ua.uni.gameplay.levels.FactoryLevel;
-import ua.uni.gameplay.levels.SwampLevel;
-import ua.uni.gameplay.levels.MineLevel;
-import ua.uni.gameplay.levels.PipelineLevel;
-import ua.uni.gameplay.levels.LazerLevel;
-import ua.uni.gameplay.levels.ThorneLevel;
-import ua.uni.gameplay.levels.ChaosLevel;
-import ua.uni.gameplay.levels.FinalLevel;
+import ua.uni.gameplay.levels.Poligon2Level;
+import ua.uni.gameplay.levels.PoligonLevel;
+//import ua.uni.gameplay.levels.RuinsLevel;
 import ua.uni.presentation.screen.level.LevelPreviewScreen;
 import ua.uni.presentation.screen.menu.settings.LanguageButton;
 
@@ -228,18 +221,12 @@ public class SinglePlayerMenu implements Screen {
         if (startTransition) {
             transitionAlpha = Math.min(1f, transitionAlpha + (delta / 0.45f));
             if (transitionAlpha >= 1f && selectedLevel > 0) {
-                switch (selectedLevel) {
-                    case 1  -> game.setScreen(new ForestLevel(game));
-                    case 2  -> game.setScreen(new CaveLevel(game));
-                    case 3  -> game.setScreen(new FactoryLevel(game));
-                    case 4  -> game.setScreen(new SwampLevel(game));
-                    case 5  -> game.setScreen(new MineLevel(game));
-                    case 6  -> game.setScreen(new PipelineLevel(game));
-                    case 7  -> game.setScreen(new LazerLevel(game));
-                    case 8  -> game.setScreen(new ThorneLevel(game));
-                    case 9  -> game.setScreen(new ChaosLevel(game));
-                    case 10 -> game.setScreen(new FinalLevel(game));
-                    default -> game.setScreen(new LevelPreviewScreen(game, selectedLevel));
+                if (selectedLevel == 1) {
+                    game.setScreen(new Poligon2Level(game));
+                } else if (selectedLevel == 2) {
+              //      game.setScreen(new RuinsLevel(game));
+                } else {
+                    game.setScreen(new LevelPreviewScreen(game, selectedLevel));
                 }
                 return;
             }
