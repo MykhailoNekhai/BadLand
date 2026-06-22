@@ -10,17 +10,17 @@ import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.audio.services.AudioManager;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
 import ua.uni.presentation.screen.menu.singleplayer.SinglePlayerMenu;
 
 public class LevelPreviewScreen implements Screen {
-    private final MainGame game;
+    private final GameServices services;
     private final int level;
     private Stage stage;
     private Texture bg;
 
-    public LevelPreviewScreen(MainGame game, int level) {
-        this.game = game;
+    public LevelPreviewScreen(GameServices services, int level) {
+        this.services = services;
         this.level = level;
     }
 
@@ -37,7 +37,7 @@ public class LevelPreviewScreen implements Screen {
     public void render(float delta) {
         AudioManager.get().updateLevelAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new SinglePlayerMenu(game));
+            services.setScreen(new SinglePlayerMenu(services));
             return;
         }
         var batch = stage.getBatch();

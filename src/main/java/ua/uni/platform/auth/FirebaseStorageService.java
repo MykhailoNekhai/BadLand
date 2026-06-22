@@ -1,6 +1,7 @@
 package ua.uni.platform.auth;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -14,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 
 public class FirebaseStorageService {
     private static final MediaType OCTET_STREAM = MediaType.parse("application/octet-stream");
-    private final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client = FirebaseHttpClient.INSTANCE;
     private final Gson gson = new Gson();
     private final FirebaseConfig config;
 
@@ -40,8 +41,8 @@ public class FirebaseStorageService {
                 throw new RuntimeException("Avatar upload failed: " + response.code() + " " + body);
             }
             JsonObject json = gson.fromJson(body, JsonObject.class);
-            String token = json != null && json.has("downloadTokens")
-                    ? json.get("downloadTokens").getAsString() : "";
+            JsonElement tokenEl = json != null ? json.get("downloadTokens") : null;
+            String token = tokenEl != null && !tokenEl.isJsonNull() ? tokenEl.getAsString() : "";
             return buildDownloadUrl(objectPath, token);
         } catch (IOException e) {
             throw new RuntimeException("Avatar upload failed", e);

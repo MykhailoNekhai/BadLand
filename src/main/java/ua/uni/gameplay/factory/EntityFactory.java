@@ -4,12 +4,13 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 import com.badlogic.gdx.math.Vector2;
 import ua.uni.gameplay.ecs.components.*;
+import ua.uni.core.model.account.PlayerAppearance;
 import ua.uni.core.config.ObjectConfig;
+import ua.uni.platform.account.LocalAccountStore;
 import ua.uni.utility.config.ConfigLoader;
 import ua.uni.utility.physics.BodyEditorLoader;
 
@@ -18,6 +19,8 @@ import ua.uni.utility.physics.BodyEditorLoader;
 
 
 public class EntityFactory {
+
+    private static final int EYE_FRAME_COUNT = 3;
 
     public static Entity createObstacle(Engine engine, World world, String objectName, float x, float y, float angleDegrees, float size) {
         Entity entity = buildBaseEntity(engine, world, objectName, x, y, angleDegrees, size);
@@ -60,7 +63,7 @@ public class EntityFactory {
         TextureComponent textureComp = engine.createComponent(TextureComponent.class);
         textureComp.texture = new Texture(Gdx.files.internal("game-resourses/textures/" + objectName + ".png"));
         textureComp.width = size;
-        textureComp.height = size * ((float)textureComp.texture.getHeight() / textureComp.texture.getWidth());
+        textureComp.height = size * ((float) textureComp.texture.getHeight() / textureComp.texture.getWidth());
         entity.add(textureComp);
 
         ObjectConfig config = ConfigLoader.get(objectName);
@@ -81,7 +84,7 @@ public class EntityFactory {
         }
 
         bodyDef.position.set(x, y);
-        bodyDef.angle = angleDegrees * (float)Math.PI / 180f;
+        bodyDef.angle = angleDegrees * (float) Math.PI / 180f;
         bodyDef.linearDamping = config.linearDamping;
         bodyDef.angularDamping = config.angularDamping;
         bodyDef.gravityScale = config.gravityScale;
@@ -130,6 +133,12 @@ public class EntityFactory {
         if (config.isPlayer) {
             entity.add(engine.createComponent(PlayerComponent.class));
             entity.add(engine.createComponent(WingComponent.class));
+            EyeComponent eyes = engine.createComponent(EyeComponent.class);
+            eyes.loadSpritesheet(selectedEyeSpritesheetPath(), EYE_FRAME_COUNT);
+            eyes.scale = 0.68f;
+            eyes.offsetX = 0.15f;
+            eyes.offsetY = -0.18f;
+            entity.add(eyes);
         }
         if (config.isBonus) {
             BonusComponent bonus = engine.createComponent(BonusComponent.class);
@@ -155,4 +164,45 @@ public class EntityFactory {
 
         return entity;
     }
+
+    private static String selectedEyeSpritesheetPath() {
+        PlayerAppearance appearance = new LocalAccountStore().loadAppearance();
+        return chooseEyesSpritesheet(appearance.getEyeStyleId(), appearance.getEyeColorId());
+    }
+
+    private static String chooseEyesSpritesheet(String eyeStyleId, String eyeColorId) {
+        String style = normalizeEyeStyle(eyeStyleId);
+        String color = normalizeEyeColor(eyeColorId);
+
+        return "game-resourses/textures/avatar-eyes/" + style + "/animation/"
+                + style + "_" + color + "_blink_spritesheet.png";
+    }
+
+    private static String normalizeEyeColor(String eyeColorId) {
+        String color = eyeColorId == null ? "gray" : eyeColorId.trim().toLowerCase();
+        switch (color) {
+            case "green":
+            case "cyan":
+            case "yellow":
+            case "purple":
+            case "gray":
+                return color;
+            default:
+                return "gray";
+        }
+    }
+
+    private static String normalizeEyeStyle(String eyeStyleId) {
+        String style = eyeStyleId == null ? "shadow" : eyeStyleId.trim().toLowerCase();
+        switch (style) {
+            case "spider":
+            case "round":
+            case "cluster":
+            case "swirl":
+                return style;
+            default:
+                return "shadow";
+        }
+    }
+
 }

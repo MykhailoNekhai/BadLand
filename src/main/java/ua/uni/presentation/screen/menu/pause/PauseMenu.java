@@ -18,14 +18,15 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.audio.services.AudioManager;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
+import ua.uni.presentation.screen.menu.core.MenuServices;
+import ua.uni.presentation.screen.menu.factory.FontQuality;
 import ua.uni.presentation.screen.menu.settings.LanguageButton;
 import ua.uni.presentation.screen.menu.settings.SettingsMenu;
-import ua.uni.presentation.screen.menu.singleplayer.SinglePlayerMenu;
 
 public class PauseMenu {
-    private final MainGame game;
+    private final GameServices services;
+    private final MenuServices menuServices;
     private final Runnable onResume;
     private final Runnable onRestart;
     private final Runnable onCheckpoint;
@@ -46,8 +47,9 @@ public class PauseMenu {
     private SettingsMenu activeSettingsMenu;
     private boolean visible;
 
-    public PauseMenu(MainGame game, Runnable onResume, Runnable onRestart, Runnable onCheckpoint) {
-        this.game = game;
+    public PauseMenu(GameServices services, Runnable onResume, Runnable onRestart, Runnable onCheckpoint) {
+        this.services = services;
+        this.menuServices = new MenuServices(services);
         this.onResume = onResume;
         this.onRestart = onRestart;
         this.onCheckpoint = onCheckpoint;
@@ -56,7 +58,7 @@ public class PauseMenu {
 
     public void show() {
         visible = true;
-        AudioManager.get().enterMenuContext();
+        menuServices.audio().enterMenuContext();
         Gdx.input.setInputProcessor(stage);
         stage.clear();
         buildUi();
@@ -64,7 +66,7 @@ public class PauseMenu {
 
     public void hide() {
         visible = false;
-        AudioManager.get().leaveMenuContext();
+        menuServices.audio().leaveMenuContext();
     }
 
     public void handleEscape() {
@@ -81,7 +83,7 @@ public class PauseMenu {
             activeSettingsMenu.render(delta);
             return;
         }
-        AudioManager.get().updateMenuAmbience(delta);
+        menuServices.audio().updateMenuAmbience(delta);
         stage.act(delta);
         stage.draw();
     }
@@ -110,12 +112,12 @@ public class PauseMenu {
     private void initResources() {
         stage = new Stage(new ScreenViewport());
 
-        panel = gradientPanel(620, 980, 48, 18, 12,
+        panel = menuServices.textures().gradientPanel(620, 980, 48, 18, 12,
                 new Color(0.06f, 0.08f, 0.13f, 0.95f),
                 new Color(0.14f, 0.08f, 0.04f, 0.95f));
-        panelVignette = panelVignetteTexture(620, 980, 48, 18, 12);
-        itemBtn = roundedRect(560, 80, 24, new Color(0f, 0f, 0f, 1f));
-        sidePanelBg = gradientPanel(380, 640, 38, 14, 12,
+        panelVignette = menuServices.textures().panelVignetteTexture(620, 980, 48, 18, 12);
+        itemBtn = menuServices.textures().roundedRect(560, 80, 24, new Color(0f, 0f, 0f, 1f));
+        sidePanelBg = menuServices.textures().gradientPanel(380, 640, 38, 14, 12,
                 new Color(0.08f, 0.10f, 0.15f, 0.98f),
                 new Color(0.16f, 0.10f, 0.05f, 0.98f));
 
@@ -128,7 +130,9 @@ public class PauseMenu {
         items.borderWidth = 1.6f;
         items.borderColor = new Color(0.06f, 0.05f, 0.03f, 1f);
         items.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(items);
         itemFont = generator.generateFont(items);
+        FontQuality.fixScale(itemFont);
 
         FreeTypeFontGenerator.FreeTypeFontParameter small = new FreeTypeFontGenerator.FreeTypeFontParameter();
         small.size = 34;
@@ -136,7 +140,9 @@ public class PauseMenu {
         small.borderWidth = 1.0f;
         small.borderColor = Color.BLACK;
         small.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(small);
         smallFont = generator.generateFont(small);
+        FontQuality.fixScale(smallFont);
 
         FreeTypeFontGenerator.FreeTypeFontParameter title = new FreeTypeFontGenerator.FreeTypeFontParameter();
         title.size = 68;
@@ -144,7 +150,9 @@ public class PauseMenu {
         title.borderWidth = 1.8f;
         title.borderColor = new Color(0.10f, 0.05f, 0.02f, 1f);
         title.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(title);
         titleFont = generator.generateFont(title);
+        FontQuality.fixScale(titleFont);
 
         generator.dispose();
     }
@@ -174,37 +182,37 @@ public class PauseMenu {
         continueButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.75f);
+                menuServices.audio().playSelect(0.75f);
                 onResume.run();
             }
         });
         restartButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.75f);
+                menuServices.audio().playSelect(0.75f);
                 onRestart.run();
             }
         });
         checkpointButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.72f);
+                menuServices.audio().playSelect(0.72f);
                 onCheckpoint.run();
             }
         });
         settingButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.72f);
+                menuServices.audio().playSelect(0.72f);
                 openSettingsOverlay();
             }
         });
         exitToMenuButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.75f);
+                menuServices.audio().playSelect(0.75f);
                 hide();
-                game.setScreen(new SinglePlayerMenu(game));
+                menuServices.navigator().goToSinglePlayer();
             }
         });
 
@@ -248,7 +256,7 @@ public class PauseMenu {
 
     private void openSettingsOverlay() {
         if (activeSettingsMenu != null) return;
-        activeSettingsMenu = new SettingsMenu(game, this::closeSettingsOverlay);
+        activeSettingsMenu = new SettingsMenu(services, this::closeSettingsOverlay);
         activeSettingsMenu.show();
     }
 
@@ -258,99 +266,5 @@ public class PauseMenu {
         activeSettingsMenu.dispose();
         activeSettingsMenu = null;
         Gdx.input.setInputProcessor(stage);
-    }
-
-    private Texture roundedRect(int w, int h, int r, Color color) {
-        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0f, 0f, 0f, 0f);
-        pixmap.fill();
-        pixmap.setColor(color);
-        pixmap.fillRectangle(r, 0, w - (r * 2), h);
-        pixmap.fillRectangle(0, r, w, h - (r * 2));
-        pixmap.fillCircle(r, r, r);
-        pixmap.fillCircle(w - r - 1, r, r);
-        pixmap.fillCircle(r, h - r - 1, r);
-        pixmap.fillCircle(w - r - 1, h - r - 1, r);
-        Texture texture = new Texture(pixmap);
-        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        pixmap.dispose();
-        return texture;
-    }
-
-    private Texture gradientPanel(int w, int h, int radius, int padX, int padY, Color topColor, Color bottomColor) {
-        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0f, 0f, 0f, 0f);
-        pixmap.fill();
-        int innerH = h - 2 * padY;
-        for (int y = padY; y < h - padY; y++) {
-            int x0;
-            int x1;
-            if (y < padY + radius) {
-                int dy = (padY + radius) - y;
-                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
-                x0 = padX + radius - dx;
-                x1 = w - padX - radius + dx;
-            } else if (y >= h - padY - radius) {
-                int dy = y - (h - padY - radius - 1);
-                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
-                x0 = padX + radius - dx;
-                x1 = w - padX - radius + dx;
-            } else {
-                x0 = padX;
-                x1 = w - padX - 1;
-            }
-            float t = (y - padY) / (float) (innerH - 1);
-            float r = topColor.r + (bottomColor.r - topColor.r) * t;
-            float g = topColor.g + (bottomColor.g - topColor.g) * t;
-            float b = topColor.b + (bottomColor.b - topColor.b) * t;
-            float a = topColor.a + (bottomColor.a - topColor.a) * t;
-            pixmap.setColor(r, g, b, a);
-            pixmap.drawLine(x0, y, x1, y);
-        }
-        Texture texture = new Texture(pixmap);
-        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        pixmap.dispose();
-        return texture;
-    }
-
-    private Texture panelVignetteTexture(int w, int h, int radius, int padX, int padY) {
-        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0f, 0f, 0f, 0f);
-        pixmap.fill();
-        int cx = w / 2;
-        int cy = h / 2;
-        float max = (float) Math.sqrt((double) (cx * cx) + (double) (cy * cy));
-        for (int y = padY; y < h - padY; y++) {
-            int x0;
-            int x1;
-            if (y < padY + radius) {
-                int dy = (padY + radius) - y;
-                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
-                x0 = padX + radius - dx;
-                x1 = w - padX - radius + dx;
-            } else if (y >= h - padY - radius) {
-                int dy = y - (h - padY - radius - 1);
-                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
-                x0 = padX + radius - dx;
-                x1 = w - padX - radius + dx;
-            } else {
-                x0 = padX;
-                x1 = w - padX - 1;
-            }
-            for (int x = x0; x <= x1; x++) {
-                float dx2 = x - cx;
-                float dy2 = y - cy;
-                float d = (float) Math.sqrt((double) (dx2 * dx2) + (double) (dy2 * dy2)) / max;
-                float a = Math.max(0f, Math.min(1f, (d - 0.55f) * 1.4f));
-                if (a > 0f) {
-                    pixmap.setColor(0f, 0f, 0f, a * 0.45f);
-                    pixmap.drawPixel(x, y);
-                }
-            }
-        }
-        Texture texture = new Texture(pixmap);
-        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        pixmap.dispose();
-        return texture;
     }
 }

@@ -1,11 +1,11 @@
 package ua.uni.gameplay.levels;
 
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
 
 public class RuinsLevel extends Plevel {
 
-    public RuinsLevel(MainGame game) {
-        super(game);
+    public RuinsLevel(GameServices services) {
+        super(services);
         levelNumber = 2;
         finishLineX = 620f;
     }

@@ -17,7 +17,7 @@ import ua.uni.core.dto.UserProfileDto;
 
 public class FirestoreService {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client = FirebaseHttpClient.INSTANCE;
     private final Gson gson = new Gson();
     private final FirebaseConfig config;
 

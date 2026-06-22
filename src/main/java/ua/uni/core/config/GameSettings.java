@@ -22,28 +22,31 @@ public final class GameSettings {
     public static final float DEFAULT_MUSIC_VOLUME = 0.65f;
 
     private static Preferences prefs;
-    private static float musicVolume = DEFAULT_MUSIC_VOLUME;
-    private static String language = "EN";
-    private static int moveLeft = Input.Keys.A;
-    private static int moveRight = Input.Keys.D;
-    private static int moveUp = Input.Keys.SPACE;
-    private static int moveDown = Input.Keys.E;
-    private static boolean loaded;
+    private static volatile float musicVolume = DEFAULT_MUSIC_VOLUME;
+    private static volatile String language = "EN";
+    private static volatile int moveLeft = Input.Keys.A;
+    private static volatile int moveRight = Input.Keys.D;
+    private static volatile int moveUp = Input.Keys.SPACE;
+    private static volatile int moveDown = Input.Keys.E;
+    private static volatile boolean loaded;
     private static SettingsChangeListener settingsChangeListener;
-    private static boolean notificationsSuppressed;
+    private static volatile boolean notificationsSuppressed;
 
     private GameSettings() {}
 
     public static void load() {
         if (loaded) return;
-        prefs = Gdx.app.getPreferences(PREFS_NAME);
-        musicVolume = clamp(prefs.getFloat(KEY_MUSIC_VOLUME, DEFAULT_MUSIC_VOLUME));
-        language = prefs.getString(KEY_LANGUAGE, "EN");
-        moveLeft = prefs.getInteger(KEY_MOVE_LEFT, Input.Keys.A);
-        moveRight = prefs.getInteger(KEY_MOVE_RIGHT, Input.Keys.D);
-        moveUp = prefs.getInteger(KEY_JUMP, Input.Keys.SPACE);
-        moveDown = prefs.getInteger(KEY_INTERACT, Input.Keys.E);
-        loaded = true;
+        synchronized (GameSettings.class) {
+            if (loaded) return;
+            prefs = Gdx.app.getPreferences(PREFS_NAME);
+            musicVolume = clamp(prefs.getFloat(KEY_MUSIC_VOLUME, DEFAULT_MUSIC_VOLUME));
+            language = prefs.getString(KEY_LANGUAGE, "EN");
+            moveLeft = prefs.getInteger(KEY_MOVE_LEFT, Input.Keys.A);
+            moveRight = prefs.getInteger(KEY_MOVE_RIGHT, Input.Keys.D);
+            moveUp = prefs.getInteger(KEY_JUMP, Input.Keys.SPACE);
+            moveDown = prefs.getInteger(KEY_INTERACT, Input.Keys.E);
+            loaded = true;
+        }
     }
 
     public static float getMusicVolume() { return musicVolume; }
