@@ -17,7 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import ua.uni.audio.services.AudioManager;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
 import ua.uni.platform.online.gameplay.GameplayServerReservation;
 import ua.uni.platform.online.gameplay.MatchPhase;
 import ua.uni.platform.online.gameplay.PrototypeLevelOneLayout;
@@ -28,13 +28,14 @@ import ua.uni.platform.online.gameplay.protocol.PlayerSnapshot;
 import ua.uni.platform.online.gameplay.protocol.ServerHelloMessage;
 import ua.uni.platform.online.gameplay.protocol.WorldSnapshotMessage;
 import ua.uni.platform.online.CoopMatchState;
+import ua.uni.presentation.screen.menu.factory.FontQuality;
 import ua.uni.presentation.screen.menu.settings.LanguageButton;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener {
-    private final MainGame game;
+    private final GameServices services;
     private final int level;
     private final CoopMatchState matchState;
     private Stage stage;
@@ -52,10 +53,10 @@ public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener
     private boolean localDead;
     private boolean ended;
 
-    public CoopLevelPlayScreen(MainGame game, int level) {
-        this.game = game;
+    public CoopLevelPlayScreen(GameServices services, int level) {
+        this.services = services;
         this.level = level;
-        this.matchState = game.getCoopMatchState();
+        this.matchState = services.getCoopMatchState();
     }
 
     @Override
@@ -63,7 +64,7 @@ public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         AudioManager.get().startLevelMusic();
-        game.getAchievementManager().onCoopSessionStart();
+        services.achievements().onCoopSessionStart();
         bg = solidTexture(2, 2, new Color(0.03f, 0.03f, 0.04f, 1f));
         shapeRenderer = new ShapeRenderer();
         loadPrototypeTextures();
@@ -76,13 +77,17 @@ public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener
         titleParams.borderWidth = 2f;
         titleParams.borderColor = Color.BLACK;
         titleParams.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(titleParams);
         titleFont = generator.generateFont(titleParams);
+        FontQuality.fixScale(titleFont);
 
         FreeTypeFontGenerator.FreeTypeFontParameter bodyParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         bodyParams.size = 34;
         bodyParams.color = new Color(0.92f, 0.92f, 0.88f, 1f);
         bodyParams.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(bodyParams);
         bodyFont = generator.generateFont(bodyParams);
+        FontQuality.fixScale(bodyFont);
         generator.dispose();
 
         Label titleLabel = new Label(LanguageButton.tf("COOP_LEVEL_TITLE_FMT", String.format("%02d", level)),
@@ -215,7 +220,7 @@ public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener
             return;
         }
         try {
-            reservation = game.getGameplayReservationService().reserve(matchState);
+            reservation = services.reservation().reserve(matchState);
             gameplayClient = new DedicatedMatchClient(reservation, this);
             gameplayClient.connect();
         } catch (Exception e) {
@@ -243,7 +248,7 @@ public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener
         ended = true;
         AudioManager.get().playLevelLose(0.95f);
         cleanupMatchConnection();
-        game.setScreen(new CoopStatusScreen(game, LanguageButton.t("CONNECTION_ERROR"), message));
+        services.setScreen(new CoopStatusScreen(services, LanguageButton.t("CONNECTION_ERROR"), message));
     }
 
     private void finishMatch(String title, String message) {
@@ -252,14 +257,14 @@ public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener
         }
         ended = true;
         if ("Victory".equalsIgnoreCase(title)) {
-            game.getAchievementManager().onLevelComplete(level);
+            services.achievements().onLevelComplete(level);
             AudioManager.get().playLevelWin(0.95f);
         } else {
-            game.getAchievementManager().onLevelFailed();
+            services.achievements().onLevelFailed();
             AudioManager.get().playLevelLose(0.95f);
         }
         cleanupMatchConnection();
-        game.setScreen(new CoopStatusScreen(game, title, message));
+        services.setScreen(new CoopStatusScreen(services, title, message));
     }
 
     private void cleanupMatchConnection() {
@@ -267,7 +272,7 @@ public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener
             gameplayClient.close();
             gameplayClient = null;
         }
-        game.clearCoopMatchState();
+        services.clearCoopMatchState();
     }
 
     @Override
@@ -334,7 +339,7 @@ public class CoopLevelPlayScreen implements Screen, DedicatedMatchClientListener
                     localDead = !player.isAlive();
                     if (localDead && !deathReported) {
                         deathReported = true;
-                        game.getAchievementManager().onDeath();
+                        services.achievements().onDeath();
                     }
                 }
             }

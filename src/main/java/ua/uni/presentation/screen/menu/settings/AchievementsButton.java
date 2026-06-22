@@ -2,7 +2,6 @@ package ua.uni.presentation.screen.menu.settings;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Blending;
@@ -10,7 +9,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
@@ -19,9 +17,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.audio.services.AudioManager;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
+import ua.uni.presentation.screen.menu.core.PMenu;
+import ua.uni.presentation.screen.menu.factory.FontQuality;
 import ua.uni.core.config.GameSettings;
 import ua.uni.gameplay.achievements.Achievements;
 import ua.uni.gameplay.achievements.AchievementsRarity;
@@ -30,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class AchievementsButton implements Screen {
+public class AchievementsButton extends PMenu {
     private static final int ACHIEVEMENT_COLUMNS = 4;
     private static final int ACHIEVEMENT_ROWS = 3;
     private static final int ACHIEVEMENTS_PER_PAGE = ACHIEVEMENT_COLUMNS * ACHIEVEMENT_ROWS;
@@ -38,8 +36,6 @@ public class AchievementsButton implements Screen {
     private static final float CARD_WIDTH = 260f;
     private static final float CARD_HEIGHT = 190f;
 
-    private final MainGame game;
-    private Stage stage;
     private Texture bg;
     private Texture card;
     private Texture commonAchievementArt;
@@ -71,15 +67,13 @@ public class AchievementsButton implements Screen {
     private int currentPage = 0;
     private float elapsed;
 
-    public AchievementsButton(MainGame game) {
-        this.game = game;
+    public AchievementsButton(GameServices services) {
+        super(services);
     }
 
     @Override
     public void show() {
-        stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
-        AudioManager.get().enterMenuContext();
+        beginMenuShow();
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
@@ -92,9 +86,9 @@ public class AchievementsButton implements Screen {
         epicAchievementArt.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         legendaryAchievementArt = new Texture(Gdx.files.internal("game-resourses/menu/achievements/legendary-achievement.png"));
         legendaryAchievementArt.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        pageButtonBg = roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 1f));
-        pageButtonActiveBg = roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 1f));
-        tooltipBg = roundedRect(430, 215, 24, new Color(0f, 0f, 0f, 0.92f));
+        pageButtonBg = textures().roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 1f));
+        pageButtonActiveBg = textures().roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 1f));
+        tooltipBg = textures().roundedRect(430, 215, 24, new Color(0f, 0f, 0f, 0.92f));
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
@@ -103,28 +97,36 @@ public class AchievementsButton implements Screen {
         pTitle.color = Color.BLACK;
         pTitle.borderWidth = 0f;
         pTitle.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(pTitle);
         titleFont = generator.generateFont(pTitle);
+        FontQuality.fixScale(titleFont);
         FreeTypeFontGenerator.FreeTypeFontParameter pCard = new FreeTypeFontGenerator.FreeTypeFontParameter();
         pCard.size = 30;
         pCard.color = new Color(1f, 0.86f, 0.36f, 1f);
         pCard.borderWidth = 1.2f;
         pCard.borderColor = Color.BLACK;
         pCard.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(pCard);
         cardFont = generator.generateFont(pCard);
+        FontQuality.fixScale(cardFont);
         FreeTypeFontGenerator.FreeTypeFontParameter pTooltipTitle = new FreeTypeFontGenerator.FreeTypeFontParameter();
         pTooltipTitle.size = 38;
         pTooltipTitle.color = new Color(1f, 0.92f, 0.55f, 1f);
         pTooltipTitle.borderWidth = 1.3f;
         pTooltipTitle.borderColor = Color.BLACK;
         pTooltipTitle.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(pTooltipTitle);
         tooltipTitleFont = generator.generateFont(pTooltipTitle);
+        FontQuality.fixScale(tooltipTitleFont);
         FreeTypeFontGenerator.FreeTypeFontParameter pTooltipBody = new FreeTypeFontGenerator.FreeTypeFontParameter();
         pTooltipBody.size = 23;
         pTooltipBody.color = new Color(0.96f, 0.93f, 0.86f, 1f);
         pTooltipBody.borderWidth = 0.9f;
         pTooltipBody.borderColor = Color.BLACK;
         pTooltipBody.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(pTooltipBody);
         tooltipBodyFont = generator.generateFont(pTooltipBody);
+        FontQuality.fixScale(tooltipBodyFont);
         generator.dispose();
 
         buildUi();
@@ -139,7 +141,7 @@ public class AchievementsButton implements Screen {
         titleLabel.setPosition(titleX, titleY);
         stage.addActor(titleLabel);
 
-        List<Achievements> all = new ArrayList<>(game.getAchievementManager().getCatalog().getAll());
+        List<Achievements> all = new ArrayList<>(services.achievements().getCatalog().getAll());
         all.sort(Comparator.comparingInt(achievement -> achievement.getRarity().ordinal()));
         pageOneGrid = buildAchievementPage(all, 0);
         pageTwoGrid = buildAchievementPage(all, ACHIEVEMENTS_PER_PAGE);
@@ -186,7 +188,7 @@ public class AchievementsButton implements Screen {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 if (currentPage != 0) {
-                    AudioManager.get().playSelect(0.72f);
+                    audio().playSelect(0.72f);
                     currentPage = 0;
                     refreshPageSelector();
                 }
@@ -196,7 +198,7 @@ public class AchievementsButton implements Screen {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 if (currentPage != 1) {
-                    AudioManager.get().playSelect(0.72f);
+                    audio().playSelect(0.72f);
                     currentPage = 1;
                     refreshPageSelector();
                 }
@@ -206,7 +208,7 @@ public class AchievementsButton implements Screen {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 if (currentPage != 2) {
-                    AudioManager.get().playSelect(0.72f);
+                    audio().playSelect(0.72f);
                     currentPage = 2;
                     refreshPageSelector();
                 }
@@ -216,7 +218,7 @@ public class AchievementsButton implements Screen {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 if (currentPage != 3) {
-                    AudioManager.get().playSelect(0.72f);
+                    audio().playSelect(0.72f);
                     currentPage = 3;
                     refreshPageSelector();
                 }
@@ -307,7 +309,7 @@ public class AchievementsButton implements Screen {
     }
 
     private Stack buildCard(Achievements achievement) {
-        boolean unlocked = game.getAchievementManager().isUnlocked(achievement.getCode());
+        boolean unlocked = services.achievements().isUnlocked(achievement.getCode());
         Image base = new Image(new TextureRegionDrawable(card));
         Image art = null;
         if (achievement.getRarity() == AchievementsRarity.Common) {
@@ -387,9 +389,9 @@ public class AchievementsButton implements Screen {
     @Override
     public void render(float delta) {
         elapsed += delta;
-        AudioManager.get().updateMenuAmbience(delta);
+        audio().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new SettingsMenu(game));
+            navigator().goToSettings();
             return;
         }
         float w = stage.getViewport().getWorldWidth();
@@ -462,8 +464,7 @@ public class AchievementsButton implements Screen {
 
     @Override
     public void hide() {
-        AudioManager.get().leaveMenuContext();
-        Gdx.input.setInputProcessor(null);
+        endMenuHide();
     }
 
     @Override

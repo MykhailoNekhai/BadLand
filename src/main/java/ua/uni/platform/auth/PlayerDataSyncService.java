@@ -5,20 +5,51 @@ import com.badlogic.gdx.files.FileHandle;
 import ua.uni.core.dto.*;
 import ua.uni.gameplay.achievements.AchievementManager;
 import ua.uni.gameplay.achievements.Achievements;
-import ua.uni.bootstrap.MainGame;
 import ua.uni.core.exceptions.firebase.FirebaseNotFoundException;
 import ua.uni.core.logging.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class PlayerDataSyncService implements AchievementManager.Listener {
     private static final String TAG = "PlayerSync";
 
-    private final MainGame game;
+    private final SessionManager sessionManager;
+    private final TokenRefreshService tokenRefreshService;
+    private final FirestoreService firestoreService;
+    private final FirebaseStorageService storageService;
+    private final AchievementManager achievementManager;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "player-sync");
+        t.setDaemon(true);
+        return t;
+    });
 
-    public PlayerDataSyncService(MainGame game) {
-        this.game = game;
+    public PlayerDataSyncService(SessionManager sessionManager,
+                                 TokenRefreshService tokenRefreshService,
+                                 FirestoreService firestoreService,
+                                 FirebaseStorageService storageService,
+                                 AchievementManager achievementManager) {
+        this.sessionManager = sessionManager;
+        this.tokenRefreshService = tokenRefreshService;
+        this.firestoreService = firestoreService;
+        this.storageService = storageService;
+        this.achievementManager = achievementManager;
+    }
+
+    public void shutdown() {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     public void syncProfileHeartbeat() {
@@ -26,10 +57,10 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
             return;
         }
         runAsync("profile_heartbeat", () -> {
-            String uid = game.getSessionManager().getUid();
-            String token = game.getValidIdToken();
-            UserProfileDto current = game.getFirestoreService().getUserProfileDto(token, uid);
-            String email = blankTo(game.getSessionManager().getEmail(), current != null ? current.getEmail() : "");
+            String uid = sessionManager.getUid();
+            String token = tokenRefreshService.getFreshToken();
+            UserProfileDto current = firestoreService.getUserProfileDto(token, uid);
+            String email = blankTo(sessionManager.getEmail(), current != null ? current.getEmail() : "");
             String nickname = current != null && current.getNickname() != null && !current.getNickname().isBlank()
                     ? current.getNickname()
                     : nicknameFromEmail(email);
@@ -40,9 +71,9 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
             long createdAt = current != null && current.getCreatedAt() > 0 ? current.getCreatedAt() : now;
             boolean verified = current != null && current.isEmailVerified();
 
-            game.getFirestoreService().saveUserProfile(token, uid,
+            firestoreService.saveUserProfile(token, uid,
                     new UserProfileDto(uid, nickname, email, language, createdAt, now, verified));
-            game.getFirestoreService().appendPlayerEvent(token, uid,
+            firestoreService.appendPlayerEvent(token, uid,
                     new PlayerEventDto("PROFILE_HEARTBEAT", now, "session-active"));
         });
     }
@@ -52,15 +83,15 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
             return;
         }
         runAsync("bootstrap", () -> {
-            String uid = game.getSessionManager().getUid();
-            String token = game.getValidIdToken();
+            String uid = sessionManager.getUid();
+            String token = tokenRefreshService.getFreshToken();
 
             try {
-                UserProfileDto profile = game.getFirestoreService().getUserProfileDto(token, uid);
-                PlayerSettingsDto settings = getOrNull(() -> game.getFirestoreService().getPlayerSettings(token, uid));
-                PlayerProgressDto progress = getOrNull(() -> game.getFirestoreService().getPlayerProgress(token, uid));
-                PlayerStatsDto stats = getOrNull(() -> game.getFirestoreService().getPlayerStats(token, uid));
-                PlayerAchievementsDto achievements = getOrNull(() -> game.getFirestoreService().getPlayerAchievements(token, uid));
+                UserProfileDto profile = firestoreService.getUserProfileDto(token, uid);
+                PlayerSettingsDto settings = getOrNull(() -> firestoreService.getPlayerSettings(token, uid));
+                PlayerProgressDto progress = getOrNull(() -> firestoreService.getPlayerProgress(token, uid));
+                PlayerStatsDto stats = getOrNull(() -> firestoreService.getPlayerStats(token, uid));
+                PlayerAchievementsDto achievements = getOrNull(() -> firestoreService.getPlayerAchievements(token, uid));
 
                 Gdx.app.postRunnable(() -> {
                     if (settings != null) {
@@ -68,23 +99,23 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
                     } else if (profile != null && profile.getLanguage() != null && !profile.getLanguage().isBlank()) {
                         ua.uni.core.config.GameSettings.setLanguage(profile.getLanguage());
                     }
-                    game.getAchievementManager().applyCloudState(progress, stats, achievements);
+                    achievementManager.applyCloudState(progress, stats, achievements);
                 });
 
                 if (settings == null) {
-                    game.getFirestoreService().savePlayerSettings(token, uid, buildSettingsDto());
+                    firestoreService.savePlayerSettings(token, uid, buildSettingsDto());
                 }
                 if (progress == null) {
-                    game.getFirestoreService().savePlayerProgress(token, uid, buildProgressDto());
+                    firestoreService.savePlayerProgress(token, uid, buildProgressDto());
                 }
                 if (stats == null) {
-                    game.getFirestoreService().savePlayerStats(token, uid, buildStatsDto());
+                    firestoreService.savePlayerStats(token, uid, buildStatsDto());
                 }
                 if (achievements == null) {
-                    game.getFirestoreService().savePlayerAchievements(token, uid, buildAchievementsDto());
+                    firestoreService.savePlayerAchievements(token, uid, buildAchievementsDto());
                 }
 
-                game.getFirestoreService().appendPlayerEvent(token, uid,
+                firestoreService.appendPlayerEvent(token, uid,
                         new PlayerEventDto("CLOUD_BOOTSTRAP", System.currentTimeMillis(), "cloud-first"));
 
                 if (profile != null) {
@@ -108,7 +139,7 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
             return;
         }
         try {
-            byte[] bytes = game.getStorageService().downloadBytes(avatarUrl, token);
+            byte[] bytes = storageService.downloadBytes(avatarUrl, token);
             cachedFile.writeBytes(bytes, false);
             AppLogger.info(TAG, "Avatar cached from cloud");
         } catch (Exception e) {
@@ -121,10 +152,10 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
             return;
         }
         runAsync("settings_" + reason, () -> {
-            String uid = game.getSessionManager().getUid();
-            String token = game.getValidIdToken();
-            game.getFirestoreService().savePlayerSettings(token, uid, buildSettingsDto());
-            game.getFirestoreService().appendPlayerEvent(token, uid,
+            String uid = sessionManager.getUid();
+            String token = tokenRefreshService.getFreshToken();
+            firestoreService.savePlayerSettings(token, uid, buildSettingsDto());
+            firestoreService.appendPlayerEvent(token, uid,
                     new PlayerEventDto("SETTINGS_CHANGED", System.currentTimeMillis(), reason));
         });
     }
@@ -134,12 +165,12 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
             return;
         }
         runAsync("progress_" + eventType, () -> {
-            String uid = game.getSessionManager().getUid();
-            String token = game.getValidIdToken();
-            game.getFirestoreService().savePlayerProgress(token, uid, buildProgressDto());
-            game.getFirestoreService().savePlayerStats(token, uid, buildStatsDto());
-            game.getFirestoreService().savePlayerAchievements(token, uid, buildAchievementsDto());
-            game.getFirestoreService().appendPlayerEvent(token, uid,
+            String uid = sessionManager.getUid();
+            String token = tokenRefreshService.getFreshToken();
+            firestoreService.savePlayerProgress(token, uid, buildProgressDto());
+            firestoreService.savePlayerStats(token, uid, buildStatsDto());
+            firestoreService.savePlayerAchievements(token, uid, buildAchievementsDto());
+            firestoreService.appendPlayerEvent(token, uid,
                     new PlayerEventDto(eventType, System.currentTimeMillis(), details));
         });
     }
@@ -188,7 +219,7 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
     }
 
     private PlayerProgressDto buildProgressDto() {
-        AchievementManager achievements = game.getAchievementManager();
+        AchievementManager achievements = achievementManager;
         List<LevelProgressDto> levels = new ArrayList<>();
         int totalLevels = achievements.getTotalLevels();
         int highestUnlocked = 1;
@@ -205,7 +236,7 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
     }
 
     private PlayerStatsDto buildStatsDto() {
-        AchievementManager achievements = game.getAchievementManager();
+        AchievementManager achievements = achievementManager;
         return new PlayerStatsDto(
                 achievements.getTotalScore(),
                 achievements.getTotalWins(),
@@ -221,7 +252,7 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
     }
 
     private PlayerAchievementsDto buildAchievementsDto() {
-        AchievementManager achievements = game.getAchievementManager ();
+        AchievementManager achievements = achievementManager;
         List<AchievementProgressDto> rows = new ArrayList<>();
         for (Achievements achievement : achievements.getCatalog().getAll()) {
             boolean unlocked = achievements.isUnlocked(achievement.getCode());
@@ -231,23 +262,21 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
     }
 
     private void runAsync(String name, Runnable action) {
-        Thread thread = new Thread(() -> {
+        executor.submit(() -> {
             try {
                 action.run();
             } catch (Exception e) {
                 AppLogger.error(TAG, "Sync failed for " + name, e);
             }
-        }, "player-sync-" + name);
-        thread.setDaemon(true);
-        thread.start();
+        });
     }
 
     private void seedCloudFromLocal(String reason) {
-        String uid = game.getSessionManager().getUid();
-        String token = game.getValidIdToken();
+        String uid = sessionManager.getUid();
+        String token = tokenRefreshService.getFreshToken();
         long now = System.currentTimeMillis();
-        String email = game.getSessionManager().getEmail();
-        game.getFirestoreService().saveUserProfile(token, uid, new UserProfileDto(
+        String email = sessionManager.getEmail();
+        firestoreService.saveUserProfile(token, uid, new UserProfileDto(
                 uid,
                 nicknameFromEmail(email),
                 email,
@@ -256,11 +285,11 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
                 now,
                 false
         ));
-        game.getFirestoreService().savePlayerSettings(token, uid, buildSettingsDto());
-        game.getFirestoreService().savePlayerProgress(token, uid, buildProgressDto());
-        game.getFirestoreService().savePlayerStats(token, uid, buildStatsDto());
-        game.getFirestoreService().savePlayerAchievements(token, uid, buildAchievementsDto());
-        game.getFirestoreService().appendPlayerEvent(token, uid,
+        firestoreService.savePlayerSettings(token, uid, buildSettingsDto());
+        firestoreService.savePlayerProgress(token, uid, buildProgressDto());
+        firestoreService.savePlayerStats(token, uid, buildStatsDto());
+        firestoreService.savePlayerAchievements(token, uid, buildAchievementsDto());
+        firestoreService.appendPlayerEvent(token, uid,
                 new PlayerEventDto("CLOUD_SEEDED", now, reason));
     }
 
@@ -273,7 +302,7 @@ public class PlayerDataSyncService implements AchievementManager.Listener {
     }
 
     private boolean hasSession() {
-        return game.getSessionManager() != null && game.getSessionManager().hasSession();
+        return sessionManager != null && sessionManager.hasSession();
     }
 
     private String blankTo(String value, String fallback) {

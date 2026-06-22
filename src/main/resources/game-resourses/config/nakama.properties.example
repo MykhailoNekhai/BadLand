@@ -1,0 +1,19 @@
+# Sensitive values should be provided via environment variables (recommended for releases):
+#   NAKAMA_SERVER_KEY, NAKAMA_GAMEPLAY_TOKEN_SECRET
+# Non-secret values (host, ports) can also be overridden via env vars:
+#   NAKAMA_HOST, NAKAMA_API_PORT, NAKAMA_SOCKET_PORT,
+#   NAKAMA_GAMEPLAY_HOST, NAKAMA_GAMEPLAY_UDP_PORT
+enabled=true
+host=REPLACE_WITH_NAKAMA_HOST
+apiPort=7349
+socketPort=7350
+serverKey=REPLACE_WITH_NAKAMA_SERVER_KEY
+ssl=false
+trace=false
+createAccountsByDefault=true
+gameplayHost=REPLACE_WITH_NAKAMA_GAMEPLAY_HOST
+gameplayUdpPort=7360
+gameplayHealthPort=8081
+gameplayTokenSecret=REPLACE_WITH_NAKAMA_GAMEPLAY_TOKEN_SECRET
+gameplayTickRate=30
+gameplaySnapshotRate=15

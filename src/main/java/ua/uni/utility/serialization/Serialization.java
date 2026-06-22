@@ -1,6 +1,7 @@
 package ua.uni.utility.serialization;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
@@ -32,10 +33,16 @@ public final class Serialization {
     }
 
     public static String getStringField(String serialized, String fieldName) {
-        JsonObject object = JsonParser.parseString(serialized).getAsJsonObject();
-        if (!object.has(fieldName) || object.get(fieldName).isJsonNull()) {
+        if (serialized == null || serialized.isBlank()) return null;
+        try {
+            com.google.gson.JsonElement parsed = JsonParser.parseString(serialized);
+            if (parsed == null || !parsed.isJsonObject()) return null;
+            JsonObject object = parsed.getAsJsonObject();
+            JsonElement field = object.get(fieldName);
+            if (field == null || field.isJsonNull()) return null;
+            return field.getAsString();
+        } catch (Exception e) {
             return null;
         }
-        return object.get(fieldName).getAsString();
     }
 }

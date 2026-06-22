@@ -25,6 +25,8 @@ import ua.uni.gameplay.factory.EntityFactory;
 
 
 public class ShadowSystem extends IteratingSystem {
+    private static final float WING_FLAP_CYCLE_SECONDS = 0.36f;
+    private static final int[] WING_FRAME_SEQUENCE = {2, 3, 4, 3, 2, 1, 0, 1, 2};
 
     private final ComponentMapper<PlayerComponent> playerMapper = ComponentMapper.getFor(PlayerComponent.class);
     private final ComponentMapper<PhysicsComponent> physMapper = ComponentMapper.getFor(PhysicsComponent.class);
@@ -260,16 +262,24 @@ public class ShadowSystem extends IteratingSystem {
             TextureComponent wingTex = texMapper.get(entity);
             if (player.moveUp) {
                 wings.isVisible = true;
+                wings.flapTime += deltaTime;
+                if (wings.flapTime >= WING_FLAP_CYCLE_SECONDS) {
+                    wings.flapTime %= WING_FLAP_CYCLE_SECONDS;
+                }
 
-                wings.flapTime += deltaTime * 26f; 
-
-                float amplitude = wingTex.height * 0.45f;
-                float sinValue = (float)Math.sin(wings.flapTime);
+                float phase = wings.flapTime / WING_FLAP_CYCLE_SECONDS;
+                wings.currentFrame = wingFrameForPhase(phase);
+                // Амплітуда руху крил: вгору стандартно, а вниз - набагато сильніше
+                float amplitude = tex.height * 0.45f;
+                float rawSinValue = -(float)Math.sin(phase * Math.PI * 2f);
+                float sinValue = rawSinValue;
                 if (sinValue < 0) {
                     sinValue *= 1.6f;
                 }
                 wings.currentYOffset = sinValue * amplitude;
             } else {
+                wings.currentFrame = 2;
+                // Плавне згортання: крила повертаються в центр тіла (де вони ховаються на чорному фоні)
                 wings.currentYOffset += (0f - wings.currentYOffset) * 12f * deltaTime;
                 
                 if (Math.abs(wings.currentYOffset) < 1f) {
@@ -328,6 +338,15 @@ public class ShadowSystem extends IteratingSystem {
 
         phys.body.applyTorque(angleError * 4f, true);
     }
+
+    private int wingFrameForPhase(float phase) {
+        int frameIndex = (int)(phase * WING_FRAME_SEQUENCE.length);
+        if (frameIndex >= WING_FRAME_SEQUENCE.length) {
+            frameIndex = WING_FRAME_SEQUENCE.length - 1;
+        }
+        return WING_FRAME_SEQUENCE[frameIndex];
+    }
+
 // метод, що змінює розмір об'єкту (нюанси рушія)
     private void resizePlayer(Entity entity, PlayerComponent player, PhysicsComponent phys) {
         TextureComponent textureComp = texMapper.get(entity);

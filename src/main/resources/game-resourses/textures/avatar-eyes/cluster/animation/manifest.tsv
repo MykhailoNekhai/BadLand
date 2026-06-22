@@ -1,0 +1,21 @@
+color	state	file	source
+purple	open	cluster_purple_open.png	ChatGPT Image Jun 20, 2026 at 08_38_12 PM (2).png
+purple	half_closed	cluster_purple_half_closed.png	ChatGPT Image Jun 20, 2026 at 11_09_18 PM (4).png
+purple	closed	cluster_purple_closed.png	ChatGPT Image Jun 20, 2026 at 11_11_34 PM (4).png
+purple	blink_spritesheet	cluster_purple_blink_spritesheet.png	cluster_purple_open.png | cluster_purple_half_closed.png | cluster_purple_closed.png
+gray	open	cluster_gray_open.png	ChatGPT Image Jun 20, 2026 at 08_38_12 PM (1).png
+gray	half_closed	cluster_gray_half_closed.png	ChatGPT Image Jun 20, 2026 at 11_09_17 PM (1).png
+gray	closed	cluster_gray_closed.png	ChatGPT Image Jun 20, 2026 at 11_11_33 PM (1).png
+gray	blink_spritesheet	cluster_gray_blink_spritesheet.png	cluster_gray_open.png | cluster_gray_half_closed.png | cluster_gray_closed.png
+green	open	cluster_green_open.png	ChatGPT Image Jun 20, 2026 at 08_38_12 PM (5).png
+green	half_closed	cluster_green_half_closed.png	ChatGPT Image Jun 20, 2026 at 11_09_18 PM (5).png
+green	closed	cluster_green_closed.png	ChatGPT Image Jun 20, 2026 at 11_11_34 PM (5).png
+green	blink_spritesheet	cluster_green_blink_spritesheet.png	cluster_green_open.png | cluster_green_half_closed.png | cluster_green_closed.png
+cyan	open	cluster_cyan_open.png	ChatGPT Image Jun 20, 2026 at 08_38_12 PM (4).png
+cyan	half_closed	cluster_cyan_half_closed.png	ChatGPT Image Jun 20, 2026 at 11_09_17 PM (2).png
+cyan	closed	cluster_cyan_closed.png	ChatGPT Image Jun 20, 2026 at 11_11_33 PM (2).png
+cyan	blink_spritesheet	cluster_cyan_blink_spritesheet.png	cluster_cyan_open.png | cluster_cyan_half_closed.png | cluster_cyan_closed.png
+yellow	open	cluster_yellow_open.png	ChatGPT Image Jun 20, 2026 at 08_38_12 PM (3).png
+yellow	half_closed	cluster_yellow_half_closed.png	ChatGPT Image Jun 20, 2026 at 11_09_17 PM (3).png
+yellow	closed	cluster_yellow_closed.png	ChatGPT Image Jun 20, 2026 at 11_11_34 PM (3).png
+yellow	blink_spritesheet	cluster_yellow_blink_spritesheet.png	cluster_yellow_open.png | cluster_yellow_half_closed.png | cluster_yellow_closed.png

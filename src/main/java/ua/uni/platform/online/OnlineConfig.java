@@ -2,9 +2,14 @@ package ua.uni.platform.online;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 public class OnlineConfig {
+    private static final String RESOURCE_PATH = "game-resourses/config/nakama.properties";
+    private static final String LOCAL_RESOURCE_PATH = "src/main/resources/" + RESOURCE_PATH;
+
     private final boolean enabled;
     private final String host;
     private final int apiPort;
@@ -97,24 +102,19 @@ public class OnlineConfig {
     }
 
     public static OnlineConfig loadFromResources() {
-        Properties properties = new Properties();
-        try (InputStream input = OnlineConfig.class.getClassLoader()
-                .getResourceAsStream("game-resourses/config/nakama.properties")) {
-            if (input == null) {
-                throw new IllegalStateException("Missing resource: game-resourses/config/nakama.properties");
-            }
-            properties.load(input);
+        try {
+            Properties properties = loadProperties();
             boolean enabled = Boolean.parseBoolean(properties.getProperty("enabled", "true"));
-            String host = required(properties, "host");
-            int apiPort = parsePort(properties, "apiPort");
-            int socketPort = parsePort(properties, "socketPort");
-            String serverKey = required(properties, "serverKey");
+            String host = resolveRequired(properties, "host", "NAKAMA_HOST");
+            int apiPort = parsePort(properties, "apiPort", "NAKAMA_API_PORT");
+            int socketPort = parsePort(properties, "socketPort", "NAKAMA_SOCKET_PORT");
+            String serverKey = resolveRequired(properties, "serverKey", "NAKAMA_SERVER_KEY");
             boolean ssl = Boolean.parseBoolean(properties.getProperty("ssl", "false"));
             boolean trace = Boolean.parseBoolean(properties.getProperty("trace", "false"));
             boolean createAccountsByDefault = Boolean.parseBoolean(properties.getProperty("createAccountsByDefault", "true"));
-            String gameplayHost = properties.getProperty("gameplayHost", host).trim();
-            int gameplayUdpPort = parsePort(properties, "gameplayUdpPort");
-            String gameplayTokenSecret = required(properties, "gameplayTokenSecret");
+            String gameplayHost = resolveRequired(properties, "gameplayHost", "NAKAMA_GAMEPLAY_HOST");
+            int gameplayUdpPort = parsePort(properties, "gameplayUdpPort", "NAKAMA_GAMEPLAY_UDP_PORT");
+            String gameplayTokenSecret = resolveRequired(properties, "gameplayTokenSecret", "NAKAMA_GAMEPLAY_TOKEN_SECRET");
             int gameplayTickRate = Integer.parseInt(properties.getProperty("gameplayTickRate", "30"));
             int gameplaySnapshotRate = Integer.parseInt(properties.getProperty("gameplaySnapshotRate", "15"));
             int gameplayHealthPort = Integer.parseInt(properties.getProperty("gameplayHealthPort", "8081"));
@@ -126,17 +126,50 @@ public class OnlineConfig {
         }
     }
 
-    private static String required(Properties properties, String key) {
-        String value = properties.getProperty(key);
-        if (value == null || value.isBlank()) {
-            throw new IllegalStateException("nakama.properties must contain " + key);
+    private static Properties loadProperties() throws IOException {
+        Properties properties = new Properties();
+        try (InputStream input = OnlineConfig.class.getClassLoader().getResourceAsStream(RESOURCE_PATH)) {
+            if (input != null) {
+                properties.load(input);
+                return properties;
+            }
         }
-        return value.trim();
+
+        Path localPath = Path.of(LOCAL_RESOURCE_PATH);
+        if (Files.isRegularFile(localPath)) {
+            try (InputStream input = Files.newInputStream(localPath)) {
+                properties.load(input);
+            }
+        }
+        return properties;
     }
 
-    private static int parsePort(Properties properties, String key) {
+    // Priority: environment variable, then ignored local properties file.
+    private static String resolveRequired(Properties props, String propKey, String envKey) {
+        String envVal = System.getenv(envKey);
+        if (envVal != null && !envVal.isBlank()) return envVal.trim();
+        String propVal = props.getProperty(propKey);
+        if (propVal == null || propVal.isBlank() || propVal.startsWith("REPLACE_WITH_")) {
+            throw new IllegalStateException(
+                "No value for '" + propKey + "': set env var '" + envKey + "' or check nakama.properties");
+        }
+        return propVal.trim();
+    }
+
+    private static int parsePort(Properties properties, String key, String envKey) {
+        String envVal = System.getenv(envKey);
+        if (envVal != null && !envVal.isBlank()) {
+            try { return Integer.parseInt(envVal.trim()); }
+            catch (NumberFormatException e) {
+                throw new IllegalStateException("Invalid integer in env var " + envKey, e);
+            }
+        }
         try {
-            return Integer.parseInt(required(properties, key));
+            String val = properties.getProperty(key);
+            if (val == null || val.isBlank()) {
+                throw new IllegalStateException("nakama.properties must contain '" + key + "' or env var '" + envKey + "' must be set");
+            }
+            return Integer.parseInt(val.trim());
         } catch (NumberFormatException e) {
             throw new IllegalStateException("Invalid integer for " + key, e);
         }

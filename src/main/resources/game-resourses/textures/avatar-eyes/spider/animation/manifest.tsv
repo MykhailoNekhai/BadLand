@@ -1,0 +1,21 @@
+color	state	file	source
+green	open	spider_green_open.png	ChatGPT Image Jun 19, 2026 at 06_23_24 PM (1).png
+green	half_closed	spider_green_half_closed.png	ChatGPT Image Jun 19, 2026 at 08_34_36 PM (1).png
+green	closed	spider_green_closed.png	ChatGPT Image Jun 20, 2026 at 12_47_34 PM (1).png
+green	blink_spritesheet	spider_green_blink_spritesheet.png	ChatGPT Image Jun 19, 2026 at 06_23_24 PM (1).png | ChatGPT Image Jun 19, 2026 at 08_34_36 PM (1).png | ChatGPT Image Jun 20, 2026 at 12_47_34 PM (1).png
+cyan	open	spider_cyan_open.png	ChatGPT Image Jun 19, 2026 at 06_23_24 PM (2).png
+cyan	half_closed	spider_cyan_half_closed.png	ChatGPT Image Jun 19, 2026 at 08_34_37 PM (2).png
+cyan	closed	spider_cyan_closed.png	ChatGPT Image Jun 20, 2026 at 12_47_34 PM (2).png
+cyan	blink_spritesheet	spider_cyan_blink_spritesheet.png	ChatGPT Image Jun 19, 2026 at 06_23_24 PM (2).png | ChatGPT Image Jun 19, 2026 at 08_34_37 PM (2).png | ChatGPT Image Jun 20, 2026 at 12_47_34 PM (2).png
+yellow	open	spider_yellow_open.png	ChatGPT Image Jun 19, 2026 at 06_23_24 PM (3).png
+yellow	half_closed	spider_yellow_half_closed.png	ChatGPT Image Jun 19, 2026 at 08_34_37 PM (3).png
+yellow	closed	spider_yellow_closed.png	ChatGPT Image Jun 20, 2026 at 12_47_34 PM (3).png
+yellow	blink_spritesheet	spider_yellow_blink_spritesheet.png	ChatGPT Image Jun 19, 2026 at 06_23_24 PM (3).png | ChatGPT Image Jun 19, 2026 at 08_34_37 PM (3).png | ChatGPT Image Jun 20, 2026 at 12_47_34 PM (3).png
+purple	open	spider_purple_open.png	ChatGPT Image Jun 19, 2026 at 06_23_24 PM (4).png
+purple	half_closed	spider_purple_half_closed.png	ChatGPT Image Jun 19, 2026 at 08_34_37 PM (4).png
+purple	closed	spider_purple_closed.png	ChatGPT Image Jun 20, 2026 at 12_47_35 PM (4).png
+purple	blink_spritesheet	spider_purple_blink_spritesheet.png	ChatGPT Image Jun 19, 2026 at 06_23_24 PM (4).png | ChatGPT Image Jun 19, 2026 at 08_34_37 PM (4).png | ChatGPT Image Jun 20, 2026 at 12_47_35 PM (4).png
+gray	open	spider_gray_open.png	ChatGPT Image Jun 19, 2026 at 06_23_24 PM (5).png
+gray	half_closed	spider_gray_half_closed.png	ChatGPT Image Jun 19, 2026 at 08_34_38 PM (5).png
+gray	closed	spider_gray_closed.png	ChatGPT Image Jun 20, 2026 at 12_47_35 PM (5).png
+gray	blink_spritesheet	spider_gray_blink_spritesheet.png	ChatGPT Image Jun 19, 2026 at 06_23_24 PM (5).png | ChatGPT Image Jun 19, 2026 at 08_34_38 PM (5).png | ChatGPT Image Jun 20, 2026 at 12_47_35 PM (5).png

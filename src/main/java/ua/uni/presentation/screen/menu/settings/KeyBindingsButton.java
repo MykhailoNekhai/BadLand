@@ -2,7 +2,6 @@ package ua.uni.presentation.screen.menu.settings;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -10,7 +9,6 @@ import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -18,15 +16,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.audio.services.AudioManager;
 import ua.uni.core.config.GameSettings;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
+import ua.uni.presentation.screen.menu.core.PMenu;
+import ua.uni.presentation.screen.menu.factory.FontQuality;
 
-public class KeyBindingsButton implements Screen {
-    private final MainGame game;
-    private Stage stage;
-    private Texture bg;
+public class KeyBindingsButton extends PMenu {
+        private Texture bg;
     private Texture rowBtn;
     private Texture rowBtnDim;
     private BitmapFont font;
@@ -45,15 +41,13 @@ public class KeyBindingsButton implements Screen {
     private TextButton upBtn;
     private TextButton downBtn;
 
-    public KeyBindingsButton(MainGame game) {
-        this.game = game;
+    public KeyBindingsButton(GameServices services) {
+        super(services);
     }
 
     @Override
     public void show() {
-        stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
-        AudioManager.get().enterMenuContext();
+        beginMenuShow();
 
         moveLeft = GameSettings.getMoveLeft();
         moveRight = GameSettings.getMoveRight();
@@ -62,8 +56,8 @@ public class KeyBindingsButton implements Screen {
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        rowBtn = roundedRect(760, 84, 22, new Color(0f, 0f, 0f, 1f));
-        rowBtnDim = roundedRect(760, 84, 22, new Color(0f, 0f, 0f, 1f));
+        rowBtn = textures().roundedRect(760, 84, 22, new Color(0f, 0f, 0f, 1f));
+        rowBtnDim = textures().roundedRect(760, 84, 22, new Color(0f, 0f, 0f, 1f));
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter p = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -72,7 +66,9 @@ public class KeyBindingsButton implements Screen {
         p.borderWidth = 1.2f;
         p.borderColor = Color.BLACK;
         p.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(p);
         font = generator.generateFont(p);
+        FontQuality.fixScale(font);
 
         FreeTypeFontGenerator.FreeTypeFontParameter ps = new FreeTypeFontGenerator.FreeTypeFontParameter();
         ps.size = 28;
@@ -80,7 +76,9 @@ public class KeyBindingsButton implements Screen {
         ps.borderWidth = 1.0f;
         ps.borderColor = Color.BLACK;
         ps.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(ps);
         smallFont = generator.generateFont(ps);
+        FontQuality.fixScale(smallFont);
 
         FreeTypeFontGenerator.FreeTypeFontParameter pt = new FreeTypeFontGenerator.FreeTypeFontParameter();
         pt.size = 80;
@@ -88,7 +86,9 @@ public class KeyBindingsButton implements Screen {
         pt.borderWidth = 2f;
         pt.borderColor = Color.BLACK;
         pt.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(pt);
         titleFont = generator.generateFont(pt);
+        FontQuality.fixScale(titleFont);
         generator.dispose();
 
         buildUi();
@@ -178,9 +178,9 @@ public class KeyBindingsButton implements Screen {
     @Override
     public void render(float delta) {
         elapsed += delta;
-        AudioManager.get().updateMenuAmbience(delta);
+        audio().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new SettingsMenu(game));
+            navigator().goToSettings();
             return;
         }
         float w = stage.getViewport().getWorldWidth();
@@ -217,7 +217,7 @@ public class KeyBindingsButton implements Screen {
     }
 
     private void toggleMoveLeft() {
-        AudioManager.get().playSelect(0.7f);
+        audio().playSelect(0.7f);
         if (moveLeft == Input.Keys.A) {
             moveLeft = Input.Keys.LEFT;
         } else {
@@ -228,7 +228,7 @@ public class KeyBindingsButton implements Screen {
     }
 
     private void toggleMoveRight() {
-        AudioManager.get().playSelect(0.7f);
+        audio().playSelect(0.7f);
         if (moveRight == Input.Keys.D) {
             moveRight = Input.Keys.RIGHT;
         } else {
@@ -238,7 +238,7 @@ public class KeyBindingsButton implements Screen {
     }
 
     private void toggleMoveUp() {
-        AudioManager.get().playSelect(0.7f);
+        audio().playSelect(0.7f);
         if (moveUp == Input.Keys.W) {
             moveUp = Input.Keys.UP;
         } else {
@@ -248,7 +248,7 @@ public class KeyBindingsButton implements Screen {
     }
 
     private void toggleMoveDown() {
-        AudioManager.get().playSelect(0.7f);
+        audio().playSelect(0.7f);
         if (moveDown == Input.Keys.S) {
             moveDown = Input.Keys.DOWN;
         } else {
@@ -285,8 +285,7 @@ public class KeyBindingsButton implements Screen {
 
     @Override
     public void hide() {
-        AudioManager.get().leaveMenuContext();
-        Gdx.input.setInputProcessor(null);
+        endMenuHide();
     }
 
     @Override

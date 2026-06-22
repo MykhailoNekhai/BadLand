@@ -2,7 +2,6 @@ package ua.uni.presentation.screen.menu.singleplayer;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Blending;
@@ -12,7 +11,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Interpolation;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -31,14 +29,15 @@ import ua.uni.gameplay.levels.Poligon5Level;
 import ua.uni.gameplay.levels.Poligon6Level;
 import ua.uni.gameplay.levels.PoligonLevel;
 import ua.uni.presentation.screen.level.LevelPreviewScreen;
+import ua.uni.bootstrap.GameServices;
+import ua.uni.presentation.screen.menu.core.PMenu;
+import ua.uni.presentation.screen.menu.factory.FontQuality;
 import ua.uni.presentation.screen.menu.settings.LanguageButton;
 
-public class SinglePlayerMenu implements Screen {
+public class SinglePlayerMenu extends PMenu {
     private static final int LEVELS_PER_PAGE = 10;
 
-    private final MainGame game;
-    private Stage stage;
-    private Texture bg;
+        private Texture bg;
     private Texture levelCard;
     private Texture pageButtonBg;
     private Texture pageButtonActiveBg;
@@ -58,23 +57,21 @@ public class SinglePlayerMenu implements Screen {
     private boolean startTransition;
     private int selectedLevel = -1;
 
-    public SinglePlayerMenu(MainGame game) {
-        this.game = game;
+    public SinglePlayerMenu(GameServices services) {
+        super(services);
     }
 
     @Override
     public void show() {
-        stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
-        AudioManager.get().enterMenuContext();
+        beginMenuShow();
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         levelCard = makeLevelCardTexture(230, 300);
-        pageButtonBg = roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 1f));
-        pageButtonActiveBg = roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 1f));
+        pageButtonBg = textures().roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 1f));
+        pageButtonActiveBg = textures().roundedRect(84, 64, 18, new Color(0f, 0f, 0f, 1f));
         vignette = makeVignette(1280, 720);
-        transitionBlack = solidTexture(2, 2, Color.BLACK);
+        transitionBlack = textures().solidTexture(2, 2, Color.BLACK);
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
@@ -82,14 +79,18 @@ public class SinglePlayerMenu implements Screen {
         pTitle.size = 88;
         pTitle.color = Color.BLACK;
         pTitle.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(pTitle);
         titleFont = generator.generateFont(pTitle);
+        FontQuality.fixScale(titleFont);
         FreeTypeFontGenerator.FreeTypeFontParameter pCard = new FreeTypeFontGenerator.FreeTypeFontParameter();
         pCard.size = 44;
         pCard.color = new Color(1f, 0.86f, 0.36f, 1f);
         pCard.borderWidth = 1.4f;
         pCard.borderColor = new Color(0f, 0f, 0f, 1f);
         pCard.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(pCard);
         cardFont = generator.generateFont(pCard);
+        FontQuality.fixScale(cardFont);
 
         generator.dispose();
 
@@ -132,7 +133,7 @@ public class SinglePlayerMenu implements Screen {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 if (currentPage != 0) {
-                    AudioManager.get().playSelect(0.72f);
+                    audio().playSelect(0.72f);
                     currentPage = 0;
                     refreshPageSelector();
                 }
@@ -142,7 +143,7 @@ public class SinglePlayerMenu implements Screen {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 if (currentPage != 1) {
-                    AudioManager.get().playSelect(0.72f);
+                    audio().playSelect(0.72f);
                     currentPage = 1;
                     refreshPageSelector();
                 }
@@ -196,7 +197,7 @@ public class SinglePlayerMenu implements Screen {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
                 if (startTransition) return;
-                AudioManager.get().playLevelSelect(0.85f);
+                audio().playLevelSelect(0.85f);
                 s.addAction(Actions.sequence(
                         Actions.scaleTo(0.96f, 0.96f, 0.05f, Interpolation.fade),
                         Actions.scaleTo(1f, 1f, 0.10f, Interpolation.sineOut)
@@ -207,7 +208,7 @@ public class SinglePlayerMenu implements Screen {
 
             @Override
             public void enter(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y, int pointer, com.badlogic.gdx.scenes.scene2d.Actor fromActor) {
-                if (!startTransition) AudioManager.get().playHover();
+                if (!startTransition) audio().playHover();
             }
         });
         return s;
@@ -216,9 +217,9 @@ public class SinglePlayerMenu implements Screen {
     @Override
     public void render(float delta) {
         elapsed += delta;
-        AudioManager.get().updateMenuAmbience(delta);
+        audio().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new ua.uni.presentation.screen.menu.main.Menu(game));
+            navigator().goToMainMenu();
             return;
         }
         if (startTransition) {
@@ -374,8 +375,7 @@ public class SinglePlayerMenu implements Screen {
 
     @Override
     public void hide() {
-        AudioManager.get().leaveMenuContext();
-        Gdx.input.setInputProcessor(null);
+        endMenuHide();
     }
 
     @Override

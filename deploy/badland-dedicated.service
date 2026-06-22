@@ -1,0 +1,18 @@
+[Unit]
+Description=BadLand Dedicated Server
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/badland
+ExecStart=/usr/bin/java -jar /root/badland/BadLand-1.0-SNAPSHOT-all.jar --server
+Restart=always
+RestartSec=5
+SuccessExitStatus=143
+StandardOutput=append:/root/badland/server.log
+StandardError=append:/root/badland/server.log
+
+[Install]
+WantedBy=multi-user.target

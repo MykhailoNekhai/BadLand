@@ -33,7 +33,7 @@ public class IntroScreen implements Screen {
     private static final String TITLE_TEXT = "SHADOW FLIGHT";
     private static final String SUBTITLE_TEXT = "The forest breathes before the fall";
 
-    private final MainGame game;
+    private final GameServices services;
     private final GlyphLayout titleLayout = new GlyphLayout();
     private final GlyphLayout subtitleLayout = new GlyphLayout();
     private final GlyphLayout skipLayout = new GlyphLayout();
@@ -65,8 +65,8 @@ public class IntroScreen implements Screen {
     private boolean transitionStarted;
     private boolean disposeScheduled;
 
-    public IntroScreen(MainGame game) {
-        this.game = game;
+    public IntroScreen(GameServices services) {
+        this.services = services;
     }
 
     @Override
@@ -99,6 +99,10 @@ public class IntroScreen implements Screen {
         titleParams.shadowOffsetY = 6;
         titleParams.shadowColor = new Color(0f, 0f, 0f, 0.45f);
         titleParams.characters = LanguageButton.FONT_CHARACTERS;
+        titleParams.minFilter = com.badlogic.gdx.graphics.Texture.TextureFilter.Linear;
+        titleParams.magFilter = com.badlogic.gdx.graphics.Texture.TextureFilter.Linear;
+        titleParams.hinting = FreeTypeFontGenerator.Hinting.Full;
+        titleParams.gamma = 1.4f;
         titleFont = generator.generateFont(titleParams);
 
         FreeTypeFontGenerator.FreeTypeFontParameter subtitleParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -107,12 +111,20 @@ public class IntroScreen implements Screen {
         subtitleParams.borderWidth = 1.1f;
         subtitleParams.borderColor = new Color(0.02f, 0.03f, 0.02f, 1f);
         subtitleParams.characters = LanguageButton.FONT_CHARACTERS;
+        subtitleParams.minFilter = com.badlogic.gdx.graphics.Texture.TextureFilter.Linear;
+        subtitleParams.magFilter = com.badlogic.gdx.graphics.Texture.TextureFilter.Linear;
+        subtitleParams.hinting = FreeTypeFontGenerator.Hinting.Full;
+        subtitleParams.gamma = 1.4f;
         subtitleFont = generator.generateFont(subtitleParams);
 
         FreeTypeFontGenerator.FreeTypeFontParameter skipParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         skipParams.size = 30;
         skipParams.color = new Color(0.92f, 0.88f, 0.78f, 1f);
         skipParams.characters = LanguageButton.FONT_CHARACTERS;
+        skipParams.minFilter = com.badlogic.gdx.graphics.Texture.TextureFilter.Linear;
+        skipParams.magFilter = com.badlogic.gdx.graphics.Texture.TextureFilter.Linear;
+        skipParams.hinting = FreeTypeFontGenerator.Hinting.Full;
+        skipParams.gamma = 1.4f;
         skipFont = generator.generateFont(skipParams);
         generator.dispose();
 
@@ -161,7 +173,7 @@ public class IntroScreen implements Screen {
             transitionElapsed += delta;
             if (!disposeScheduled && transitionElapsed >= transitionDuration) {
                 disposeScheduled = true;
-                game.setScreen(game.createStartupScreen());
+                services.setScreen(services.createStartupScreen());
                 return;
             }
         }

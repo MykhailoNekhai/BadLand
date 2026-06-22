@@ -1,23 +1,8 @@
 package ua.uni.audio.services;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.math.MathUtils;
-import ua.uni.core.config.GameSettings;
 
 public final class AudioManager {
-    private static final float AMBIENT_FREQUENCY_BOOST = 0.64f;
-    private static final float MENU_AMBIENT_VOLUME = 0.45f;
-    private static final float MENU_AMBIENT_FIRST_DELAY = 4.5f * AMBIENT_FREQUENCY_BOOST;
-    private static final float MENU_AMBIENT_MIN_DELAY = 5.5f * AMBIENT_FREQUENCY_BOOST;
-    private static final float MENU_AMBIENT_MAX_DELAY = 10.5f * AMBIENT_FREQUENCY_BOOST;
-    private static final float LEVEL_MUSIC_VOLUME = 0.42f;
-    private static final float LEVEL_AMBIENT_VOLUME = 0.16f;
-    private static final float LEVEL_AMBIENT_FIRST_DELAY = 5.0f * AMBIENT_FREQUENCY_BOOST;
-    private static final float LEVEL_AMBIENT_MIN_DELAY = 6.5f * AMBIENT_FREQUENCY_BOOST;
-    private static final float LEVEL_AMBIENT_MAX_DELAY = 11.5f * AMBIENT_FREQUENCY_BOOST;
-
     private static AudioManager INSTANCE;
 
     private final Music menuMusic;
@@ -200,82 +185,86 @@ public final class AudioManager {
     }
 
     public static AudioManager get() {
-        if (INSTANCE == null) INSTANCE = new AudioManager();
+        if (INSTANCE == null) {
+            INSTANCE = new AudioManager();
+        }
         return INSTANCE;
     }
 
+    public void enterMusicContext(MusicContext context) {
+        musicService.enter(context);
+    }
+
+    public void leaveMusicContext(MusicContext context) {
+        musicService.leave(context);
+    }
+
+    public void playMusic(MusicContext context) {
+        musicService.play(context);
+    }
+
+    public void pauseMusic(MusicContext context) {
+        musicService.pause(context);
+    }
+
+    public void stopMusic(MusicContext context) {
+        musicService.stop(context);
+    }
+
+    public void playLoginMusic() {
+        enterMusicContext(MusicContext.LOGIN);
+    }
+
+    public void enterLoginContext() {
+        enterMusicContext(MusicContext.LOGIN);
+    }
+
+    public void stopLoginMusic() {
+        leaveMusicContext(MusicContext.LOGIN);
+    }
+
+    public void leaveLoginContext() {
+        leaveMusicContext(MusicContext.LOGIN);
+    }
+
     public void playMenuMusic() {
-        enterMenuContext();
+        enterMusicContext(MusicContext.MENU);
     }
 
     public void enterMenuContext() {
-        menuContextDepth++;
-        menuMusicWanted = true;
-        pauseLevelMusic();
-        applySoundSetting();
+        enterMusicContext(MusicContext.MENU);
     }
 
     public void stopMenuMusic() {
-        leaveMenuContext();
+        leaveMusicContext(MusicContext.MENU);
     }
 
     public void leaveMenuContext() {
-        if (menuContextDepth > 0) {
-            menuContextDepth--;
-        }
-        if (menuContextDepth == 0) {
-            menuMusicWanted = false;
-            menuMusic.pause();
-        }
+        leaveMusicContext(MusicContext.MENU);
     }
 
     public void startLevelMusic() {
-        levelMusicWanted = true;
-        menuMusicWanted = false;
-        menuMusic.pause();
-        applySoundSetting();
+        playMusic(MusicContext.LEVEL);
     }
 
     public void pauseLevelMusic() {
-        levelMusicWanted = false;
-        if (levelMusic.isPlaying()) {
-            levelMusic.pause();
-        }
+        pauseMusic(MusicContext.LEVEL);
     }
 
     public void resumeLevelMusic() {
-        levelMusicWanted = true;
-        menuMusicWanted = false;
-        menuMusic.pause();
-        applySoundSetting();
+        playMusic(MusicContext.LEVEL);
     }
 
     public void stopLevelMusic() {
-        levelMusicWanted = false;
-        levelMusic.stop();
+        stopMusic(MusicContext.LEVEL);
     }
 
     public void applySoundSetting() {
-        float v = GameSettings.getMusicVolume();
-        menuMusic.setVolume(v);
-        levelMusic.setVolume(v * LEVEL_MUSIC_VOLUME);
-
-        if (menuMusicWanted && v > 0f) {
-            if (!menuMusic.isPlaying()) menuMusic.play();
-        } else if (menuMusic.isPlaying()) {
-            menuMusic.pause();
-        }
-
-        if (levelMusicWanted && v > 0f) {
-            if (!levelMusic.isPlaying()) levelMusic.play();
-        } else if (levelMusic.isPlaying()) {
-            levelMusic.pause();
-        }
+        musicService.applySoundSetting();
     }
 
     public void playHover() {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) uiHover.play(0.35f * v);
+        soundService.playHover();
     }
 
     public void playExplosionSound(float volume) {
@@ -284,213 +273,94 @@ public final class AudioManager {
     }
 
     public void playSelect(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) uiSelect.play(volume * v);
+        soundService.playSelect(volume);
     }
 
     public void playStart(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) uiStart.play(volume * v);
+        soundService.playStart(volume);
     }
 
     public void playPanelInOut(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) uiPanelInOut.play(volume * v);
+        soundService.playPanelInOut(volume);
     }
 
     public void playLevelSelect(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) uiLevelSelect.play(volume * v);
+        soundService.playLevelSelect(volume);
     }
 
     public void playAchievementNotice(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) achievementNotice.play(volume * v);
+        soundService.playAchievementNotice(volume);
     }
 
     public void playAchievementWinner(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) achievementWinner.play(volume * v);
+        soundService.playAchievementWinner(volume);
     }
 
     public void playLevelWin(float volume) {
-        stopLevelMusic();
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) levelWin.play(volume * v);
+        stopMusic(MusicContext.LEVEL);
+        soundService.playLevelWin(volume);
     }
 
     public void playLevelLose(float volume) {
-        stopLevelMusic();
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) levelLose.play(volume * v);
+        stopMusic(MusicContext.LEVEL);
+        soundService.playLevelLose(volume);
     }
 
     public void playRandomMenuAmbience(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v <= 0f || menuAmbience.length == 0) {
-            return;
-        }
-        int index = MathUtils.random(menuAmbience.length - 1);
-        menuAmbience[index].play(volume * v);
+        soundService.playRandomMenuAmbience(volume);
     }
 
     public void playRandomCloneSound(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v <= 0f || cloneSounds.length == 0) {
-            return;
-        }
-        int index = MathUtils.random(cloneSounds.length - 1);
-        cloneSounds[index].play(volume * v);
+        soundService.playRandomCloneSound(volume);
     }
 
     public void playBiggerSound(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) biggerSound.play(volume * v);
+        soundService.playBiggerSound(volume);
     }
 
     public void playSmallerSound(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) smallerSound.play(volume * v);
+        soundService.playSmallerSound(volume);
     }
 
     public void playSlowerSound(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) slowerSound.play(volume * v);
+        soundService.playSlowerSound(volume);
     }
 
     public void playFastSound(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) fastSound.play(volume * v);
+        soundService.playFastSound(volume);
     }
 
     public void playImpactSound(float impulse, String material) {
-        long currentTime = com.badlogic.gdx.utils.TimeUtils.millis();
-        if (currentTime - lastImpactTime < 50) return; // небольшая задержка, чтобы 50 клонов не оглушили за 1 кадр
-        lastImpactTime = currentTime;
-
-        Sound[] targetSounds;
-        if ("metal".equals(material)) targetSounds = impactMetalSounds;
-        else if ("rock".equals(material)) targetSounds = impactRockSounds;
-        else if ("wood".equals(material)) targetSounds = impactWoodSounds;
-        else targetSounds = impactRubberSounds;
-
-        if (targetSounds.length == 0) return;
-
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) {
-            // Импульс может быть от 2 до 50+, делаем нелинейную громкость
-            float volume = Math.min(impulse / 15f, 1.0f) * v * 0.8f;
-            int index = MathUtils.random(targetSounds.length - 1);
-            targetSounds[index].play(volume);
-        }
+        soundService.playImpactSound(impulse, material);
     }
 
     public void playSquishSound() {
-        long currentTime = com.badlogic.gdx.utils.TimeUtils.millis();
-        if (currentTime - lastDeathTime < 50) return;
-        lastDeathTime = currentTime;
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) squishSound.play(v);
+        soundService.playSquishSound();
     }
 
     public void playSideDeathSound() {
-        long currentTime = com.badlogic.gdx.utils.TimeUtils.millis();
-        if (currentTime - lastDeathTime < 50) return;
-        lastDeathTime = currentTime;
-        float v = GameSettings.getMusicVolume();
-        if (v > 0f) sideDeathSound.play(v);
+        soundService.playSideDeathSound();
     }
 
     public Sound getCircsawLoopSound() {
-        return circsawLoopSound;
+        return soundService.getCircsawLoopSound();
     }
 
     public void updateMenuAmbience(float delta) {
-        if (menuContextDepth <= 0) {
-            return;
-        }
-        menuAmbientElapsed += delta;
-        if (menuAmbientElapsed < nextMenuAmbientAt) {
-            return;
-        }
-        playRandomMenuAmbience(MENU_AMBIENT_VOLUME);
-        nextMenuAmbientAt = menuAmbientElapsed + MathUtils.random(MENU_AMBIENT_MIN_DELAY, MENU_AMBIENT_MAX_DELAY);
+        soundService.updateMenuAmbience(delta, musicService.isContextActive(MusicContext.MENU));
     }
 
     public void updateLevelAmbience(float delta) {
-        if (!levelMusicWanted) {
-            return;
-        }
-
-        // Таймер взмахов крыльев уменьшается всегда
-        if (flySoundCooldown > 0f) {
-            flySoundCooldown -= delta;
-        }
-
-        if (Gdx.input.isKeyPressed(GameSettings.getMoveUp())) {
-            if (flySoundCooldown <= 0f) {
-                float v = GameSettings.getMusicVolume();
-                if (v > 0f && flySounds.length > 0) {
-                    int index = MathUtils.random(flySounds.length - 1);
-                    flySounds[index].play(0.4f * v);
-                }
-                // Более строгая задержка между звуками (250-350 миллисекунд)
-                flySoundCooldown = MathUtils.random(0.25f, 0.35f); 
-            }
-        }
-
-        levelAmbientElapsed += delta;
-        if (levelAmbientElapsed < nextLevelAmbientAt) {
-            return;
-        }
-        playRandomLevelAmbience(LEVEL_AMBIENT_VOLUME);
-        nextLevelAmbientAt = levelAmbientElapsed + MathUtils.random(LEVEL_AMBIENT_MIN_DELAY, LEVEL_AMBIENT_MAX_DELAY);
+        soundService.updateLevelAmbience(delta, musicService.isWanted(MusicContext.LEVEL));
     }
 
     public void playRandomLevelAmbience(float volume) {
-        float v = GameSettings.getMusicVolume();
-        if (v <= 0f || levelAmbience.length == 0) {
-            return;
-        }
-        int index = MathUtils.random(levelAmbience.length - 1);
-        levelAmbience[index].play(volume * v);
+        soundService.playRandomLevelAmbience(volume);
     }
 
     public void dispose() {
-        menuMusic.dispose();
-        levelMusic.dispose();
-        uiHover.dispose();
-        uiSelect.dispose();
-        uiStart.dispose();
-        uiPanelInOut.dispose();
-        uiLevelSelect.dispose();
-        achievementNotice.dispose();
-        achievementWinner.dispose();
-        levelWin.dispose();
-        levelLose.dispose();
-        for (Sound sound : menuAmbience) {
-            sound.dispose();
-        }
-        for (Sound sound : levelAmbience) {
-            sound.dispose();
-        }
-        for (Sound sound : cloneSounds) {
-            sound.dispose();
-        }
-        biggerSound.dispose();
-        smallerSound.dispose();
-        slowerSound.dispose();
-        fastSound.dispose();
-        for (Sound sound : flySounds) {
-            sound.dispose();
-        }
-        for (Sound sound : impactMetalSounds) sound.dispose();
-        for (Sound sound : impactWoodSounds) sound.dispose();
-        for (Sound sound : impactRockSounds) sound.dispose();
-        for (Sound sound : impactRubberSounds) sound.dispose();
-        circsawLoopSound.dispose();
-        squishSound.dispose();
-        sideDeathSound.dispose();
+        musicService.dispose();
+        soundService.dispose();
         INSTANCE = null;
     }
 }
