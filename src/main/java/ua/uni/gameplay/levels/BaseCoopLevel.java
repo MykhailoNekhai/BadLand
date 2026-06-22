@@ -18,7 +18,7 @@ import ua.uni.audio.services.AudioManager;
 import ua.uni.core.config.GameSettings;
 import ua.uni.gameplay.ecs.components.PhysicsComponent;
 import ua.uni.gameplay.ecs.components.PlayerComponent;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
 import ua.uni.gameplay.factory.EntityFactory;
 import ua.uni.platform.online.CoopMatchState;
 import ua.uni.platform.online.CoopProtocol;
@@ -55,17 +55,17 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
     private boolean remoteStateReceived;
     private boolean localAllDeadBroadcast;
 
-    protected BaseCoopLevel(MainGame game) {
-        super(game);
-        this.matchState = game.getCoopMatchState();
+    protected BaseCoopLevel(GameServices services) {
+        super(services);
+        this.matchState = services.getCoopMatchState();
         this.onlineMatchMode = matchState != null && matchState.getExpectedPlayers() > 1;
     }
 
     @Override
     public void show() {
         super.show();
-        if (onlineMatchMode && game.getNakamaMatchService() != null) {
-            game.getNakamaMatchService().setEventListener(this);
+        if (onlineMatchMode && services.nakamaMatch() != null) {
+            services.nakamaMatch().setEventListener(this);
         }
         if (onlineMatchMode) {
             spawnRemoteClone(2f, 9f);
@@ -83,7 +83,7 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (!onlineMatchMode) {
                 // У локальному режимі просто виходимо в меню
-                game.setScreen(new ua.uni.presentation.screen.menu.main.Menu(game));
+                services.setScreen(new ua.uni.presentation.screen.menu.main.Menu(services));
                 return;
             }
             abortLevel(LanguageButton.t("PLAYER_LEFT_MATCH"), true);
@@ -110,7 +110,7 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         camera.position.y = camera.viewportHeight / 2f;
         camera.update();
 
-        game.getBatch().setProjectionMatrix(camera.combined);
+        services.batch().setProjectionMatrix(camera.combined);
         renderLevelBackground();
 
         if (state == GameState.PLAYING) {
@@ -230,7 +230,7 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         if (!onlineMatchMode) {
             return;
         }
-        if (matchState == null || !game.getNakamaMatchService().isConnected()) {
+        if (matchState == null || !services.nakamaMatch().isConnected()) {
             return;
         }
         networkSendElapsed += delta;
@@ -248,7 +248,7 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         payload.put("started", String.valueOf(isGameStarted));
         payload.put("allDead", String.valueOf(localAllDead));
         payload.put("clones", encodeLocalPlayers());
-        game.getNakamaMatchService().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_PLAYER_STATE,
+        services.nakamaMatch().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_PLAYER_STATE,
                 Serialization.toJson(payload).getBytes(StandardCharsets.UTF_8));
         if (shouldBroadcastDeath) {
             localAllDeadBroadcast = true;
@@ -440,24 +440,24 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         if ("Victory".equalsIgnoreCase(title)) {
             AudioManager.get().playLevelWin(0.95f);
             if (levelNumber > 0) {
-                game.getAchievementManager().onLevelComplete(levelNumber);
+                services.achievements().onLevelComplete(levelNumber);
             }
         } else {
             AudioManager.get().playLevelLose(0.95f);
             if (levelNumber > 0) {
-                game.getAchievementManager().onLevelFailed();
+                services.achievements().onLevelFailed();
             }
         }
-        if (broadcast && onlineMatchMode && matchState != null && game.getNakamaMatchService().isConnected()) {
+        if (broadcast && onlineMatchMode && matchState != null && services.nakamaMatch().isConnected()) {
             Map<String, String> payload = new LinkedHashMap<>();
             payload.put("type", "result");
             payload.put("title", title);
             payload.put("message", message);
-            game.getNakamaMatchService().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_LEVEL_RESULT,
+            services.nakamaMatch().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_LEVEL_RESULT,
                     Serialization.toJson(payload).getBytes(StandardCharsets.UTF_8));
         }
         cleanupConnection();
-        game.setScreen(new CoopStatusScreen(game, title, message));
+        services.setScreen(new CoopStatusScreen(services, title, message));
     }
 
     private void abortLevel(String message, boolean broadcast) {
@@ -466,40 +466,40 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         }
         ended = true;
         AudioManager.get().playLevelLose(0.95f);
-        if (broadcast && onlineMatchMode && matchState != null && game.getNakamaMatchService().isConnected()) {
+        if (broadcast && onlineMatchMode && matchState != null && services.nakamaMatch().isConnected()) {
             Map<String, String> payload = new LinkedHashMap<>();
             payload.put("type", "abort");
             payload.put("message", message);
-            game.getNakamaMatchService().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_LEVEL_ABORT,
+            services.nakamaMatch().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_LEVEL_ABORT,
                     Serialization.toJson(payload).getBytes(StandardCharsets.UTF_8));
         }
         cleanupConnection();
-        game.setScreen(new CoopStatusScreen(game, LanguageButton.t("CONNECTION_ERROR"), message));
+        services.setScreen(new CoopStatusScreen(services, LanguageButton.t("CONNECTION_ERROR"), message));
     }
 
     private void broadcastLocalDeath() {
-        if (matchState == null || !game.getNakamaMatchService().isConnected()) {
+        if (matchState == null || !services.nakamaMatch().isConnected()) {
             return;
         }
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("type", "death");
         payload.put("userId", matchState.getLocalUserId());
         payload.put("dead", "true");
-        game.getNakamaMatchService().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_PLAYER_DEATH,
+        services.nakamaMatch().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_PLAYER_DEATH,
                 Serialization.toJson(payload).getBytes(StandardCharsets.UTF_8));
     }
 
     private void cleanupConnection() {
-        game.clearCoopMatchState();
-        if (matchState != null && game.getNakamaMatchService().isConnected()) {
+        services.clearCoopMatchState();
+        if (matchState != null && services.nakamaMatch().isConnected()) {
             try {
-                game.getNakamaMatchService().leaveMatch(matchState.getMatchId());
+                services.nakamaMatch().leaveMatch(matchState.getMatchId());
             } catch (Exception ignored) {
             }
             if (!onlineMatchMode) {
-                game.getNakamaMatchService().setEventListener(null);
+                services.nakamaMatch().setEventListener(null);
             }
-            game.getNakamaMatchService().disconnect();
+            services.nakamaMatch().disconnect();
         }
     }
 

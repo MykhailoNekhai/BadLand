@@ -1,0 +1,6 @@
+# Sensitive values should be provided via environment variables (recommended for releases):
+#   FIREBASE_API_KEY, FIREBASE_PROJECT_ID, FIREBASE_STORAGE_BUCKET, FIREBASE_HOSTING_DOMAIN
+# Values below are used only when the corresponding env var is NOT set.
+apiKey=REPLACE_WITH_FIREBASE_API_KEY
+projectId=REPLACE_WITH_FIREBASE_PROJECT_ID
+storageBucket=REPLACE_WITH_FIREBASE_STORAGE_BUCKET

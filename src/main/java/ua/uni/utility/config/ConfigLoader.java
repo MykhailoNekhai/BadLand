@@ -3,17 +3,19 @@ package ua.uni.utility.config;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Json;
 import ua.uni.core.config.ObjectConfig;
+import ua.uni.core.logging.AppLogger;
 
 import java.util.HashMap;
 
 public class ConfigLoader {
 
+    private static final String TAG = "ConfigLoader";
     private static HashMap<String, ObjectConfig> configs;
 
     public static void load() {
         Json json = new Json();
         configs = json.fromJson(HashMap.class, ObjectConfig.class, Gdx.files.internal("game-resourses/assetPhysicData/obstacles-config.json"));
-        System.out.println("Data base is loaded, current number of objests is: " + configs.size());
+        AppLogger.info(TAG, "Config loaded: " + configs.size() + " objects");
     }
 
     public static ObjectConfig get(String objectName) {

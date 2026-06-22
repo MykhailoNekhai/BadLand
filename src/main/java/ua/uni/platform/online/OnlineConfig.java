@@ -1,5 +1,7 @@
 package ua.uni.platform.online;
 
+import ua.uni.core.security.RuntimeSecrets;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -105,16 +107,16 @@ public class OnlineConfig {
             }
             properties.load(input);
             boolean enabled = Boolean.parseBoolean(properties.getProperty("enabled", "true"));
-            String host = required(properties, "host");
-            int apiPort = parsePort(properties, "apiPort");
-            int socketPort = parsePort(properties, "socketPort");
-            String serverKey = required(properties, "serverKey");
+            String host = resolveRequired(properties, "host", "NAKAMA_HOST");
+            int apiPort = parsePort(properties, "apiPort", "NAKAMA_API_PORT");
+            int socketPort = parsePort(properties, "socketPort", "NAKAMA_SOCKET_PORT");
+            String serverKey = resolveRequired(properties, "serverKey", "NAKAMA_SERVER_KEY");
             boolean ssl = Boolean.parseBoolean(properties.getProperty("ssl", "false"));
             boolean trace = Boolean.parseBoolean(properties.getProperty("trace", "false"));
             boolean createAccountsByDefault = Boolean.parseBoolean(properties.getProperty("createAccountsByDefault", "true"));
-            String gameplayHost = properties.getProperty("gameplayHost", host).trim();
-            int gameplayUdpPort = parsePort(properties, "gameplayUdpPort");
-            String gameplayTokenSecret = required(properties, "gameplayTokenSecret");
+            String gameplayHost = resolveRequired(properties, "gameplayHost", "NAKAMA_GAMEPLAY_HOST");
+            int gameplayUdpPort = parsePort(properties, "gameplayUdpPort", "NAKAMA_GAMEPLAY_UDP_PORT");
+            String gameplayTokenSecret = resolveRequired(properties, "gameplayTokenSecret", "NAKAMA_GAMEPLAY_TOKEN_SECRET");
             int gameplayTickRate = Integer.parseInt(properties.getProperty("gameplayTickRate", "30"));
             int gameplaySnapshotRate = Integer.parseInt(properties.getProperty("gameplaySnapshotRate", "15"));
             int gameplayHealthPort = Integer.parseInt(properties.getProperty("gameplayHealthPort", "8081"));
@@ -126,19 +128,46 @@ public class OnlineConfig {
         }
     }
 
-    private static String required(Properties properties, String key) {
-        String value = properties.getProperty(key);
-        if (value == null || value.isBlank()) {
-            throw new IllegalStateException("nakama.properties must contain " + key);
+    // Priority: env var → RuntimeSecrets (encrypted in code) → properties file.
+    private static String resolveRequired(Properties props, String propKey, String envKey) {
+        String envVal = System.getenv(envKey);
+        if (envVal != null && !envVal.isBlank()) return envVal.trim();
+        String built = builtInSecret(envKey);
+        if (built != null) return built;
+        String propVal = props.getProperty(propKey);
+        if (propVal == null || propVal.isBlank() || propVal.startsWith("REPLACE_WITH_")) {
+            throw new IllegalStateException(
+                "No value for '" + propKey + "': set env var '" + envKey + "' or check nakama.properties");
         }
-        return value.trim();
+        return propVal.trim();
     }
 
-    private static int parsePort(Properties properties, String key) {
+    private static int parsePort(Properties properties, String key, String envKey) {
+        String envVal = System.getenv(envKey);
+        if (envVal != null && !envVal.isBlank()) {
+            try { return Integer.parseInt(envVal.trim()); }
+            catch (NumberFormatException e) {
+                throw new IllegalStateException("Invalid integer in env var " + envKey, e);
+            }
+        }
         try {
-            return Integer.parseInt(required(properties, key));
+            String val = properties.getProperty(key);
+            if (val == null || val.isBlank()) {
+                throw new IllegalStateException("nakama.properties must contain '" + key + "' or env var '" + envKey + "' must be set");
+            }
+            return Integer.parseInt(val.trim());
         } catch (NumberFormatException e) {
             throw new IllegalStateException("Invalid integer for " + key, e);
+        }
+    }
+
+    private static String builtInSecret(String envKey) {
+        switch (envKey) {
+            case "NAKAMA_SERVER_KEY":          return RuntimeSecrets.nakamaServerKey();
+            case "NAKAMA_GAMEPLAY_TOKEN_SECRET": return RuntimeSecrets.nakamaTokenSecret();
+            case "NAKAMA_HOST":                return RuntimeSecrets.nakamaHost();
+            case "NAKAMA_GAMEPLAY_HOST":       return RuntimeSecrets.nakamaHost();
+            default:                           return null;
         }
     }
 }

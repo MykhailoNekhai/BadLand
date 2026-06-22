@@ -2,42 +2,37 @@ package ua.uni.presentation.screen.menu.coop;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.bootstrap.MainGame;
-import ua.uni.presentation.screen.menu.main.Menu;
+import ua.uni.bootstrap.GameServices;
+import ua.uni.presentation.screen.menu.core.PMenu;
+import ua.uni.presentation.screen.menu.factory.FontQuality;
 import ua.uni.presentation.screen.menu.settings.LanguageButton;
 
-public class CoopStatusScreen implements Screen {
-    private final MainGame game;
+public class CoopStatusScreen extends PMenu {
     private final String title;
     private final String message;
-    private Stage stage;
     private Texture bg;
     private BitmapFont titleFont;
     private BitmapFont bodyFont;
 
-    public CoopStatusScreen(MainGame game, String title, String message) {
-        this.game = game;
+    public CoopStatusScreen(GameServices services, String title, String message) {
+        super(services);
         this.title = title;
         this.message = message;
     }
 
     @Override
     public void show() {
-        stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
-        bg = solidTexture(2, 2, new Color(0.02f, 0.02f, 0.03f, 1f));
+        beginMenuShow();
+        bg = textures().solidTexture(2, 2, new Color(0.02f, 0.02f, 0.03f, 1f));
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
@@ -47,13 +42,17 @@ public class CoopStatusScreen implements Screen {
         titleParams.borderWidth = 2f;
         titleParams.borderColor = Color.BLACK;
         titleParams.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(titleParams);
         titleFont = generator.generateFont(titleParams);
+        FontQuality.fixScale(titleFont);
 
         FreeTypeFontGenerator.FreeTypeFontParameter bodyParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         bodyParams.size = 34;
         bodyParams.color = new Color(0.92f, 0.92f, 0.88f, 1f);
         bodyParams.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(bodyParams);
         bodyFont = generator.generateFont(bodyParams);
+        FontQuality.fixScale(bodyFont);
         generator.dispose();
 
         Label titleLabel = new Label(title, new Label.LabelStyle(titleFont, Color.WHITE));
@@ -72,7 +71,7 @@ public class CoopStatusScreen implements Screen {
     @Override
     public void render(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new Menu(game));
+            navigator().goToMainMenu();
             return;
         }
         var batch = stage.getBatch();
@@ -98,7 +97,7 @@ public class CoopStatusScreen implements Screen {
 
     @Override
     public void hide() {
-        Gdx.input.setInputProcessor(null);
+        endMenuHide();
     }
 
     @Override

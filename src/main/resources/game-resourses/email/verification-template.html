@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify Your Email - Shadow Flight</title>
+  <style>
+    :root {
+      --bg: #0a0b0f;
+      --panel: #12141c;
+      --text: #eef1f6;
+      --muted: #b7c0d0;
+      --accent: #f5d052;
+      --accent-dark: #c8a63a;
+      --line: #242838;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(1000px 500px at 50% -150px, #202739 0%, var(--bg) 60%);
+      color: var(--text);
+      font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+    }
+
+    .wrap {
+      width: 100%;
+      padding: 32px 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      max-width: 640px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #151928 0%, var(--panel) 100%);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+    }
+
+    .hero {
+      padding: 28px 28px 14px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(245, 208, 82, 0.15), rgba(255, 255, 255, 0));
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #131313;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 14px 0 0;
+      font-size: 34px;
+      line-height: 1.08;
+      letter-spacing: 0.02em;
+    }
+
+    .body {
+      padding: 24px 28px 30px;
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .btn-row {
+      margin: 26px 0 18px;
+    }
+
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      color: #111;
+      background: linear-gradient(180deg, #ffe178 0%, var(--accent) 100%);
+      border: 1px solid var(--accent-dark);
+      border-radius: 12px;
+      padding: 14px 22px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 14px;
+    }
+
+    .hint {
+      margin-top: 8px;
+      color: #95a0b7;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .linkbox {
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      word-break: break-all;
+      color: #a9b4cb;
+      font-size: 12px;
+    }
+
+    .footer {
+      padding: 16px 28px 24px;
+      border-top: 1px solid var(--line);
+      color: #7f8aa1;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="hero">
+        <span class="badge">Shadow Flight</span>
+        <h1>Verify your email</h1>
+      </div>
+
+      <div class="body">
+        <p>Hello %DISPLAY_NAME%,</p>
+        <p>You are one step away from entering <strong>Shadow Flight</strong>. Confirm your email to activate your account and keep your progress safe.</p>
+
+        <div class="btn-row">
+          <a class="btn" href="%LINK%">Verify Email</a>
+        </div>
+
+        <p class="hint">If the button does not work, copy and open this link:</p>
+        <div class="linkbox">%LINK%</div>
+
+        <p class="hint">If you did not create this account, you can ignore this message.</p>
+      </div>
+
+      <div class="footer">
+        Sent by Shadow Flight account security.<br />
+        This is an automated message, please do not reply.
+      </div>
+    </div>
+  </div>
+</body>
+</html>

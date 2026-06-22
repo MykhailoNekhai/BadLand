@@ -88,7 +88,12 @@ final class FirestoreDtoMapper {
     private static JsonObject fromFirestoreFields(JsonObject fields) {
         JsonObject plain = new JsonObject();
         for (Map.Entry<String, JsonElement> entry : fields.entrySet()) {
-            plain.add(entry.getKey(), fromFirestoreValue(entry.getValue().getAsJsonObject()));
+            JsonElement val = entry.getValue();
+            if (val == null || !val.isJsonObject()) {
+                plain.add(entry.getKey(), JsonNull.INSTANCE);
+                continue;
+            }
+            plain.add(entry.getKey(), fromFirestoreValue(val.getAsJsonObject()));
         }
         return plain;
     }

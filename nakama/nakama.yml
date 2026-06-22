@@ -1,0 +1,15 @@
+name: "badland-nakama"
+
+logger:
+  level: "DEBUG"
+
+session:
+  token_expiry_sec: 7200
+  refresh_token_expiry_sec: 604800
+
+socket:
+  server_key: "badland-dev-key"
+
+console:
+  username: "admin"
+  password: "password"

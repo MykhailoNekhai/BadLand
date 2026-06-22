@@ -1,0 +1,21 @@
+color	state	file	source
+purple	open	shadow_purple_open.png	ChatGPT Image Jun 20, 2026 at 08_35_51 PM (1).png
+purple	half_closed	shadow_purple_half_closed.png	ChatGPT Image Jun 20, 2026 at 08_35_51 PM (1).png + ChatGPT Image Jun 20, 2026 at 08_37_21 PM (1).png
+purple	closed	shadow_purple_closed.png	ChatGPT Image Jun 20, 2026 at 08_37_21 PM (1).png
+purple	blink_spritesheet	shadow_purple_blink_spritesheet.png	shadow_purple_open.png | shadow_purple_half_closed.png | shadow_purple_closed.png
+gray	open	shadow_gray_open.png	ChatGPT Image Jun 20, 2026 at 08_35_51 PM (2).png
+gray	half_closed	shadow_gray_half_closed.png	ChatGPT Image Jun 20, 2026 at 08_35_51 PM (2).png + ChatGPT Image Jun 20, 2026 at 08_37_22 PM (2).png
+gray	closed	shadow_gray_closed.png	ChatGPT Image Jun 20, 2026 at 08_37_22 PM (2).png
+gray	blink_spritesheet	shadow_gray_blink_spritesheet.png	shadow_gray_open.png | shadow_gray_half_closed.png | shadow_gray_closed.png
+green	open	shadow_green_open.png	ChatGPT Image Jun 20, 2026 at 08_35_52 PM (3).png
+green	half_closed	shadow_green_half_closed.png	ChatGPT Image Jun 20, 2026 at 08_35_52 PM (3).png + ChatGPT Image Jun 20, 2026 at 08_37_22 PM (3).png
+green	closed	shadow_green_closed.png	ChatGPT Image Jun 20, 2026 at 08_37_22 PM (3).png
+green	blink_spritesheet	shadow_green_blink_spritesheet.png	shadow_green_open.png | shadow_green_half_closed.png | shadow_green_closed.png
+cyan	open	shadow_cyan_open.png	ChatGPT Image Jun 20, 2026 at 08_35_52 PM (4).png
+cyan	half_closed	shadow_cyan_half_closed.png	ChatGPT Image Jun 20, 2026 at 08_35_52 PM (4).png + ChatGPT Image Jun 20, 2026 at 08_37_23 PM (4).png
+cyan	closed	shadow_cyan_closed.png	ChatGPT Image Jun 20, 2026 at 08_37_23 PM (4).png
+cyan	blink_spritesheet	shadow_cyan_blink_spritesheet.png	shadow_cyan_open.png | shadow_cyan_half_closed.png | shadow_cyan_closed.png
+yellow	open	shadow_yellow_open.png	ChatGPT Image Jun 20, 2026 at 08_35_52 PM (5).png
+yellow	half_closed	shadow_yellow_half_closed.png	ChatGPT Image Jun 20, 2026 at 08_35_52 PM (5).png + ChatGPT Image Jun 20, 2026 at 08_37_24 PM (5).png
+yellow	closed	shadow_yellow_closed.png	ChatGPT Image Jun 20, 2026 at 08_37_24 PM (5).png
+yellow	blink_spritesheet	shadow_yellow_blink_spritesheet.png	shadow_yellow_open.png | shadow_yellow_half_closed.png | shadow_yellow_closed.png

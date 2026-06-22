@@ -1,11 +1,11 @@
 package ua.uni.gameplay.levels;
 
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
 
 public class CoopRuinsLevel extends BaseCoopLevel {
 
-    public CoopRuinsLevel(MainGame game) {
-        super(game);
+    public CoopRuinsLevel(GameServices services) {
+        super(services);
         finishLineX = 620f;
     }
 

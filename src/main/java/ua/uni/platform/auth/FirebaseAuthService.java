@@ -13,7 +13,7 @@ public class FirebaseAuthService {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final MediaType FORM = MediaType.parse("application/x-www-form-urlencoded; charset=utf-8");
     private static final String ACTION_HANDLER_PATH = "/web/action/";
-    private final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client = FirebaseHttpClient.INSTANCE;
     private final Gson gson = new Gson();
     private final FirebaseConfig config;
 
@@ -42,12 +42,12 @@ public class FirebaseAuthService {
         payload.addProperty("idToken", idToken);
         payload.addProperty("email", newEmail);
         payload.addProperty("returnSecureToken", true);
-        JsonObject json = post("accounts:update", payload);
+        JsonObject json = requireResponse(post("accounts:update", payload), "accounts:update");
         return new AuthResult(
-                json.get("idToken").getAsString(),
-                json.get("localId").getAsString(),
-                json.get("refreshToken").getAsString(),
-                json.get("email").getAsString()
+                getString(json, "idToken"),
+                getString(json, "localId"),
+                getString(json, "refreshToken"),
+                getString(json, "email")
         );
     }
 
@@ -122,13 +122,29 @@ public class FirebaseAuthService {
         payload.addProperty("email", email);
         payload.addProperty("password", password);
         payload.addProperty("returnSecureToken", true);
-        JsonObject json = post(endpoint, payload);
+        JsonObject json = requireResponse(post(endpoint, payload), endpoint);
         return new AuthResult(
-                json.get("idToken").getAsString(),
-                json.get("localId").getAsString(),
-                json.get("refreshToken").getAsString(),
-                json.get("email").getAsString()
+                getString(json, "idToken"),
+                getString(json, "localId"),
+                getString(json, "refreshToken"),
+                getString(json, "email")
         );
+    }
+
+    private static JsonObject requireResponse(JsonObject json, String endpoint) {
+        if (json == null) {
+            throw new ua.uni.core.exceptions.firebase.FirebaseServerException(
+                "Empty response from Firebase endpoint: " + endpoint);
+        }
+        return json;
+    }
+
+    private static String getString(JsonObject json, String field) {
+        if (!json.has(field) || json.get(field).isJsonNull()) {
+            throw new ua.uni.core.exceptions.firebase.FirebaseServerException(
+                "Missing field '" + field + "' in Firebase response");
+        }
+        return json.get(field).getAsString();
     }
 
     private JsonObject post(String endpoint, JsonObject payload) {

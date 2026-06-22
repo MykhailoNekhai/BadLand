@@ -48,14 +48,5 @@ public class SessionManager {
         return preferences.getString(KEY_EMAIL, "");
     }
 
-    public String getValidIdToken(FirebaseAuthService authService) {
-        String refreshToken = getRefreshToken();
-        if (refreshToken.isBlank()) {
-            clear();
-            throw new IllegalStateException("Firebase session is missing refresh token. Please log in again.");
-        }
-        FirebaseAuthService.AuthResult refreshed = authService.refreshIdToken(refreshToken, getEmail());
-        save(refreshed);
-        return refreshed.idToken();
-    }
+
 }

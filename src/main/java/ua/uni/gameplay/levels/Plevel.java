@@ -26,17 +26,19 @@ import ua.uni.gameplay.ecs.components.PhysicsComponent;
 import ua.uni.gameplay.ecs.components.PlayerComponent;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.core.config.GameSettings;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
 import ua.uni.gameplay.ecs.systems.PhysicsSystem;
 import ua.uni.gameplay.ecs.systems.PullSystem;
 import ua.uni.gameplay.ecs.systems.RenderSystem;
 import ua.uni.gameplay.ecs.systems.ShadowSystem;
 import ua.uni.gameplay.ecs.systems.BonusSystem;
+import ua.uni.gameplay.ecs.systems.EyeBlinkSystem;
 import ua.uni.gameplay.ecs.systems.PositionalAudioSystem;
 import ua.uni.gameplay.factory.EntityFactory;
 import ua.uni.gameplay.physics.GameContactListener;
 import ua.uni.presentation.screen.menu.pause.PauseMenu;
 import ua.uni.gameplay.stats.LevelStats;
+import ua.uni.core.logging.AppLogger;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -55,7 +57,7 @@ public abstract class Plevel implements Screen {
     protected Engine engine;
     protected World world;
     protected OrthographicCamera camera;
-    protected MainGame game;
+    protected GameServices services;
 
     private Texture backgroundGradient;
     private Texture backgroundGlow;
@@ -103,8 +105,8 @@ public abstract class Plevel implements Screen {
 
     protected GameState state = GameState.PLAYING;
 
-    public Plevel(MainGame game) {
-        this.game = game;
+    public Plevel(GameServices services) {
+        this.services = services;
     }
 
     protected void mainGameLogic() {
@@ -175,11 +177,11 @@ public abstract class Plevel implements Screen {
                 levelStats.loseScore++;
                 state = GameState.GAME_OVER;
                 if (levelNumber > 0) {
-                    game.getAchievementManager().onDeath(levelNumber);
+                    services.achievements().onDeath(levelNumber);
                 }
                 AudioManager.get().playLevelLose(0.95f);
                 Gdx.app.postRunnable(this::restartLevel);
-                System.out.println("Гра завершена. Програв");
+                AppLogger.info("Plevel", "Game over — player lost");
                 return;
             }
         }
@@ -190,12 +192,12 @@ public abstract class Plevel implements Screen {
                 levelStats.winScore++;
                 state = GameState.VICTORY;
                 if (levelNumber > 0) {
-                    game.getAchievementManager().onLevelComplete(levelNumber);
+                    services.achievements().onLevelComplete(levelNumber);
                 }
                 AudioManager.get().playLevelWin(0.95f);
-                System.out.println("Гра завершена. Перемога!");
+                AppLogger.info("Plevel", "Game over — player won");
                 Gdx.app.postRunnable(() -> {
-                    game.setScreen(new ua.uni.presentation.screen.menu.main.Menu(game));
+                    services.setScreen(new ua.uni.presentation.screen.menu.main.Menu(services));
                 });
             }
         }
@@ -207,7 +209,7 @@ public abstract class Plevel implements Screen {
         buildLevel();
         createGround();
         if (levelNumber > 0) {
-            game.getAchievementManager().onLevelStart(levelNumber);
+            services.achievements().onLevelStart(levelNumber);
         }
         AudioManager.get().startLevelMusic();
     }
@@ -240,12 +242,13 @@ public abstract class Plevel implements Screen {
         engine = new PooledEngine();
         engine.addSystem(new PhysicsSystem());
         engine.addSystem(new ShadowSystem(world));
-        engine.addSystem(new RenderSystem(game.getBatch()));
+        engine.addSystem(new EyeBlinkSystem());
+        engine.addSystem(new RenderSystem(services.batch()));
         engine.addSystem(new PullSystem());
         engine.addSystem(new BonusSystem(world));
         engine.addSystem(new PositionalAudioSystem(camera));
         engine.addSystem(new ua.uni.gameplay.ecs.systems.GodzillaPullSystem(world, levelStats));
-        pauseMenu = new PauseMenu(game, this::resumeFromPause, this::restartLevel, this::checkpointAction);
+        pauseMenu = new PauseMenu(services, this::resumeFromPause, this::restartLevel, this::checkpointAction);
         backgroundGradient = makeMultiStopGradient(64, 512, new Color[]{
                 new Color(0.03f, 0.03f, 0.03f, 1f),
                 new Color(0.07f, 0.06f, 0.05f, 1f),
@@ -275,15 +278,17 @@ public abstract class Plevel implements Screen {
         roofFix.friction = 0.2f;
         roofFix.restitution = 0.1f;
 
+        float levelBoundaryEnd = Math.max(500f, finishLineX + 80f);
+
         ChainShape floorShape = new ChainShape();
-        floorShape.createChain(new Vector2[]{new Vector2(-500, 0), new Vector2(500, 0)});
+        floorShape.createChain(new Vector2[]{new Vector2(-500, 0), new Vector2(levelBoundaryEnd, 0)});
         roofFix.shape = floorShape;
         Body floorBody = world.createBody(roofBody);
         floorBody.createFixture(roofFix);
         floorShape.dispose();
 
         ChainShape ceilShape = new ChainShape();
-        ceilShape.createChain(new Vector2[]{new Vector2(-500, 18), new Vector2(500, 18)});
+        ceilShape.createChain(new Vector2[]{new Vector2(-500, 18), new Vector2(levelBoundaryEnd, 18)});
         roofFix.shape = ceilShape;
         Body ceilBody = world.createBody(roofBody);
         ceilBody.createFixture(roofFix);
@@ -369,7 +374,7 @@ public abstract class Plevel implements Screen {
         camera.position.y = camera.viewportHeight / 2f;
         camera.update();
 
-        game.getBatch().setProjectionMatrix(camera.combined);
+        services.batch().setProjectionMatrix(camera.combined);
         renderLevelBackground();
 
         if (state == GameState.PLAYING) {
@@ -412,16 +417,16 @@ public abstract class Plevel implements Screen {
         float innerW = vw * 0.65f;
         float innerH = vh * 0.75f;
 
-        game.getBatch().begin();
-        game.getBatch().setColor(Color.WHITE);
-        game.getBatch().draw(backgroundGradient, left, bottom, vw, vh);
-        game.getBatch().setColor(1f, 1f, 1f, 1f);
-        game.getBatch().draw(backgroundGlow,
+        services.batch().begin();
+        services.batch().setColor(Color.WHITE);
+        services.batch().draw(backgroundGradient, left, bottom, vw, vh);
+        services.batch().setColor(1f, 1f, 1f, 1f);
+        services.batch().draw(backgroundGlow,
                 glowCx - outerW / 2f, glowCy - outerH / 2f, outerW, outerH);
-        game.getBatch().draw(backgroundGlowInner,
+        services.batch().draw(backgroundGlowInner,
                 glowCx - innerW / 2f, glowCy - innerH / 2f, innerW, innerH);
-        game.getBatch().setColor(1f, 1f, 1f, 1f);
-        game.getBatch().end();
+        services.batch().setColor(1f, 1f, 1f, 1f);
+        services.batch().end();
     }
 
     private void resumeFromPause() {
@@ -436,8 +441,8 @@ public abstract class Plevel implements Screen {
         AudioManager.get().stopLevelMusic();
         Gdx.input.setInputProcessor(null);
         try {
-            Constructor<? extends Plevel> constructor = getClass().getConstructor(MainGame.class);
-            game.setScreen(constructor.newInstance(game));
+            Constructor<? extends Plevel> constructor = getClass().getConstructor(GameServices.class);
+            services.setScreen(constructor.newInstance(services));
         } catch (Exception e) {
             throw new RuntimeException("Failed to restart level: " + getClass().getSimpleName(), e);
         }

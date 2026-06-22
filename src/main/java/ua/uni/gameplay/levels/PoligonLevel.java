@@ -1,345 +1,137 @@
 package ua.uni.gameplay.levels;
 
-import ua.uni.gameplay.entity.Plank1;
-import ua.uni.bootstrap.MainGame;
-import ua.uni.gameplay.factory.EntityFactory;
+import ua.uni.bootstrap.GameServices;
 
 public class PoligonLevel extends Plevel {
 
-
-
-
-    public PoligonLevel(MainGame game) {
-        super(game);
-        levelNumber = 1;
+    public PoligonLevel(GameServices services) {
+        super(services);
+        levelNumber = 2;
     }
 
-    // ОГОЛОШЕННЯ ОБ'ЄКТІВ
     @Override
     protected void buildLevel() {
-        spawnClone(2, 9);
-     //   spawnClone(4, 9);
-       // spawnClone(6, 9);
-        spawnClone(8, 9);
-        createPortal(300f);
+        spawnClone(2f, 9f);
+        spawnClone(7f, 9f);
 
+        // Вхід: коріння й труби одразу задають стиль локації.
+        obstacle("roundy-pipes-large", 13f, 15.7f, -38f, 7f);
+        obstacle("wood-stump-1", 24f, 1.0f, 90f, 3f);
+        obstacle("item-clone", 27f, 8.8f, 0f, 1.4f);
+        obstacle("roundy-pipes-large-2", 32f, 2.2f, 144f, 6f);
+        obstacle("wood-branch-5", 43f, 16.2f, 180f, 14f);
+        obstacle("branch-tip-11", 51f, 0.9f, 0f, 7f);
+        obstacle("liana-4", 56f, 16.4f, 180f, 8f);
+        obstacle("wood-branch-10", 64f, 1.1f, 0f, 10f);
+        obstacle("wood-stump-2", 72f, 1.4f, 0f, 3.5f);
+        obstacle("branch-tip-7", 75f, 16.8f, 180f, 7f);
 
-        EntityFactory.createObstacle(engine, world, "item-big", 10f, 5f, 0f, 1.4f);
-        EntityFactory.createObstacle(engine, world, "item-small", 15f, 5f, 0f, 1.4f);
-        EntityFactory.createObstacle(engine, world, "item-clone", 20f, 5f, 0f, 1.4f);
-        EntityFactory.createObstacle(engine, world, "item-speed", 50f, 5f, 0f, 1.4f);
+        // Низький тунель: small перед довгою щілиною з коріння.
+        obstacle("item-small", 86f, 8.7f, 0f, 1.4f);
+        obstacle("wood-branch-16", 96f, 16.4f, 180f, 14f);
+        obstacle("branch-tip-6", 105f, 1.0f, 0f, 6f);
+        obstacle("liana-1", 115f, 16.1f, 180f, 12f);
+        obstacle("wood-branch-3", 124f, 1.2f, 0f, 11f);
+        obstacle("branch-tip-10", 134f, 16.7f, 180f, 6f);
+        obstacle("wood-stump-3", 143f, 1.5f, 0f, 4f);
+        obstacle("wood-branch-8", 151f, 16.5f, 180f, 8.5f);
+        obstacle("branch-tip-3", 159f, 1.1f, 0f, 6.5f);
 
+        // Перша трубна брама: рухома загроза всередині рамки.
+        obstacle("item-big", 171f, 8.8f, 0f, 1.4f);
+        obstacle("pipe-corner-1", 184f, 2.0f, 90f, 5.2f);
+        obstacle("pipe-corner-1", 184f, 16.0f, -90f, 5.2f);
+        obstacle("pipe-straight-1", 197f, 2.4f, 0f, 5.5f);
+        obstacle("pipe-straight-1", 197f, 15.6f, 0f, 5.5f);
+        saw("propeller-small", 207f, 9f, 0f, 3.1f, 1.4f);
+        obstacle("pipe-straight-2", 216f, 2.5f, 0f, 5.4f);
+        obstacle("pipe-straight-2", 216f, 15.5f, 0f, 5.4f);
+        obstacle("tube-steep-1", 229f, 1.1f, 0f, 5.2f);
+        obstacle("tube-tip", 238f, 16.6f, 180f, 5.6f);
+        obstacle("pipe-chain-1", 247f, 16.3f, 180f, 7f);
+        obstacle("pipe-chain-2", 253f, 1.6f, 0f, 7f);
 
-      //  EntityFactory.createObstacle(engine, world, "wood-edge-2", 10f, 5f, 0f, 30f);
-        // EntityFactory.createObstacle(engine, world, "wood-edge-1", 15, 3,
-/*
-        EntityFactory.createObstacle(engine, world, "item-clone", 20f, 5f, 0f, 1.4f);
+        // Кам'яний завал: чергування підлоги й стелі формує маршрут.
+        obstacle("item-clone", 264f, 8.8f, 0f, 1.4f);
+        obstacle("item-small", 276f, 8.8f, 0f, 1.4f);
+        obstacle("rock-5", 288f, 1.6f, 0f, 4.2f);
+        obstacle("rock-4", 298f, 16.2f, 180f, 4.7f);
+        obstacle("rock-7", 309f, 1.4f, 0f, 4.2f);
+        obstacle("rock-6", 320f, 16.3f, 180f, 4.4f);
+        obstacle("rock-10", 331f, 1.4f, 0f, 4.1f);
+        obstacle("rock-11", 342f, 16.4f, 180f, 4.2f);
+        obstacle("wood-stump-2", 353f, 1.5f, 0f, 4.2f);
+        obstacle("wood-branch-7", 363f, 16.5f, 180f, 8f);
+        obstacle("branch-tip-8", 372f, 1.0f, 0f, 6f);
 
-        EntityFactory.createObstacle(engine, world, "item-clone", 20f, 5f, 0f, 1.4f);
+        // Небезпечна камера: одна deadly-пила, але вона закріплена між краями.
+        obstacle("item-speed", 384f, 8.8f, 0f, 1.4f);
+        obstacle("tube-shallow-1", 397f, 1.0f, 0f, 5.4f);
+        obstacle("wood-branch-5", 409f, 16.2f, 180f, 12.5f);
+        obstacle("branch-tip-11", 419f, 1.0f, 0f, 6f);
+        obstacle("pipe-corner-1", 430f, 2.0f, 90f, 4.8f);
+        obstacle("pipe-corner-1", 430f, 16.0f, -90f, 4.8f);
+        saw("shredder-large", 430f, 9f, 0f, 3.3f, 2.3f);
+        obstacle("pipe-straight-1", 442f, 2.5f, 0f, 5.4f);
+        obstacle("pipe-straight-1", 442f, 15.5f, 0f, 5.4f);
+        obstacle("wood-branch-16", 455f, 1.2f, 0f, 13f);
+        obstacle("liana-3", 465f, 16.2f, 180f, 10f);
+        obstacle("wood-stump-4", 475f, 1.4f, 0f, 3.8f);
 
-        EntityFactory.createObstacle(engine, world, "item-clone", 20f, 5f, 0f, 1.4f);
+        // Ліс ліан: багато статичних форм, але без випадкової левітації.
+        obstacle("item-clone", 486f, 8.8f, 0f, 1.4f);
+        obstacle("liana-2", 497f, 16.3f, 180f, 10f);
+        obstacle("wood-branch-9", 505f, 1.1f, 0f, 11f);
+        obstacle("liana-5", 514f, 16.2f, 180f, 10f);
+        obstacle("branch-tip-4", 523f, 1.0f, 0f, 6f);
+        obstacle("wood-branch-15", 532f, 16.4f, 180f, 9f);
+        obstacle("wood-stump-5", 542f, 1.4f, 0f, 4f);
+        obstacle("branch-tip-9", 551f, 16.7f, 180f, 6f);
+        obstacle("wood-branch-4", 560f, 1.1f, 0f, 10f);
 
-        EntityFactory.createObstacle(engine, world, "item-clone", 20f, 5f, 0f, 1.4f);
+        // Подвійна брама: дві рухомі перешкоди, кожна має свою рамку.
+        obstacle("item-big", 572f, 8.8f, 0f, 1.4f);
+        obstacle("pipe-corner-1", 586f, 2.0f, 90f, 5f);
+        obstacle("pipe-corner-1", 586f, 16.0f, -90f, 5f);
+        saw("propeller-small", 596f, 8.9f, 0f, 2.8f, -1.2f);
+        obstacle("pipe-straight-2", 606f, 2.5f, 0f, 5.2f);
+        obstacle("pipe-straight-2", 606f, 15.5f, 0f, 5.2f);
+        saw("gear", 618f, 9f, 0f, 4.1f, 0.8f);
+        obstacle("pipe-corner-1", 630f, 2.0f, 90f, 5f);
+        obstacle("pipe-corner-1", 630f, 16.0f, -90f, 5f);
+        obstacle("tube-connection", 641f, 1.3f, 0f, 5.4f);
+        obstacle("tube-part", 651f, 16.5f, 180f, 5.2f);
+        obstacle("item-speed", 660f, 8.8f, 0f, 1.4f);
 
-        EntityFactory.createObstacle(engine, world, "item-speed", 50f, 5f, 0f, 1.4f);
+        // Фінальне коріння: щільно, але бонуси ведуть через потрібну форму.
+        obstacle("item-small", 672f, 8.8f, 0f, 1.4f);
+        obstacle("wood-branch-1", 684f, 16.2f, 180f, 11f);
+        obstacle("branch-tip-2", 693f, 1.0f, 0f, 6f);
+        obstacle("wood-branch-2", 703f, 1.2f, 0f, 11f);
+        obstacle("branch-tip-12", 713f, 16.7f, 180f, 6f);
+        obstacle("rock-3", 723f, 1.5f, 0f, 4f);
+        obstacle("rock-8", 733f, 16.2f, 180f, 3.6f);
+        obstacle("item-big", 743f, 8.8f, 0f, 1.4f);
+        obstacle("wood-stump-3", 754f, 1.4f, 0f, 4.2f);
+        obstacle("wood-branch-6", 764f, 16.5f, 180f, 8.5f);
 
-        EntityFactory.createObstacle(engine, world, "item-speed", 50f, 5f, 0f, 1.4f);
+        // Остання рамка перед порталом, щоб фініш не був пустою прямою.
+        obstacle("item-clone", 776f, 8.8f, 0f, 1.4f);
+        obstacle("pipe-straight-1", 788f, 2.5f, 0f, 5.4f);
+        obstacle("pipe-straight-1", 788f, 15.5f, 0f, 5.4f);
+        saw("propeller-small", 800f, 9f, 0f, 2.7f, 1.0f);
+        obstacle("wood-branch-10", 812f, 1.1f, 0f, 10f);
+        obstacle("wood-branch-5", 824f, 16.2f, 180f, 12f);
+        obstacle("branch-tip-11", 834f, 1.0f, 0f, 6f);
 
-        EntityFactory.createObstacle(engine, world, "item-speed", 50f, 5f, 0f, 1.4f);
-        EntityFactory.createObstacle(engine, world, "item-speed", 60f, 5f, 0f, 1.4f);
-        EntityFactory.createObstacle(engine, world, "item-speed", 50f, 5f, 0f, 1.4f);
-*/
-        EntityFactory.createObstacle(engine, world, "item-speed", 50f, 5f, 0f, 1.4f);
-        EntityFactory.createObstacle(engine, world, "item-speed", 70f, 5f, 0f, 1.4f);
-
-        EntityFactory.createObstacle(engine, world, "item-speed", 80f, 5f, 0f, 1.4f);
-
-
-
-     //   EntityFactory.createObstacle(engine, world, "item-clone", 20f, 5f, 0f, 1.4f);
-        // EntityFactory.createObstacle(engine, world, "barbwire", 20f, 5f, 0f, 3f);
-        EntityFactory.createObstacle(engine, world, "barbwire", 25f, 5f, 45f, 3f);
-
-
-
-        // Arc arc = new Arc(world, 10, 5, 3f);
-     //   EntityFactory.createObstacle(engine, world, "arc", 10f, 5f, 0f, 3f);
-   //     // Barbwire barbwire = new Barbwire(world, 20, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "barbwire", 20f, 5f, 0f, 3f);
-        // Box box = new Box(world, 30, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "box", 30f, 5f, 0f, 3f);
-        // BranchRoot branchRoot = new BranchRoot(world, 40, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-root", 40f, 5f, 0f, 3f);
-        // BranchRoot2 branchRoot2 = new BranchRoot2(world, 50, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-root-2", 50f, 5f, 0f, 3f);
-        // BranchTip1 branchTip1 = new BranchTip1(world, 60, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-1", 60f, 5f, 0f, 3f);
-        // BranchTip10 branchTip10 = new BranchTip10(world, 70, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-11", 80f, 5f, 0f, 3f);
-        // BranchTip12 branchTip12 = new BranchTip12(world, 90, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-12", 90f, 5f, 0f, 3f);
-        // BranchTip2 branchTip2 = new BranchTip2(world, 100, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-2", 100f, 5f, 0f, 3f);
-        // BranchTip3 branchTip3 = new BranchTip3(world, 110, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-3", 110f, 5f, 0f, 3f);
-        // BranchTip4 branchTip4 = new BranchTip4(world, 120, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-4", 120f, 5f, 0f, 3f);
-        // BranchTip5 branchTip5 = new BranchTip5(world, 130, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-5", 130f, 5f, 0f, 3f);
-        // BranchTip6 branchTip6 = new BranchTip6(world, 140, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-6", 140f, 5f, 0f, 3f);
-        // BranchTip7 branchTip7 = new BranchTip7(world, 150, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-7", 150f, 5f, 0f, 3f);
-        // BranchTip8 branchTip8 = new BranchTip8(world, 160, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-8", 160f, 5f, 0f, 3f);
-        // BranchTip9 branchTip9 = new BranchTip9(world, 170, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "branch-tip-9", 170f, 5f, 0f, 3f);
-        // BrickFiller brickFiller = new BrickFiller(world, 180, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "brick-filler", 180f, 5f, 0f, 3f);
-        // Burdock burdock = new Burdock(world, 190, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "burdock", 190f, 5f, 0f, 3f);
-        // BurdockLarge burdockLarge = new BurdockLarge(world, 200, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "burdock-large", 200f, 5f, 0f, 3f);
-        // Button button = new Button(world, 210, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "button", 210f, 5f, 0f, 3f);
-        // ButtonBase buttonBase = new ButtonBase(world, 220, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "button-base", 220f, 5f, 0f, 3f);
-        // ButtonShaft buttonShaft = new ButtonShaft(world, 230, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "button-shaft", 230f, 5f, 0f, 3f);
-        // FatCurve fatCurve = new FatCurve(world, 240, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "fat-curve", 240f, 5f, 0f, 3f);
-        // Filler1 filler1 = new Filler1(world, 250, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "filler-1", 250f, 5f, 0f, 3f);
-        // Gear gear = new Gear(world, 260, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "gear", 260f, 5f, 0f, 3f);
-        // Gear2 gear2 = new Gear2(world, 270, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "gear-2", 270f, 5f, 0f, 3f);
-        // Grass1 grass1 = new Grass1(world, 280, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "grass-1", 280f, 5f, 0f, 3f);
-        // Gravity gravity = new Gravity(world, 290, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "gravity", 290f, 5f, 0f, 3f);
-        // Grenade grenade = new Grenade(world, 300, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "grenade", 300f, 5f, 0f, 3f);
-        // Grenade2 grenade2 = new Grenade2(world, 310, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "grenade-2", 310f, 5f, 0f, 3f);
-        // Hammer1 hammer1 = new Hammer1(world, 320, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "hammer-1", 320f, 5f, 0f, 3f);
-        // HugeCurve hugeCurve = new HugeCurve(world, 330, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "huge-curve", 330f, 5f, 0f, 3f);
-        // LazerObstacle lazerObstacle = new LazerObstacle(world, 340, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "lazer-obstacle", 340f, 5f, 0f, 3f);
-        // LazerTurret lazerTurret = new LazerTurret(world, 350, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "lazer-turret", 350f, 5f, 0f, 3f);
-        // Leca leca = new Leca(world, 360, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "leca", 360f, 5f, 0f, 3f);
-        // Liana1 liana1 = new Liana1(world, 370, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "liana-1", 370f, 5f, 0f, 3f);
-        // Liana2 liana2 = new Liana2(world, 380, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "liana-2", 380f, 5f, 0f, 3f);
-        // Liana3 liana3 = new Liana3(world, 390, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "liana-3", 390f, 5f, 0f, 3f);
-        // Liana4 liana4 = new Liana4(world, 400, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "liana-4", 400f, 5f, 0f, 3f);
-        // Liana5 liana5 = new Liana5(world, 410, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "liana-5", 410f, 5f, 0f, 3f);
-        // Mine mine = new Mine(world, 420, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "mine", 420f, 5f, 0f, 3f);
-        // ModChain modChain = new ModChain(world, 430, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "mod-chain", 430f, 5f, 0f, 3f);
-        // Part1 part1 = new Part1(world, 440, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "part-1", 440f, 5f, 0f, 3f);
-        // Part2 part2 = new Part2(world, 450, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "part-2", 450f, 5f, 0f, 3f);
-        // Part3 part3 = new Part3(world, 460, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "part-3", 460f, 5f, 0f, 3f);
-        // Part4 part4 = new Part4(world, 470, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "part-4", 470f, 5f, 0f, 3f);
-        // PipeChain1 pipeChain1 = new PipeChain1(world, 480, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "pipe-chain-1", 480f, 5f, 0f, 3f);
-        // PipeChain2 pipeChain2 = new PipeChain2(world, 490, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "pipe-chain-2", 490f, 5f, 0f, 3f);
-        // PipeCorner1 pipeCorner1 = new PipeCorner1(world, 500, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "pipe-corner-1", 500f, 5f, 0f, 3f);
-        // PipeLong pipeLong = new PipeLong(world, 510, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "pipe-long", 510f, 5f, 0f, 0.3f);
-        // PipeMedium pipeMedium = new PipeMedium(world, 520, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "pipe-medium", 520f, 5f, 0f, 3f);
-        // PipeShort pipeShort = new PipeShort(world, 530, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "pipe-short", 530f, 5f, 0f, 3f);
-        // PipeStraight1 pipeStraight1 = new PipeStraight1(world, 540, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "pipe-straight-1", 540f, 5f, 0f, 3f);
-        // PipeStraight2 pipeStraight2 = new PipeStraight2(world, 550, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "pipe-straight-2", 550f, 5f, 0f, 3f);
-        // PortalBg portalBg = new PortalBg(world, 560, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "portal-bg", 560f, 5f, 0f, 3f);
-        // PortalCubeBg portalCubeBg = new PortalCubeBg(world, 570, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "portal-cube-bg", 570f, 5f, 0f, 3f);
-        // PortalMask2 portalMask2 = new PortalMask2(world, 580, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "portal-mask-2", 580f, 5f, 0f, 3f);
-        // PropellerLarge propellerLarge = new PropellerLarge(world, 590, 5, 3f);
-        EntityFactory.createSaw(engine, world, "propeller-large", 590f, 5f, 0f, 3f, 3f);
-        // PropellerSlimLarge propellerSlimLarge = new PropellerSlimLarge(world, 600, 5, 3f);
-        EntityFactory.createSaw(engine, world, "propeller-slim-large", 600f, 5f, 3f, 3f, 3f);
-        // PropellerSlimLarge2 propellerSlimLarge2 = new PropellerSlimLarge2(world, 610, 5, 3f);
-        EntityFactory.createSaw(engine, world, "propeller-slim-large-2", 610f, 5f, 3f, 3f, 3f);
-        // PropellerSmall propellerSmall = new PropellerSmall(world, 620, 5, 3f);
-        EntityFactory.createSaw(engine, world, "propeller-small", 620f, 5f, 0f, 3f, 3f);
-        // RandomFiller randomFiller = new RandomFiller(world, 630, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "random-filler", 630f, 5f, 0f, 3f);
-        // Rock1 rock1 = new Rock1(world, 640, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "rock-1", 640f, 5f, 0f, 3f);
-        // Rock10 rock10 = new Rock10(world, 650, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "rock-10", 650f, 5f, 0f, 3f);
-        // Rock11 rock11 = new Rock11(world, 660, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "rock-11", 660f, 5f, 0f, 3f);
-        // Rock3 rock3 = new Rock3(world, 670, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "rock-3", 670f, 5f, 0f, 3f);
-        // Rock4 rock4 = new Rock4(world, 680, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "rock-4", 680f, 5f, 0f, 3f);
-        // Rock5 rock5 = new Rock5(world, 690, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "rock-5", 690f, 5f, 0f, 3f);
-        // Rock6 rock6 = new Rock6(world, 700, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "rock-6", 700f, 5f, 0f, 3f);
-        // Rock7 rock7 = new Rock7(world, 710, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "rock-7", 710f, 5f, 0f, 3f);
-        // Rock8 rock8 = new Rock8(world, 720, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "rock-8", 720f, 5f, 0f, 3f);
-        // RoundTriangle roundTriangle = new RoundTriangle(world, 730, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "round-triangle", 730f, 5f, 0f, 3f);
-        // RoundyPipesLarge roundyPipesLarge = new RoundyPipesLarge(world, 740, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "roundy-pipes-large", 740f, 5f, 0f, 3f);
-        // RoundyPipesLarge2 roundyPipesLarge2 = new RoundyPipesLarge2(world, 750, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "roundy-pipes-large-2", 750f, 5f, 0f, 3f);
-        // SaloonDoor saloonDoor = new SaloonDoor(world, 760, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "saloon-door", 760f, 5f, 0f, 3f);
-        // SaloonDoor2 saloonDoor2 = new SaloonDoor2(world, 770, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "saloon-door-2", 770f, 5f, 0f, 3f);
-        // ScifiBall scifiBall = new ScifiBall(world, 780, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "scifi-ball", 780f, 5f, 0f, 3f);
-        // SharpRock1 sharpRock1 = new SharpRock1(world, 790, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sharp-rock-1", 790f, 5f, 0f, 3f);
-        // SharpRock2 sharpRock2 = new SharpRock2(world, 800, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sharp-rock-2", 800f, 5f, 0f, 3f);
-        // SharpRock3 sharpRock3 = new SharpRock3(world, 810, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sharp-rock-3", 810f, 5f, 0f, 3f);
-        // ShredderLarge shredderLarge = new ShredderLarge(world, 820, 5, 3f);
-        EntityFactory.createSaw(engine, world, "shredder-large", 20f, 6f, 0f, 3f, 3f);
-        // Sirpa1 sirpa1 = new Sirpa1(world, 830, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sirpa-1", 830f, 5f, 0f, 3f);
-        // Sirpa2 sirpa2 = new Sirpa2(world, 840, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sirpa-2", 840f, 5f, 0f, 3f);
-        // SlidingDoor slidingDoor = new SlidingDoor(world, 850, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sliding-door", 850f, 5f, 0f, 3f);
-        // SlidingThorne slidingThorne = new SlidingThorne(world, 860, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sliding-thorne", 860f, 5f, 0f, 3f);
-        // SmallBranch smallBranch = new SmallBranch(world, 870, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "small-branch", 870f, 5f, 0f, 3f);
-        // SmallBranch3 smallBranch3 = new SmallBranch3(world, 880, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "small-branch-3", 880f, 5f, 0f, 3f);
-        // SpikeBot spikeBot = new SpikeBot(world, 890, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "spike-bot", 890f, 5f, 0f, 3f);
-        // SpikeBot2 spikeBot2 = new SpikeBot2(world, 900, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "spike-bot-2", 900f, 5f, 0f, 3f);
-        // Sponge1 sponge1 = new Sponge1(world, 910, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sponge-1", 910f, 5f, 0f, 3f);
-        // Sponge2 sponge2 = new Sponge2(world, 920, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sponge-2", 920f, 5f, 0f, 3f);
-        // Sponge3 sponge3 = new Sponge3(world, 930, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sponge-3", 930f, 5f, 0f, 3f);
-        // Sponge4 sponge4 = new Sponge4(world, 940, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sponge-4", 940f, 5f, 0f, 3f);
-        // Sponge5 sponge5 = new Sponge5(world, 950, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sponge-5", 950f, 5f, 0f, 3f);
-        // Sponge6 sponge6 = new Sponge6(world, 960, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sponge-6", 960f, 5f, 0f, 3f);
-        // Sponge7 sponge7 = new Sponge7(world, 970, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sponge-7", 970f, 5f, 0f, 3f);
-        // Sponge8 sponge8 = new Sponge8(world, 980, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sponge-8", 980f, 5f, 0f, 3f);
-        // Sponge9 sponge9 = new Sponge9(world, 990, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "sponge-9", 990f, 5f, 0f, 3f);
-        // Superball superball = new Superball(world, 1000, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "superball", 1000f, 5f, 0f, 3f);
-        // SwampTip swampTip = new SwampTip(world, 1010, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "swamp-tip", 1010f, 5f, 0f, 3f);
-        // SwampyRock1 swampyRock1 = new SwampyRock1(world, 1020, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "swampy-rock-1", 1020f, 5f, 0f, 3f);
-        // Thorne1 thorne1 = new Thorne1(world, 1030, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "thorne-1", 1030f, 5f, 0f, 3f);
-        // Thorne2 thorne2 = new Thorne2(world, 1040, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "thorne-2", 1040f, 5f, 0f, 3f);
-        // Thorne3 thorne3 = new Thorne3(world, 1050, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "thorne-3", 1050f, 5f, 0f, 3f);
-        // Timescape timescape = new Timescape(world, 1060, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "timescape", 1060f, 5f, 0f, 3f);
-        // Triangle triangle = new Triangle(world, 1070, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "triangle", 1070f, 5f, 0f, 3f);
-        // TubeConnection tubeConnection = new TubeConnection(world, 1080, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "tube-connection", 1080f, 5f, 0f, 3f);
-        // TubeMask tubeMask = new TubeMask(world, 1090, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "tube-mask", 1090f, 5f, 0f, 3f);
-        // TubePart tubePart = new TubePart(world, 1100, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "tube-part", 1100f, 5f, 0f, 3f);
-        // TubeShallow1 tubeShallow1 = new TubeShallow1(world, 1110, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "tube-shallow-1", 1110f, 5f, 0f, 3f);
-        // TubeSteep1 tubeSteep1 = new TubeSteep1(world, 1120, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "tube-steep-1", 1120f, 5f, 0f, 3f);
-        // TubeTip tubeTip = new TubeTip(world, 1130, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "tube-tip", 1130f, 5f, 0f, 3f);
-        // Turret turret = new Turret(world, 1140, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "turret", 1140f, 5f, 0f, 3f);
-        // Turret2 turret2 = new Turret2(world, 1150, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "turret-2", 1150f, 5f, 0f, 3f);
-        // Turret3 turret3 = new Turret3(world, 1160, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "turret-3", 1160f, 5f, 0f, 3f);
-        // Turret4 turret4 = new Turret4(world, 1170, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "turret-4", 1170f, 5f, 0f, 3f);
-        // Turret5 turret5 = new Turret5(world, 1180, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "turret-5", 1180f, 5f, 0f, 3f);
-        // Wire1 wire1 = new Wire1(world, 1190, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wire-1", 1190f, 5f, 0f, 3f);
-        // Wire2 wire2 = new Wire2(world, 1200, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wire-2", 1200f, 5f, 0f, 3f);
-        // Wire3 wire3 = new Wire3(world, 1210, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wire-3", 1210f, 5f, 0f, 3f);
-        // Wire4 wire4 = new Wire4(world, 1220, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wire-4", 1220f, 5f, 0f, 3f);
-        // WoodBranch1 woodBranch1 = new WoodBranch1(world, 1230, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-1", 1230f, 5f, 0f, 3f);
-        // WoodBranch10 woodBranch10 = new WoodBranch10(world, 1240, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-10", 1240f, 5f, 0f, 3f);
-        // WoodBranch15 woodBranch15 = new WoodBranch15(world, 1250, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-15", 1250f, 5f, 0f, 3f);
-        // WoodBranch16 woodBranch16 = new WoodBranch16(world, 1260, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-16", 1260f, 5f, 0f, 3f);
-        // WoodBranch2 woodBranch2 = new WoodBranch2(world, 1270, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-2", 1270f, 5f, 0f, 3f);
-        // WoodBranch3 woodBranch3 = new WoodBranch3(world, 1280, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-3", 1280f, 5f, 0f, 3f);
-        // WoodBranch4 woodBranch4 = new WoodBranch4(world, 1290, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-4", 1290f, 5f, 0f, 3f);
-        // WoodBranch5 woodBranch5 = new WoodBranch5(world, 1300, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-5", 1300f, 5f, 0f, 3f);
-        // WoodBranch6 woodBranch6 = new WoodBranch6(world, 1310, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-6", 1310f, 5f, 0f, 3f);
-        // WoodBranch7 woodBranch7 = new WoodBranch7(world, 1320, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-7", 1320f, 5f, 0f, 3f);
-        // WoodBranch8 woodBranch8 = new WoodBranch8(world, 1330, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-8", 1330f, 5f, 0f, 3f);
-        // WoodBranch9 woodBranch9 = new WoodBranch9(world, 1340, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-branch-9", 1340f, 5f, 0f, 3f);
-        // WoodStump1 woodStump1 = new WoodStump1(world, 1350, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-stump-1", 1350f, 5f, 0f, 3f);
-        // WoodStump2 woodStump2 = new WoodStump2(world, 1360, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-stump-2", 1360f, 5f, 0f, 3f);
-        // WoodStump3 woodStump3 = new WoodStump3(world, 1370, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-stump-3", 1370f, 5f, 0f, 3f);
-        // WoodStump4 woodStump4 = new WoodStump4(world, 1380, 5, 3f);
-        EntityFactory.createObstacle(engine, world, "wood-stump-4", 1380f, 5f, 0f, 3f);
-        // WoodStump5 woodStump5 = new WoodStump5(world, 1390, 5, 3f);
-
+        createPortal(850f);
     }
 
+    private void obstacle(String name, float x, float y, float angle, float size) {
+        scheduleObstacle(name, x, y, angle, size);
+    }
 
-
+    private void saw(String name, float x, float y, float angle, float size, float spinSpeed) {
+        scheduleSaw(name, x, y, angle, size, spinSpeed);
+    }
 }

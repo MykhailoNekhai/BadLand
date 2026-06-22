@@ -38,3 +38,13 @@ build/
 ### Mac OS ###
 .DS_Store
 **/*.log
+
+### Secrets — never commit real credentials ###
+src/main/resources/game-resourses/config/firebase.properties
+src/main/resources/game-resourses/config/nakama.properties
+*.local.properties
+
+### Local/temp files ###
+nakama/.cookie
+account_profile.json
+*.tmp

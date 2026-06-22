@@ -1,0 +1,21 @@
+color	state	file	source
+purple	open	swirl_purple_open.png	ChatGPT Image Jun 21, 2026 at 08_51_12 PM (2).png
+purple	half_closed	swirl_purple_half_closed.png	ChatGPT Image Jun 21, 2026 at 08_59_07 PM (4).png
+purple	closed	swirl_purple_closed.png	ChatGPT Image Jun 21, 2026 at 09_05_57 PM (4).png
+purple	blink_spritesheet	swirl_purple_blink_spritesheet.png	swirl_purple_open.png | swirl_purple_half_closed.png | swirl_purple_closed.png
+gray	open	swirl_gray_open.png	ChatGPT Image Jun 21, 2026 at 08_51_11 PM (1).png
+gray	half_closed	swirl_gray_half_closed.png	ChatGPT Image Jun 21, 2026 at 08_59_12 PM.png
+gray	closed	swirl_gray_closed.png	ChatGPT Image Jun 21, 2026 at 09_03_32 PM.png
+gray	blink_spritesheet	swirl_gray_blink_spritesheet.png	swirl_gray_open.png | swirl_gray_half_closed.png | swirl_gray_closed.png
+green	open	swirl_green_open.png	ChatGPT Image Jun 21, 2026 at 08_51_12 PM (3).png
+green	half_closed	swirl_green_half_closed.png	ChatGPT Image Jun 21, 2026 at 08_59_07 PM (1).png
+green	closed	swirl_green_closed.png	ChatGPT Image Jun 21, 2026 at 09_05_56 PM (1).png
+green	blink_spritesheet	swirl_green_blink_spritesheet.png	swirl_green_open.png | swirl_green_half_closed.png | swirl_green_closed.png
+cyan	open	swirl_cyan_open.png	ChatGPT Image Jun 21, 2026 at 08_51_12 PM (4).png
+cyan	half_closed	swirl_cyan_half_closed.png	ChatGPT Image Jun 21, 2026 at 08_59_07 PM (2).png
+cyan	closed	swirl_cyan_closed.png	ChatGPT Image Jun 21, 2026 at 09_05_56 PM (2).png
+cyan	blink_spritesheet	swirl_cyan_blink_spritesheet.png	swirl_cyan_open.png | swirl_cyan_half_closed.png | swirl_cyan_closed.png
+yellow	open	swirl_yellow_open.png	ChatGPT Image Jun 21, 2026 at 08_51_12 PM (5).png
+yellow	half_closed	swirl_yellow_half_closed.png	ChatGPT Image Jun 21, 2026 at 08_59_07 PM (3).png
+yellow	closed	swirl_yellow_closed.png	ChatGPT Image Jun 21, 2026 at 09_05_57 PM (3).png
+yellow	blink_spritesheet	swirl_yellow_blink_spritesheet.png	swirl_yellow_open.png | swirl_yellow_half_closed.png | swirl_yellow_closed.png
