@@ -7,7 +7,7 @@
   },
   "avatar-1": {
     "bodyType": "Dynamic",
-    "friction": 0.25,
+    "friction": 0.7,
     "restitution": 0.05,
     "density": 5.0,
     "baseWidth": 208.0,
@@ -272,7 +272,7 @@
     "friction": 0.8,
     "restitution": 0.1,
     "density": 0.0,
-    "baseWidth": 736.0
+    "baseWidth": 1189.0
   },
   "turret": {
     "friction":0.8,
