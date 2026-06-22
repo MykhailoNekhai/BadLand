@@ -19,6 +19,16 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import ua.uni.audio.services.AudioManager;
+import ua.uni.bootstrap.MainGame;
+import ua.uni.gameplay.levels.Poligon2Level;
+import ua.uni.gameplay.levels.Poligon3Level;
+import ua.uni.gameplay.levels.Poligon4Level;
+import ua.uni.gameplay.levels.Poligon5Level;
+import ua.uni.gameplay.levels.Poligon6Level;
+import ua.uni.gameplay.levels.PoligonLevel;
+import ua.uni.presentation.screen.level.LevelPreviewScreen;
 import ua.uni.bootstrap.GameServices;
 import ua.uni.presentation.screen.menu.core.PMenu;
 import ua.uni.presentation.screen.menu.factory.FontQuality;
@@ -215,7 +225,19 @@ public class SinglePlayerMenu extends PMenu {
         if (startTransition) {
             transitionAlpha = Math.min(1f, transitionAlpha + (delta / 0.45f));
             if (transitionAlpha >= 1f && selectedLevel > 0) {
-                navigator().goToSinglePlayerLevel(selectedLevel);
+                if (selectedLevel == 1) {
+                    game.setScreen(new Poligon2Level(game));
+                } else if (selectedLevel == 2) {
+                    game.setScreen(new Poligon3Level(game));
+                } else if (selectedLevel == 3) {
+                    game.setScreen(new Poligon4Level(game));
+                } else if (selectedLevel == 4) {
+                    game.setScreen(new Poligon5Level(game));
+                } else if (selectedLevel == 5) {
+                    game.setScreen(new Poligon6Level(game));
+                } else {
+                    game.setScreen(new LevelPreviewScreen(game, selectedLevel));
+                }
                 return;
             }
         }

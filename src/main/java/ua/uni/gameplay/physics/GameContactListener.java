@@ -7,6 +7,7 @@ import ua.uni.gameplay.ecs.components.DeadlyComponent;
 import ua.uni.gameplay.ecs.components.FinishComponent;
 import ua.uni.gameplay.ecs.components.PlayerComponent;
 import ua.uni.gameplay.ecs.components.BonusComponent;
+import ua.uni.gameplay.ecs.components.MineComponent;
 import ua.uni.gameplay.ecs.components.MaterialComponent;
 import ua.uni.gameplay.stats.LevelStats;
 import ua.uni.audio.services.AudioManager;
@@ -17,6 +18,7 @@ public class GameContactListener implements ContactListener {
     private ComponentMapper<DeadlyComponent> deadlyMapper = ComponentMapper.getFor(DeadlyComponent.class);
     private ComponentMapper<BonusComponent> bonusMapper = ComponentMapper.getFor(BonusComponent.class);
     private ComponentMapper<FinishComponent> finishMapper = ComponentMapper.getFor(FinishComponent.class);
+    private ComponentMapper<MineComponent> mineMapper = ComponentMapper.getFor(MineComponent.class);
     private ComponentMapper<MaterialComponent> materialMapper = ComponentMapper.getFor(MaterialComponent.class);
     private LevelStats levelStats;
 
@@ -45,6 +47,9 @@ public class GameContactListener implements ContactListener {
 
         checkFinish(objA, objB);
         checkFinish(objB, objA);
+        
+        checkMine(objA, objB);
+        checkMine(objB, objA);
     }
 
     private void checkDeath(Object supposedPlayer, Object supposedDeadly) {
@@ -54,9 +59,6 @@ public class GameContactListener implements ContactListener {
 
             if (playerMapper.has(playerEntity) && deadlyMapper.has(deadlyEntity)) {
                 playerMapper.get(playerEntity).isDead = true;
-
-
-
             }
         }
     }
@@ -70,14 +72,14 @@ public class GameContactListener implements ContactListener {
                 PlayerComponent player = playerMapper.get(playerEntity);
                 BonusComponent bonus = bonusMapper.get(bonusEntity);
                 
-                if (!bonus.isCollected) {
-                    player.receivedBonus = bonus.type;
-                    bonus.isCollected = true;
+                if (!bonus.isCollected && !bonus.isAbsorbing) {
+                    bonus.isAbsorbing = true;
+                    bonus.targetPlayer = playerEntity;
                     
-                    if ("item-clone".equals(bonus.type)) {
+                    if ("item-clone".equals(bonus.type) || "item-superclone".equals(bonus.type)) {
                         AudioManager.get().playRandomCloneSound(1.0f);
                         if (levelStats != null) {
-                            levelStats.collectedClones++;
+                            levelStats.collectedClones += ("item-superclone".equals(bonus.type) ? 10 : 1);
                         }
                     } else if ("item-big".equals(bonus.type)) {
                         AudioManager.get().playBiggerSound(1.0f);
@@ -107,6 +109,17 @@ public class GameContactListener implements ContactListener {
         }
     }
 
+    private void checkMine(Object supposedPlayer, Object supposedMine) {
+        if (supposedPlayer instanceof Entity && supposedMine instanceof Entity) {
+            Entity playerEntity = (Entity) supposedPlayer;
+            Entity mineEntity = (Entity) supposedMine;
+
+            if (playerMapper.has(playerEntity) && mineMapper.has(mineEntity)) {
+                mineMapper.get(mineEntity).isExploded = true;
+            }
+        }
+    }
+
     @Override
     public void endContact(Contact contact) {
     }
@@ -130,8 +143,15 @@ public class GameContactListener implements ContactListener {
             if ((isPlayerA && isBonusB) || (isPlayerB && isBonusA)) {
                 contact.setEnabled(false);
             }
+            if (isPlayerA && isPlayerB) {
+                PlayerComponent pA = playerMapper.get(entityA);
+                PlayerComponent pB = playerMapper.get(entityB);
+                if (pA.ignoreCloneCollision || pB.ignoreCloneCollision) {
+                    contact.setEnabled(false);
+                }
+            }
             if ((isPlayerA && isFinishB) || (isPlayerB && isFinishA)) {
-                contact.setEnabled(false); // Make the finish line act as a sensor
+                contact.setEnabled(false);
             }
         }
     }
@@ -157,9 +177,8 @@ public class GameContactListener implements ContactListener {
                     }
                 }
                 
-                // Порог, чтобы не издавать звук при простом качении по полу
                 if (maxImpulse > 2.0f) {
-                    String material = "rubber"; // по умолчанию звук резины (или тела)
+                    String material = "rubber";
                     if (isPlayerA && !isPlayerB && materialMapper.has(entityB)) {
                         material = materialMapper.get(entityB).material;
                     } else if (isPlayerB && !isPlayerA && materialMapper.has(entityA)) {
