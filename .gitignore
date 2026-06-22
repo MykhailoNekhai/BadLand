@@ -57,3 +57,4 @@ nakama/nakama.yml
 nakama/.cookie
 account_profile.json
 *.tmp
+account_profile.json
