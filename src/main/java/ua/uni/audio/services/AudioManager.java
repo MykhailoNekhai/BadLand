@@ -46,6 +46,7 @@ public final class AudioManager {
     private final Sound[] impactRubberSounds;
     private final Sound squishSound;
     private final Sound sideDeathSound;
+    private final Sound explosionSound;
 
     private boolean menuMusicWanted;
     private boolean levelMusicWanted;
@@ -74,6 +75,7 @@ public final class AudioManager {
         achievementWinner = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/catalog/used/level/results/51-winner.wav"));
         levelWin = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/catalog/used/level/results/51-winner.wav"));
         levelLose = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/catalog/used/level/results/222-sidedeath pro tools filt.wav"));
+
 
         menuAmbience = new Sound[] {
                 Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/catalog/used/menu/ambience/1-Dawnsong.wav")),
@@ -194,6 +196,7 @@ public final class AudioManager {
 
         squishSound = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/223-squish.wav"));
         sideDeathSound = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/222-sidedeath pro tools filt.wav"));
+        explosionSound = Gdx.audio.newSound(Gdx.files.internal("game-resourses/audio/extracted/BadlandBank/144-Explosion 1.wav"));
     }
 
     public static AudioManager get() {
@@ -273,6 +276,11 @@ public final class AudioManager {
     public void playHover() {
         float v = GameSettings.getMusicVolume();
         if (v > 0f) uiHover.play(0.35f * v);
+    }
+
+    public void playExplosionSound(float volume) {
+        float v = GameSettings.getMusicVolume();
+        if (v > 0f) explosionSound.play(volume * v);
     }
 
     public void playSelect(float volume) {
