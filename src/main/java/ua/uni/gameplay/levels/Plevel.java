@@ -26,25 +26,31 @@ import ua.uni.gameplay.ecs.components.PhysicsComponent;
 import ua.uni.gameplay.ecs.components.PlayerComponent;
 import ua.uni.audio.services.AudioManager;
 import ua.uni.core.config.GameSettings;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
 import ua.uni.gameplay.ecs.systems.PhysicsSystem;
 import ua.uni.gameplay.ecs.systems.PullSystem;
 import ua.uni.gameplay.ecs.systems.RenderSystem;
 import ua.uni.gameplay.ecs.systems.ShadowSystem;
 import ua.uni.gameplay.ecs.systems.BonusSystem;
+import ua.uni.gameplay.ecs.systems.EyeBlinkSystem;
 import ua.uni.gameplay.ecs.systems.PositionalAudioSystem;
 import ua.uni.gameplay.factory.EntityFactory;
 import ua.uni.gameplay.physics.GameContactListener;
 import ua.uni.presentation.screen.menu.pause.PauseMenu;
 import ua.uni.gameplay.stats.LevelStats;
+import ua.uni.core.logging.AppLogger;
 
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
+import com.badlogic.gdx.graphics.g2d.ParticleEffectPool;
+import com.badlogic.gdx.Gdx;
+import ua.uni.gameplay.ecs.systems.ParticleSystem;
+import ua.uni.gameplay.ecs.components.ParticleComponent;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Plevel implements Screen {
-    protected static final int TARGET_FPS = 240;
-    protected static final float TIMESTEP = 1f / TARGET_FPS;
+    protected static final float TIMESTEP = 1f / 60f;
     private static final float MAX_FRAME_TIME = 0.25f;
     protected static final int VELOCITY_ITERATIONS = 8;
     protected static final int POSITION_ITERATIONS = 3;
@@ -55,12 +61,16 @@ public abstract class Plevel implements Screen {
     protected Engine engine;
     protected World world;
     protected OrthographicCamera camera;
-    protected MainGame game;
+    protected GameServices services;
 
     private Texture backgroundGradient;
     private Texture backgroundGlow;
     private Texture backgroundGlowInner;
 
+    protected ParticleEffect deathEffect;
+    protected ParticleEffectPool deathEffectPool;
+    protected ParticleEffect whiteSmokeEffect;
+    protected ParticleEffectPool whiteSmokePool;
     protected boolean isGameStarted = false; // потрібен для початку руху камери
     protected Viewport viewport;
 
@@ -103,8 +113,8 @@ public abstract class Plevel implements Screen {
 
     protected GameState state = GameState.PLAYING;
 
-    public Plevel(MainGame game) {
-        this.game = game;
+    public Plevel(GameServices services) {
+        this.services = services;
     }
 
     protected void mainGameLogic() {
@@ -143,11 +153,13 @@ public abstract class Plevel implements Screen {
 
             if (phys.body.getPosition().x < deathLineX) {
                 AudioManager.get().playSideDeathSound();
+                spawnDeathParticle(phys.body.getPosition().x, phys.body.getPosition().y);
                 levelStats.deathScore++;
                 world.destroyBody(phys.body);
                 engine.removeEntity(player);
             } else if (playerComp.isDead) {
                 AudioManager.get().playSquishSound();
+                spawnDeathParticle(phys.body.getPosition().x, phys.body.getPosition().y);
                 levelStats.deathScore++;
                 world.destroyBody(phys.body);
                 engine.removeEntity(player);
@@ -175,11 +187,11 @@ public abstract class Plevel implements Screen {
                 levelStats.loseScore++;
                 state = GameState.GAME_OVER;
                 if (levelNumber > 0) {
-                    game.getAchievementManager().onDeath(levelNumber);
+                    services.achievements().onDeath(levelNumber);
                 }
                 AudioManager.get().playLevelLose(0.95f);
                 Gdx.app.postRunnable(this::restartLevel);
-                System.out.println("Гра завершена. Програв");
+                AppLogger.info("Plevel", "Game over — player lost");
                 return;
             }
         }
@@ -190,12 +202,12 @@ public abstract class Plevel implements Screen {
                 levelStats.winScore++;
                 state = GameState.VICTORY;
                 if (levelNumber > 0) {
-                    game.getAchievementManager().onLevelComplete(levelNumber);
+                    services.achievements().onLevelComplete(levelNumber);
                 }
                 AudioManager.get().playLevelWin(0.95f);
-                System.out.println("Гра завершена. Перемога!");
+                AppLogger.info("Plevel", "Game over — player won");
                 Gdx.app.postRunnable(() -> {
-                    game.setScreen(new ua.uni.presentation.screen.menu.main.Menu(game));
+                    services.setScreen(new ua.uni.presentation.screen.menu.main.Menu(services));
                 });
             }
         }
@@ -207,7 +219,7 @@ public abstract class Plevel implements Screen {
         buildLevel();
         createGround();
         if (levelNumber > 0) {
-            game.getAchievementManager().onLevelStart(levelNumber);
+            services.achievements().onLevelStart(levelNumber);
         }
         AudioManager.get().startLevelMusic();
     }
@@ -240,11 +252,26 @@ public abstract class Plevel implements Screen {
         engine = new PooledEngine();
         engine.addSystem(new PhysicsSystem());
         engine.addSystem(new ShadowSystem(world));
-        engine.addSystem(new RenderSystem(game.getBatch()));
+        engine.addSystem(new EyeBlinkSystem());
+        engine.addSystem(new RenderSystem(services.batch()));
         engine.addSystem(new PullSystem());
-        engine.addSystem(new BonusSystem(world));
+        engine.addSystem(new ua.uni.gameplay.ecs.systems.MineSystem());
         engine.addSystem(new PositionalAudioSystem(camera));
         engine.addSystem(new ua.uni.gameplay.ecs.systems.GodzillaPullSystem(world, levelStats));
+        
+        deathEffect = new ParticleEffect();
+        deathEffect.load(Gdx.files.internal("game-resourses/particles/death.p"), Gdx.files.internal("game-resourses/particles"));
+        deathEffect.scaleEffect(0.08f);
+        deathEffectPool = new ParticleEffectPool(deathEffect, 5, 50);
+
+        whiteSmokeEffect = new ParticleEffect();
+        whiteSmokeEffect.load(Gdx.files.internal("game-resourses/particles/death_white.p"), Gdx.files.internal("game-resourses/particles"));
+        whiteSmokeEffect.scaleEffect(0.08f);
+        whiteSmokePool = new ParticleEffectPool(whiteSmokeEffect, 5, 50);
+
+        engine.addSystem(new BonusSystem(world, whiteSmokePool));
+        engine.addSystem(new ParticleSystem(game.getBatch()));
+
         pauseMenu = new PauseMenu(game, this::resumeFromPause, this::restartLevel, this::checkpointAction);
         backgroundGradient = makeMultiStopGradient(64, 512, new Color[]{
                 new Color(0.03f, 0.03f, 0.03f, 1f),
@@ -275,15 +302,17 @@ public abstract class Plevel implements Screen {
         roofFix.friction = 0.2f;
         roofFix.restitution = 0.1f;
 
+        float levelBoundaryEnd = Math.max(500f, finishLineX + 80f);
+
         ChainShape floorShape = new ChainShape();
-        floorShape.createChain(new Vector2[]{new Vector2(-500, 0), new Vector2(500, 0)});
+        floorShape.createChain(new Vector2[]{new Vector2(-500, 0), new Vector2(levelBoundaryEnd, 0)});
         roofFix.shape = floorShape;
         Body floorBody = world.createBody(roofBody);
         floorBody.createFixture(roofFix);
         floorShape.dispose();
 
         ChainShape ceilShape = new ChainShape();
-        ceilShape.createChain(new Vector2[]{new Vector2(-500, 18), new Vector2(500, 18)});
+        ceilShape.createChain(new Vector2[]{new Vector2(-500, 18), new Vector2(levelBoundaryEnd, 18)});
         roofFix.shape = ceilShape;
         Body ceilBody = world.createBody(roofBody);
         ceilBody.createFixture(roofFix);
@@ -340,24 +369,30 @@ public abstract class Plevel implements Screen {
 
             if (players.size() > 0) {
                 float leaderX = -Float.MAX_VALUE;
+                float sumX = 0f;
                 float leaderSpeedModifier = 1.0f;
 
                 for (int i = 0; i < players.size(); ++i) {
                     com.badlogic.ashley.core.Entity player = players.get(i);
                     float x = physMapper.get(player).body.getPosition().x;
+                    sumX += x;
                     if (x > leaderX) {
                         leaderX = x;
-                        ua.uni.gameplay.ecs.components.PlayerComponent playerComp = playerMapper.get(player);
+                        PlayerComponent playerComp = playerMapper.get(player);
                         if (playerComp != null) {
                             leaderSpeedModifier = playerComp.speedModifier;
                         }
                     }
                 }
+                
+                float avgX = players.size() > 0 ? (sumX / players.size()) : leaderX;
+                float targetLeaderX = (players.size() > 1) ? (leaderX * 0.6f + avgX * 0.4f) : leaderX;
+
                 float minCameraSpeed = baseMinCameraSpeed * leaderSpeedModifier;
 
                 float heroOffset = camera.viewportWidth * 0.3f;
-                float cameraX = leaderX + heroOffset;
-                float smoothness = 4.0f;
+                float cameraX = targetLeaderX + heroOffset;
+                float smoothness = 2.5f; // was 4.0f, made softer
                 float neededSpeed = (cameraX - camera.position.x) * smoothness;
                 actualCameraSpeed = Math.max(minCameraSpeed, neededSpeed);
                 lastCameraSpeed = actualCameraSpeed;
@@ -369,19 +404,19 @@ public abstract class Plevel implements Screen {
         camera.position.y = camera.viewportHeight / 2f;
         camera.update();
 
-        game.getBatch().setProjectionMatrix(camera.combined);
+        services.batch().setProjectionMatrix(camera.combined);
         renderLevelBackground();
 
         if (state == GameState.PLAYING) {
             AudioManager.get().updateLevelAmbience(delta);
             float frameTime = Math.min(delta, MAX_FRAME_TIME);
-            physicsAccumulator += frameTime;
+            physicsAccumulator += frameTime * 4.0f;
             while (physicsAccumulator >= TIMESTEP) {
                 world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-                engine.update(TIMESTEP);
-                mainGameLogic();
                 physicsAccumulator -= TIMESTEP;
             }
+            engine.update(delta);
+            mainGameLogic();
         } else if (state == GameState.PAUSED) {
             engine.getSystem(RenderSystem.class).update(delta);
             pauseMenu.render(delta);
@@ -395,7 +430,7 @@ public abstract class Plevel implements Screen {
         shapeRenderer.rect(finishLineX, -5f, 100f, 30f);
         shapeRenderer.end();
 
-        // SdebugRenderer.render(world, camera.combined);
+        //debugRenderer.render(world, camera.combined);
     }
 
     void renderLevelBackground() {
@@ -412,16 +447,16 @@ public abstract class Plevel implements Screen {
         float innerW = vw * 0.65f;
         float innerH = vh * 0.75f;
 
-        game.getBatch().begin();
-        game.getBatch().setColor(Color.WHITE);
-        game.getBatch().draw(backgroundGradient, left, bottom, vw, vh);
-        game.getBatch().setColor(1f, 1f, 1f, 1f);
-        game.getBatch().draw(backgroundGlow,
+        services.batch().begin();
+        services.batch().setColor(Color.WHITE);
+        services.batch().draw(backgroundGradient, left, bottom, vw, vh);
+        services.batch().setColor(1f, 1f, 1f, 1f);
+        services.batch().draw(backgroundGlow,
                 glowCx - outerW / 2f, glowCy - outerH / 2f, outerW, outerH);
-        game.getBatch().draw(backgroundGlowInner,
+        services.batch().draw(backgroundGlowInner,
                 glowCx - innerW / 2f, glowCy - innerH / 2f, innerW, innerH);
-        game.getBatch().setColor(1f, 1f, 1f, 1f);
-        game.getBatch().end();
+        services.batch().setColor(1f, 1f, 1f, 1f);
+        services.batch().end();
     }
 
     private void resumeFromPause() {
@@ -436,8 +471,8 @@ public abstract class Plevel implements Screen {
         AudioManager.get().stopLevelMusic();
         Gdx.input.setInputProcessor(null);
         try {
-            Constructor<? extends Plevel> constructor = getClass().getConstructor(MainGame.class);
-            game.setScreen(constructor.newInstance(game));
+            Constructor<? extends Plevel> constructor = getClass().getConstructor(GameServices.class);
+            services.setScreen(constructor.newInstance(services));
         } catch (Exception e) {
             throw new RuntimeException("Failed to restart level: " + getClass().getSimpleName(), e);
         }
@@ -479,6 +514,8 @@ public abstract class Plevel implements Screen {
         if (pauseMenu != null) {
             pauseMenu.dispose();
         }
+        if (deathEffect != null) deathEffect.dispose();
+        if (whiteSmokeEffect != null) whiteSmokeEffect.dispose();
         if (backgroundGradient != null) backgroundGradient.dispose();
         if (backgroundGlow != null) backgroundGlow.dispose();
         if (backgroundGlowInner != null) backgroundGlowInner.dispose();
@@ -539,5 +576,17 @@ public abstract class Plevel implements Screen {
         texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         pixmap.dispose();
         return texture;
+    }
+
+    private void spawnDeathParticle(float x, float y) {
+        if (deathEffectPool != null) {
+            ParticleEffectPool.PooledEffect effect = deathEffectPool.obtain();
+            effect.setPosition(x, y);
+            com.badlogic.ashley.core.Entity particleEntity = new com.badlogic.ashley.core.Entity();
+            ParticleComponent pc = new ParticleComponent();
+            pc.effect = effect;
+            particleEntity.add(pc);
+            engine.addEntity(particleEntity);
+        }
     }
 }

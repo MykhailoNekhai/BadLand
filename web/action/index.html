@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BADLAND — Account Action</title>
+    <link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+    <div class="scene">
+        <div class="sun-glow"></div>
+        <div class="ground"></div>
+        <div class="vignette"></div>
+        <div class="silhouette silhouette-left"></div>
+        <div class="silhouette silhouette-right"></div>
+        <div class="motes" aria-hidden="true">
+            <span style="--x:8%;--y:18%;--d:7s;--s:14px"></span>
+            <span style="--x:22%;--y:62%;--d:9s;--s:10px"></span>
+            <span style="--x:38%;--y:8%;--d:11s;--s:16px"></span>
+            <span style="--x:71%;--y:24%;--d:8s;--s:12px"></span>
+            <span style="--x:84%;--y:48%;--d:10s;--s:18px"></span>
+            <span style="--x:54%;--y:88%;--d:13s;--s:14px"></span>
+            <span style="--x:6%;--y:78%;--d:12s;--s:10px"></span>
+            <span style="--x:92%;--y:80%;--d:9s;--s:12px"></span>
+            <span style="--x:48%;--y:36%;--d:14s;--s:8px"></span>
+        </div>
+    </div>
+
+    <main class="page">
+        <header class="title-area">
+            <h1 class="brand">BADLAND</h1>
+        </header>
+
+        <section class="card">
+            <div class="card-inner">
+                <div class="card-header">
+                    <div class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/>
+                            <path d="m8.5 12 2.5 2.5L16 9"/>
+                        </svg>
+                    </div>
+                    <div class="card-titles">
+                        <h2 class="card-title">OPENING ACCOUNT ACTION</h2>
+                        <p class="card-subtitle">Preparing the correct page for your email link.</p>
+                    </div>
+                </div>
+
+                <div class="status-block">
+                    <div class="status-icon" id="statusIcon" aria-hidden="true">
+                        <div class="spinner"></div>
+                    </div>
+                    <p class="status-text" id="statusText">Checking your action link...</p>
+                    <p class="status-detail" id="statusDetail">You will be redirected automatically.</p>
+                </div>
+
+                <a href="../../" class="btn btn-ghost">
+                    <span class="arrow">&larr;</span>
+                    <span>Return to game</span>
+                </a>
+            </div>
+        </section>
+
+        <footer class="page-footer">
+            &copy; 2026 BADLAND. All rights reserved.
+        </footer>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

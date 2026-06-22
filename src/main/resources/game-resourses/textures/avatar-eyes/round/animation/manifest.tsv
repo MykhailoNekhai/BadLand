@@ -1,0 +1,21 @@
+color	state	file	source
+purple	open	round_purple_open.png	ChatGPT Image Jun 20, 2026 at 11_12_08 PM (2).png
+purple	half_closed	round_purple_half_closed.png	ChatGPT Image Jun 20, 2026 at 11_16_47 PM (5).png
+purple	closed	round_purple_closed.png	ChatGPT Image Jun 20, 2026 at 11_16_59 PM (5).png
+purple	blink_spritesheet	round_purple_blink_spritesheet.png	round_purple_open.png | round_purple_half_closed.png | round_purple_closed.png
+gray	open	round_gray_open.png	ChatGPT Image Jun 20, 2026 at 11_12_08 PM (1).png
+gray	half_closed	round_gray_half_closed.png	ChatGPT Image Jun 20, 2026 at 11_16_46 PM (1).png
+gray	closed	round_gray_closed.png	ChatGPT Image Jun 20, 2026 at 11_16_58 PM (1).png
+gray	blink_spritesheet	round_gray_blink_spritesheet.png	round_gray_open.png | round_gray_half_closed.png | round_gray_closed.png
+green	open	round_green_open.png	ChatGPT Image Jun 20, 2026 at 11_12_13 PM (5).png
+green	half_closed	round_green_half_closed.png	ChatGPT Image Jun 20, 2026 at 11_16_46 PM (2).png
+green	closed	round_green_closed.png	ChatGPT Image Jun 20, 2026 at 11_16_58 PM (2).png
+green	blink_spritesheet	round_green_blink_spritesheet.png	round_green_open.png | round_green_half_closed.png | round_green_closed.png
+cyan	open	round_cyan_open.png	ChatGPT Image Jun 20, 2026 at 11_12_13 PM (4).png
+cyan	half_closed	round_cyan_half_closed.png	ChatGPT Image Jun 20, 2026 at 11_16_47 PM (3).png
+cyan	closed	round_cyan_closed.png	ChatGPT Image Jun 20, 2026 at 11_16_58 PM (3).png
+cyan	blink_spritesheet	round_cyan_blink_spritesheet.png	round_cyan_open.png | round_cyan_half_closed.png | round_cyan_closed.png
+yellow	open	round_yellow_open.png	ChatGPT Image Jun 20, 2026 at 11_12_10 PM (3).png
+yellow	half_closed	round_yellow_half_closed.png	ChatGPT Image Jun 20, 2026 at 11_16_47 PM (4).png
+yellow	closed	round_yellow_closed.png	ChatGPT Image Jun 20, 2026 at 11_16_59 PM (4).png
+yellow	blink_spritesheet	round_yellow_blink_spritesheet.png	round_yellow_open.png | round_yellow_half_closed.png | round_yellow_closed.png

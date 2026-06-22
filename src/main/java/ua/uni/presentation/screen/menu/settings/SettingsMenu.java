@@ -2,7 +2,6 @@ package ua.uni.presentation.screen.menu.settings;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -12,7 +11,6 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -22,18 +20,15 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import ua.uni.audio.services.AudioManager;
 import ua.uni.core.config.GameSettings;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
+import ua.uni.presentation.screen.menu.core.PMenu;
+import ua.uni.presentation.screen.menu.factory.FontQuality;
 import ua.uni.core.logging.AppLogger;
-import ua.uni.presentation.screen.login.LoginMenu;
-import ua.uni.presentation.screen.menu.main.Menu;
+import ua.uni.presentation.screen.menu.ui.MenuFx;
 
-public class SettingsMenu implements Screen {
-    private final MainGame game;
-    private final Runnable onExit;
-    private Stage stage;
+public class SettingsMenu extends PMenu {
+        private final Runnable onExit;
 
     private Texture bg;
     private Texture panel;
@@ -75,12 +70,12 @@ public class SettingsMenu implements Screen {
     private TextButton keybindButton;
     private TextButton logoutButton;
 
-    public SettingsMenu(MainGame game) {
-        this(game, null);
+    public SettingsMenu(GameServices services) {
+        this(services, null);
     }
 
-    public SettingsMenu(MainGame game, Runnable onExit) {
-        this.game = game;
+    public SettingsMenu(GameServices services, Runnable onExit) {
+        super(services);
         this.onExit = onExit;
     }
 
@@ -95,29 +90,27 @@ public class SettingsMenu implements Screen {
 
     @Override
     public void show() {
-        stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
+        beginMenuShow();
 
         languageIndex = Math.max(0, indexOf(LanguageButton.LANGUAGES, GameSettings.getLanguage()));
-        AudioManager.get().enterMenuContext();
 
         bg = new Texture(Gdx.files.internal("game-resourses/menu/levels_bg_generated_hq.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 
-        panel = gradientPanel(620, 980, 48, 18, 12,
+        panel = textures().gradientPanel(620, 980, 48, 18, 12,
                 new Color(0.06f, 0.08f, 0.13f, 0.95f),
                 new Color(0.14f, 0.08f, 0.04f, 0.95f));
-        panelVignette = panelVignetteTexture(620, 980, 48, 18, 12);
-        backBtn = roundedRect(180, 72, 24, new Color(0f, 0f, 0f, 0.92f));
-        itemBtn = roundedRect(560, 80, 24, new Color(0f, 0f, 0f, 1f));
-        sliderTrack = horizontalGradientTrack(320, 14, 7,
+        panelVignette = textures().panelVignetteTexture(620, 980, 48, 18, 12);
+        backBtn = textures().roundedRect(180, 72, 24, new Color(0f, 0f, 0f, 0.92f));
+        itemBtn = textures().roundedRect(560, 80, 24, new Color(0f, 0f, 0f, 1f));
+        sliderTrack = textures().horizontalGradientTrack(320, 14, 7,
                 new Color(0.55f, 0.32f, 0.10f, 0.96f),
                 new Color(1f, 0.93f, 0.56f, 0.96f));
-        sliderKnob = circleWithHaloTexture(56, 16,
+        sliderKnob = textures().circleWithHaloTexture(56, 16,
                 new Color(1f, 0.93f, 0.62f, 1f),
                 new Color(1f, 0.85f, 0.40f, 0.55f));
-        dotTex = softDotTexture(14);
-        sidePanelBg = gradientPanel(500, 640, 38, 14, 12,
+        dotTex = textures().softDotTexture(14);
+        sidePanelBg = textures().gradientPanel(500, 640, 38, 14, 12,
                 new Color(0.08f, 0.10f, 0.15f, 0.98f),
                 new Color(0.16f, 0.10f, 0.05f, 0.98f));
 
@@ -130,7 +123,9 @@ public class SettingsMenu implements Screen {
         items.borderWidth = 1.6f;
         items.borderColor = new Color(0.06f, 0.05f, 0.03f, 1f);
         items.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(items);
         itemFont = generator.generateFont(items);
+        FontQuality.fixScale(itemFont);
 
         FreeTypeFontGenerator.FreeTypeFontParameter back = new FreeTypeFontGenerator.FreeTypeFontParameter();
         back.size = 46;
@@ -138,7 +133,9 @@ public class SettingsMenu implements Screen {
         back.borderWidth = 1.2f;
         back.borderColor = Color.BLACK;
         back.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(back);
         backFont = generator.generateFont(back);
+        FontQuality.fixScale(backFont);
 
         FreeTypeFontGenerator.FreeTypeFontParameter small = new FreeTypeFontGenerator.FreeTypeFontParameter();
         small.size = 34;
@@ -146,7 +143,9 @@ public class SettingsMenu implements Screen {
         small.borderWidth = 1.0f;
         small.borderColor = Color.BLACK;
         small.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(small);
         smallFont = generator.generateFont(small);
+        FontQuality.fixScale(smallFont);
 
         FreeTypeFontGenerator.FreeTypeFontParameter title = new FreeTypeFontGenerator.FreeTypeFontParameter();
         title.size = 68;
@@ -154,7 +153,9 @@ public class SettingsMenu implements Screen {
         title.borderWidth = 1.8f;
         title.borderColor = new Color(0.10f, 0.05f, 0.02f, 1f);
         title.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(title);
         titleFont = generator.generateFont(title);
+        FontQuality.fixScale(titleFont);
 
         generator.dispose();
 
@@ -193,8 +194,8 @@ public class SettingsMenu implements Screen {
         readyButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                AudioManager.get().playSelect(0.75f);
-                exitSettings();
+                audio().playSelect(0.75f);
+                MenuFx.runAfterGoldButtonPress(actor, () -> exitSettings());
             }
         });
 
@@ -219,7 +220,7 @@ public class SettingsMenu implements Screen {
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
                 float v = volumeSlider.getValue();
                 GameSettings.setMusicVolume(v);
-                AudioManager.get().applySoundSetting();
+                audio().applySoundSetting();
                 soundsLabel.setText(soundsRowText());
             }
         });
@@ -241,7 +242,7 @@ public class SettingsMenu implements Screen {
         Table panelWrap = new Table();
         panelWrap.setFillParent(true);
         panelWrap.center();
-        panelWrap.add(panelStack).width(620).height(980);
+        panelWrap.add(panelStack).width(620).height(800);
 
         stage.addActor(panelWrap);
 
@@ -268,22 +269,23 @@ public class SettingsMenu implements Screen {
         statisticsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                AudioManager.get().playSelect(0.72f);
+                audio().playSelect(0.72f);
                 if (activeRightPanel != null) closeSidePanel(false);
-                else openSidePanel(false, LanguageButton.t("STATISTICS"), buildStatisticsContent());
+                else openSidePanel(false, LanguageButton.t("STATISTICS"),
+                        new SettingsStatisticsPanel(smallFont, itemFont, services.achievements()).build());
             }
         });
         achievementsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                AudioManager.get().playSelect(0.72f);
-                game.setScreen(new AchievementsButton(game));
+                audio().playSelect(0.72f);
+                navigator().goToAchievements();
             }
         });
         languageButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                AudioManager.get().playSelect(0.65f);
+                audio().playSelect(0.65f);
                 languageIndex = (languageIndex + 1) % LanguageButton.LANGUAGES.length;
                 GameSettings.setLanguage(LanguageButton.LANGUAGES[languageIndex]);
                 AppLogger.info("Settings", "Language -> " + LanguageButton.LANGUAGES[languageIndex]);
@@ -293,7 +295,7 @@ public class SettingsMenu implements Screen {
         creditsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                AudioManager.get().playSelect(0.72f);
+                audio().playSelect(0.72f);
                 if (activeLeftPanel != null) closeSidePanel(true);
                 else openSidePanel(true, LanguageButton.t("CREDITS"), buildCreditsContent());
             }
@@ -301,75 +303,11 @@ public class SettingsMenu implements Screen {
         keybindButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, com.badlogic.gdx.scenes.scene2d.Actor actor) {
-                AudioManager.get().playSelect(0.72f);
-                game.setScreen(new KeyBindingsButton(game));
+                audio().playSelect(0.72f);
+                navigator().goToKeyBindings();
             }
         });
 
-    }
-
-    private Table buildStatisticsContent() {
-        int totalScore = game.getAchievementManager().getTotalScore();
-        int deaths = game.getAchievementManager().getTotalDeaths();
-        int wins = game.getAchievementManager().getTotalWins();
-        int losses = game.getAchievementManager().getTotalLosses();
-        int unlocked = game.getAchievementManager().getUnlockedCount();
-        int total = game.getAchievementManager().getTotalCount();
-        int playSeconds = game.getAchievementManager().getTotalPlaySeconds();
-
-        Label.LabelStyle sectionStyle = new Label.LabelStyle(smallFont, new Color(1f, 0.86f, 0.36f, 1f));
-        Label.LabelStyle valueStyle = new Label.LabelStyle(itemFont, new Color(0.98f, 0.95f, 0.88f, 1f));
-
-        Table t = new Table();
-        t.top().left().padTop(10);
-        t.defaults().left();
-
-        t.add(new Label(LanguageButton.t("SCORE"), sectionStyle)).left().padBottom(6).row();
-        t.add(new Label(String.valueOf(totalScore), valueStyle)).left().padBottom(18).row();
-
-        float statsWidth = 400f;
-        float columnGap = 24f;
-        float halfWidth = (statsWidth - columnGap) / 2f;
-
-        Table rowTwo = new Table();
-        rowTwo.left();
-        rowTwo.add(new Label(LanguageButton.t("WINS"), sectionStyle)).left().width(halfWidth).padRight(columnGap);
-        rowTwo.add(new Label(LanguageButton.t("LOSSES"), sectionStyle)).left().width(halfWidth);
-        t.add(rowTwo).left().width(statsWidth).padBottom(6).row();
-
-        Table rowTwoValues = new Table();
-        rowTwoValues.left();
-        rowTwoValues.add(new Label(String.valueOf(wins), valueStyle)).left().width(halfWidth).padRight(columnGap);
-        rowTwoValues.add(new Label(String.valueOf(losses), valueStyle)).left().width(halfWidth);
-        t.add(rowTwoValues).left().width(statsWidth).padBottom(18).row();
-
-        Table rowThree = new Table();
-        rowThree.left();
-        rowThree.add(new Label(LanguageButton.t("ACHIEVEMENTS"), sectionStyle)).left().width(halfWidth).padRight(columnGap);
-        rowThree.add(new Label(LanguageButton.t("DEATHS"), sectionStyle)).left().width(halfWidth);
-        t.add(rowThree).left().width(statsWidth).padBottom(6).row();
-
-        Table rowThreeValues = new Table();
-        rowThreeValues.left();
-        rowThreeValues.add(new Label(unlocked + " / " + total, valueStyle)).left().width(halfWidth).padRight(columnGap);
-        rowThreeValues.add(new Label(String.valueOf(deaths), valueStyle)).left().width(halfWidth);
-        t.add(rowThreeValues).left().width(statsWidth).padBottom(18).row();
-
-        t.add(new Label(LanguageButton.t("PLAY_TIME"), sectionStyle)).left().padBottom(6).row();
-        t.add(new Label(formatPlayTime(playSeconds), valueStyle)).left().row();
-        return t;
-    }
-
-    private String formatPlayTime(int totalSeconds) {
-        int hours = totalSeconds / 3600;
-        int minutes = (totalSeconds % 3600) / 60;
-        if (hours > 0) {
-            return LanguageButton.tf("HOURS_MINUTES_FMT", hours, minutes);
-        }
-        if (minutes > 0) {
-            return LanguageButton.tf("MINUTES_FMT", minutes);
-        }
-        return LanguageButton.tf("SECONDS_FMT", totalSeconds);
     }
 
     private Table buildCreditsContent() {
@@ -397,32 +335,8 @@ public class SettingsMenu implements Screen {
         if (fromLeft && activeLeftPanel != null) return;
         if (!fromLeft && activeRightPanel != null) return;
 
-        float screenW = stage.getViewport().getWorldWidth();
-        float screenH = stage.getViewport().getWorldHeight();
-        int panelW = 500;
-        int panelH = 700;
-        float y = (screenH - panelH) / 2f;
-        float startX = fromLeft ? -panelW - 20f : screenW + 20f;
-        float endX = fromLeft ? 40f : screenW - panelW - 40f;
-
-        Label.LabelStyle titleStyle = new Label.LabelStyle(itemFont, new Color(1f, 0.86f, 0.36f, 1f));
-        Label titleLbl = new Label(titleText, titleStyle);
-
-        Table inner = new Table();
-        inner.top().padTop(28).padLeft(20).padRight(20).padBottom(20);
-        inner.add(titleLbl).center().padBottom(4).row();
-        inner.add(contentTable).expand().fill().row();
-
-        Stack panelStack = new Stack();
-        panelStack.add(new Image(new TextureRegionDrawable(sidePanelBg)));
-        panelStack.add(inner);
-
-        panelStack.setSize(panelW, panelH);
-        panelStack.setPosition(startX, y);
-        panelStack.addAction(Actions.moveTo(endX, y, 0.30f, Interpolation.sineOut));
-        AudioManager.get().playPanelInOut(0.70f);
-
-        stage.addActor(panelStack);
+        Actor panelStack = sidePanels().open(stage, fromLeft, titleText, contentTable,
+                sidePanelBg, itemFont, 500, 700, 40f, 28f, 20f, 20f);
         if (fromLeft) activeLeftPanel = panelStack;
         else activeRightPanel = panelStack;
     }
@@ -430,14 +344,7 @@ public class SettingsMenu implements Screen {
     private void closeSidePanel(boolean fromLeft) {
         Actor panel = fromLeft ? activeLeftPanel : activeRightPanel;
         if (panel == null) return;
-        float screenW = stage.getViewport().getWorldWidth();
-        int panelW = 500;
-        float exitX = fromLeft ? -panelW - 20f : screenW + 20f;
-        panel.addAction(Actions.sequence(
-                Actions.moveTo(exitX, panel.getY(), 0.22f, Interpolation.sineIn),
-                Actions.removeActor()
-        ));
-        AudioManager.get().playPanelInOut(0.60f);
+        sidePanels().close(stage, panel, fromLeft);
         if (fromLeft) activeLeftPanel = null;
         else activeRightPanel = null;
     }
@@ -468,14 +375,14 @@ public class SettingsMenu implements Screen {
         if (onExit != null) {
             onExit.run();
         } else {
-            game.setScreen(new Menu(game));
+            navigator().goToMainMenu();
         }
     }
 
     @Override
     public void render(float delta) {
         elapsed += delta;
-        AudioManager.get().updateMenuAmbience(delta);
+        audio().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             handleExternalEscape();
             if (onExit == null && activeLeftPanel == null && activeRightPanel == null) {
@@ -732,8 +639,7 @@ public class SettingsMenu implements Screen {
 
     @Override
     public void hide() {
-        AudioManager.get().leaveMenuContext();
-        Gdx.input.setInputProcessor(null);
+        endMenuHide();
     }
 
     @Override

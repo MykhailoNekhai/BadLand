@@ -1,6 +1,6 @@
 package ua.uni.gameplay.levels;
 
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
 import ua.uni.gameplay.factory.EntityFactory;
 
 public class Poligon2Level extends Plevel {
@@ -8,8 +8,8 @@ public class Poligon2Level extends Plevel {
 
 
 
-    public Poligon2Level(MainGame game) {
-        super(game);
+    public Poligon2Level(GameServices services) {
+        super(services);
         levelNumber = 1;
     }
 

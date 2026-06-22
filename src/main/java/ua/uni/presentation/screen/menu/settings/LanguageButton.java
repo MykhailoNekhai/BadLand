@@ -27,6 +27,7 @@ public final class LanguageButton {
         put(en, uk, "CREDITS", "CREDITS", "АВТОРИ");
         put(en, uk, "KEY_BINDINGS", "KEY BINDINGS", "КЛАВІШІ");
         put(en, uk, "BACK", "BACK", "НАЗАД");
+        put(en, uk, "APPLY", "APPLY", "APPLY");
         put(en, uk, "LOG_OUT", "LOG OUT", "ВИЙТИ");
         put(en, uk, "READY", "READY", "ГОТОВО");
         put(en, uk, "CREDITS_TEAM", "TEAM", "КОМАНДА");
@@ -158,6 +159,27 @@ public final class LanguageButton {
         put(en, uk, "SESSION_EMAIL_HINT", "Firebase actions will use your current account email.", "Firebase-дії використовуватимуть поточну пошту акаунта.");
         put(en, uk, "LOGIN_FIRST_FIREBASE", "Login first to enable Firebase actions.", "Спочатку увійдіть, щоб увімкнути Firebase-дії.");
         put(en, uk, "SKINS", "SKINS", "СКІНИ");
+        put(en, uk, "COLORS", "COLORS", "КОЛЬОРИ");
+        put(en, uk, "SKIN_CLASSIC", "CLASSIC", "КЛАСИКА");
+        put(en, uk, "SKIN_RUNNER", "RUNNER", "БІГУН");
+        put(en, uk, "SKIN_THORN", "THORN", "ШИПИ");
+        put(en, uk, "SKIN_NIGHT", "NIGHT", "НІЧ");
+        put(en, uk, "COLOR_SHADOW", "SHADOW", "ТІНЬ");
+        put(en, uk, "COLOR_AMBER", "AMBER", "БУРШТИН");
+        put(en, uk, "COLOR_MOSS", "MOSS", "МОХ");
+        put(en, uk, "COLOR_SKY", "SKY", "НЕБО");
+        put(en, uk, "EYES", "EYES", "ОЧІ");
+        put(en, uk, "EYE_COLORS", "EYE COLORS", "КОЛЬОРИ ОЧЕЙ");
+        put(en, uk, "EYE_STYLE_SHADOW", "SHADOW", "ТІНЬ");
+        put(en, uk, "EYE_STYLE_SPIDER", "SPIDER", "ПАВУЧІ");
+        put(en, uk, "EYE_STYLE_ROUND", "ROUND", "КРУГЛІ");
+        put(en, uk, "EYE_STYLE_CLUSTER", "TRIPLE", "ТРИ ОЧІ");
+        put(en, uk, "EYE_STYLE_SWIRL", "SWIRL", "СПІРАЛЬ");
+        put(en, uk, "EYE_COLOR_PURPLE", "PURPLE", "ФІОЛЕТОВИЙ");
+        put(en, uk, "EYE_COLOR_GRAY", "GRAY", "СІРИЙ");
+        put(en, uk, "EYE_COLOR_GREEN", "GREEN", "ЗЕЛЕНИЙ");
+        put(en, uk, "EYE_COLOR_CYAN", "CYAN", "БЛАКИТНИЙ");
+        put(en, uk, "EYE_COLOR_YELLOW", "YELLOW", "ЖОВТИЙ");
         put(en, uk, "TRAILS", "TRAILS", "СЛІДИ");
         put(en, uk, "COSMETICS", "COSMETICS", "КОСМЕТИКА");
         put(en, uk, "AVATAR_CHANGE", "AVATAR CHANGE", "ЗМІНА АВАТАРА");
@@ -177,6 +199,8 @@ public final class LanguageButton {
         put(en, uk, "SECONDS_FMT", "%ds", "%dс");
         put(en, uk, "RESET", "RESET", "СКИНУТИ");
         put(en, uk, "RESET_ACHIEVEMENTS", "RESET ACHIEVEMENTS", "СКИНУТИ ДОСЯГНЕННЯ");
+        put(en, uk, "LOADING", "LOADING", "ЗАВАНТАЖЕННЯ");
+        put(en, uk, "SURVIVING_TIP", "SURVIVING TIP", "ПОРАДА ДЛЯ ВИЖИВАННЯ");
 
         TRANSLATIONS.put("EN", en);
         TRANSLATIONS.put("UK", uk);

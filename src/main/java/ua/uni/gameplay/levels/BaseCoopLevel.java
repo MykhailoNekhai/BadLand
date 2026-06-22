@@ -15,16 +15,15 @@ import com.heroiclabs.nakama.Error;
 import com.heroiclabs.nakama.MatchData;
 import com.heroiclabs.nakama.MatchPresenceEvent;
 import ua.uni.audio.services.AudioManager;
+import ua.uni.core.config.GameSettings;
 import ua.uni.gameplay.ecs.components.PhysicsComponent;
 import ua.uni.gameplay.ecs.components.PlayerComponent;
-import ua.uni.gameplay.entity.Shadow;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
 import ua.uni.gameplay.factory.EntityFactory;
 import ua.uni.platform.online.CoopMatchState;
 import ua.uni.platform.online.CoopProtocol;
 import ua.uni.platform.online.NakamaSocket;
 import ua.uni.utility.serialization.Serialization;
-import ua.uni.utility.physics.BodyEditorLoader;
 import ua.uni.presentation.screen.menu.coop.CoopStatusScreen;
 import ua.uni.presentation.screen.menu.settings.LanguageButton;
 
@@ -36,14 +35,16 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
     private static final float STATE_SEND_INTERVAL = 0.05f;
     private static final float REMOTE_TIMEOUT_SECONDS = 2.5f;
     private static final float MAX_EXTRAPOLATION_SECONDS = 0.18f;
+    private static final float MAX_FRAME_TIME = 0.25f;
     private static final float SPAWN_LOOKAHEAD = 50f;
 
     private final ComponentMapper<PhysicsComponent> physMapper = ComponentMapper.getFor(PhysicsComponent.class);
     private final ComponentMapper<PlayerComponent> playerMapper = ComponentMapper.getFor(PlayerComponent.class);
-    private final Array<Shadow> remoteClones = new Array<>();
+    private final Array<Entity> remoteClones = new Array<>();
     private final Array<RemoteShadowState> remoteStates = new Array<>();
     private final CoopMatchState matchState;
-    private boolean onlineMatchMode = false;
+    private boolean onlineMatchMode ;
+    private float physicsAccumulator;
     private float networkSendElapsed;
     private float remotePacketElapsed;
     private long localStateSequence;
@@ -54,17 +55,17 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
     private boolean remoteStateReceived;
     private boolean localAllDeadBroadcast;
 
-    protected BaseCoopLevel(MainGame game) {
-        super(game);
-        this.matchState = game.getCoopMatchState();
+    protected BaseCoopLevel(GameServices services) {
+        super(services);
+        this.matchState = services.getCoopMatchState();
         this.onlineMatchMode = matchState != null && matchState.getExpectedPlayers() > 1;
     }
 
     @Override
     public void show() {
         super.show();
-        if (onlineMatchMode && game.getNakamaMatchService() != null) {
-            game.getNakamaMatchService().setEventListener(this);
+        if (onlineMatchMode && services.nakamaMatch() != null) {
+            services.nakamaMatch().setEventListener(this);
         }
         if (onlineMatchMode) {
             spawnRemoteClone(2f, 9f);
@@ -82,49 +83,57 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (!onlineMatchMode) {
                 // У локальному режимі просто виходимо в меню
-                game.setScreen(new ua.uni.presentation.screen.menu.main.Menu(game));
+                services.setScreen(new ua.uni.presentation.screen.menu.main.Menu(services));
                 return;
             }
             abortLevel(LanguageButton.t("PLAYER_LEFT_MATCH"), true);
             return;
         }
 
-        Gdx.gl.glClearColor(0.03f, 0.03f, 0.03f, 1);
+        Gdx.gl.glClearColor(0.03f, 0.03f, 0.03f, 1f);
         Gdx.gl.glClear(com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT);
 
-        boolean w = Gdx.input.isKeyPressed(Input.Keys.W);
-        boolean s = Gdx.input.isKeyPressed(Input.Keys.S);
-        boolean a = Gdx.input.isKeyPressed(Input.Keys.A);
-        boolean d = Gdx.input.isKeyPressed(Input.Keys.D);
-
-        if (!isGameStarted && (w || s || a || d || remoteStarted)) {
+        boolean up = Gdx.input.isKeyPressed(GameSettings.getMoveUp());
+        boolean down = Gdx.input.isKeyPressed(GameSettings.getMoveDown());
+        boolean left = Gdx.input.isKeyPressed(GameSettings.getMoveLeft());
+        boolean right = Gdx.input.isKeyPressed(GameSettings.getMoveRight());
+        if (!isGameStarted && (up || down || left || right || remoteStarted)) {
             isGameStarted = true;
         }
 
-        // Застосовуємо керування до локальних гравців
-        ImmutableArray<Entity> localPlayers = getLocalPlayers();
-        for (int i = 0; i < localPlayers.size(); i++) {
-            Entity player = localPlayers.get(i);
-            PlayerComponent playerComp = playerMapper.get(player);
-            PhysicsComponent physComp = physMapper.get(player);
-            if (playerComp != null && physComp != null && physComp.body != null && physComp.body.isActive() && !playerComp.isDead) {
-                float moveX = 0f;
-                float moveY = 0f;
-                if (a) moveX -= 1f;
-                if (d) moveX += 1f;
-                if (s) moveY -= 1f;
-                if (w) moveY += 1f;
-
-                float speed = 8.5f * playerComp.speedModifier;
-                physComp.body.setLinearVelocity(moveX * speed, moveY * speed);
-            }
+        if (state == GameState.PLAYING) {
+            AudioManager.get().updateLevelAmbience(delta);
         }
 
-        AudioManager.get().updateLevelAmbience(delta);
-        world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-        engine.update(delta);
+        interpolateRemoteClones(delta);
+        updateCamera(delta);
+        camera.position.y = camera.viewportHeight / 2f;
+        camera.update();
 
-        // Lazy spawning логіка
+        services.batch().setProjectionMatrix(camera.combined);
+        renderLevelBackground();
+
+        if (state == GameState.PLAYING) {
+            float frameTime = Math.min(delta, MAX_FRAME_TIME);
+            physicsAccumulator += frameTime;
+            while (physicsAccumulator >= TIMESTEP) {
+                world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+                engine.update(TIMESTEP);
+                updateCoopWorldState();
+                physicsAccumulator -= TIMESTEP;
+            }
+        } else {
+            engine.update(delta);
+        }
+
+        if (onlineMatchMode) {
+            syncLocalState(delta);
+            checkRemoteTimeout(delta);
+        }
+        resolveMatchState();
+    }
+
+    private void updateCoopWorldState() {
         if (!pendingSpawns.isEmpty()) {
             float spawnEdge = camera.position.x + (camera.viewportWidth / 2f) + SPAWN_LOOKAHEAD;
             for (int i = pendingSpawns.size() - 1; i >= 0; i--) {
@@ -143,48 +152,29 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         updateDeadLocalPlayers();
         updateDeadClones(remoteClones);
 
-        // Видаляємо об'єкти позаду камери
         float leftCameraEdge = camera.position.x - (camera.viewportWidth / 2f);
         float edgeX = leftCameraEdge - 25f;
         ImmutableArray<Entity> obstacles = engine.getEntitiesFor(Family.all(PhysicsComponent.class).exclude(PlayerComponent.class).get());
         for (int i = 0; i < obstacles.size(); i++) {
             Entity obstacle = obstacles.get(i);
             PhysicsComponent phys = physMapper.get(obstacle);
-            if (phys != null && phys.body != null) {
-                if (phys.body.getPosition().x < edgeX) {
-                    world.destroyBody(phys.body);
-                    engine.removeEntity(obstacle);
-                }
+            if (phys != null && phys.body != null && phys.body.getPosition().x < edgeX) {
+                world.destroyBody(phys.body);
+                engine.removeEntity(obstacle);
             }
         }
-
-        interpolateRemoteClones(delta);
-        updateCamera(delta);
-        camera.position.y = camera.viewportHeight / 2f;
-        camera.update();
-
-        game.getBatch().setProjectionMatrix(camera.combined);
-        renderLevelBackground();
-
-        if (onlineMatchMode) {
-            syncLocalState(delta);
-            checkRemoteTimeout(delta);
-        }
-        resolveMatchState();
-
-        debugRenderer.render(world, camera.combined);
     }
 
-    private void updateDeadClones(Array<Shadow> shadows) {
+    private void updateDeadClones(Array<Entity> shadows) {
         float leftCameraEdge = camera.position.x - (camera.viewportWidth / 2f);
         float deathLineX = leftCameraEdge - SHADOW_SIZE;
-        for (Shadow shadow : shadows) {
-            Body body = shadow.getBody();
+        for (Entity shadow : shadows) {
+            PhysicsComponent physics = physMapper.get(shadow);
+            Body body = physics == null ? null : physics.body;
             if (body == null || !body.isActive()) {
                 continue;
             }
-            if (shadow.isDead() || body.getPosition().x < deathLineX) {
-                shadow.setDead(true);
+            if (body.getPosition().x < deathLineX) {
                 body.setLinearVelocity(0f, 0f);
                 body.setAngularVelocity(0f);
                 body.setActive(false);
@@ -226,8 +216,9 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
                 leaderX = Math.max(leaderX, body.getPosition().x);
             }
         }
-        for (Shadow shadow : remoteClones) {
-            Body body = shadow.getBody();
+        for (Entity shadow : remoteClones) {
+            PhysicsComponent physics = physMapper.get(shadow);
+            Body body = physics == null ? null : physics.body;
             if (body != null && body.isActive()) {
                 leaderX = Math.max(leaderX, body.getPosition().x);
             }
@@ -239,7 +230,7 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         if (!onlineMatchMode) {
             return;
         }
-        if (matchState == null || !game.getNakamaMatchService().isConnected()) {
+        if (matchState == null || !services.nakamaMatch().isConnected()) {
             return;
         }
         networkSendElapsed += delta;
@@ -257,7 +248,7 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         payload.put("started", String.valueOf(isGameStarted));
         payload.put("allDead", String.valueOf(localAllDead));
         payload.put("clones", encodeLocalPlayers());
-        game.getNakamaMatchService().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_PLAYER_STATE,
+        services.nakamaMatch().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_PLAYER_STATE,
                 Serialization.toJson(payload).getBytes(StandardCharsets.UTF_8));
         if (shouldBroadcastDeath) {
             localAllDeadBroadcast = true;
@@ -311,14 +302,14 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
             if (parts.length < 6) {
                 continue;
             }
-            Shadow shadow = remoteClones.get(i);
+            Entity shadow = remoteClones.get(i);
             RemoteShadowState state = remoteStates.get(i);
-            Body body = shadow.getBody();
+            PhysicsComponent physics = physMapper.get(shadow);
+            Body body = physics == null ? null : physics.body;
             if (body == null) {
                 continue;
             }
             boolean dead = Boolean.parseBoolean(parts[5]);
-            shadow.setDead(dead);
             if (dead) {
                 state.active = false;
                 state.hasTarget = false;
@@ -352,16 +343,15 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
     }
 
     private void spawnRemoteClone(float x, float y) {
-        BodyEditorLoader heroLoader = new BodyEditorLoader(Gdx.files.internal("game-resourses/assetData/avatar-1.json"));
-        Shadow shadow = new Shadow(world, heroLoader, x, y, SHADOW_SIZE);
-        Body body = shadow.getBody();
+        Entity shadow = EntityFactory.createPlayer(engine, world, x, y, SHADOW_SIZE);
+        shadow.remove(PlayerComponent.class);
+        Body body = physMapper.get(shadow).body;
         body.setGravityScale(0f);
         body.setLinearDamping(0f);
         body.setAngularDamping(0f);
         for (Fixture fixture : body.getFixtureList()) {
             fixture.setSensor(true);
         }
-        body.setUserData("REMOTE_SHADOW");
         remoteClones.add(shadow);
         remoteStates.add(new RemoteShadowState());
     }
@@ -369,21 +359,20 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
     private void interpolateRemoteClones(float delta) {
         float alpha = Math.min(1f, delta * 9f);
         for (int i = 0; i < remoteClones.size; i++) {
-            Shadow shadow = remoteClones.get(i);
+            Entity shadow = remoteClones.get(i);
             RemoteShadowState state = remoteStates.get(i);
-            Body body = shadow.getBody();
+            PhysicsComponent physics = physMapper.get(shadow);
+            Body body = physics == null ? null : physics.body;
             if (body == null || !state.hasTarget) {
                 continue;
             }
             if (!state.active) {
-                shadow.setDead(true);
                 body.setLinearVelocity(0f, 0f);
                 body.setAngularVelocity(0f);
                 body.setActive(false);
                 continue;
             }
 
-            shadow.setDead(false);
             if (!body.isActive()) {
                 body.setActive(true);
                 body.setTransform(state.targetX, state.targetY, state.targetAngle);
@@ -451,24 +440,24 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         if ("Victory".equalsIgnoreCase(title)) {
             AudioManager.get().playLevelWin(0.95f);
             if (levelNumber > 0) {
-                game.getAchievementManager().onLevelComplete(levelNumber);
+                services.achievements().onLevelComplete(levelNumber);
             }
         } else {
             AudioManager.get().playLevelLose(0.95f);
             if (levelNumber > 0) {
-                game.getAchievementManager().onLevelFailed();
+                services.achievements().onLevelFailed();
             }
         }
-        if (broadcast && onlineMatchMode && matchState != null && game.getNakamaMatchService().isConnected()) {
+        if (broadcast && onlineMatchMode && matchState != null && services.nakamaMatch().isConnected()) {
             Map<String, String> payload = new LinkedHashMap<>();
             payload.put("type", "result");
             payload.put("title", title);
             payload.put("message", message);
-            game.getNakamaMatchService().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_LEVEL_RESULT,
+            services.nakamaMatch().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_LEVEL_RESULT,
                     Serialization.toJson(payload).getBytes(StandardCharsets.UTF_8));
         }
         cleanupConnection();
-        game.setScreen(new CoopStatusScreen(game, title, message));
+        services.setScreen(new CoopStatusScreen(services, title, message));
     }
 
     private void abortLevel(String message, boolean broadcast) {
@@ -477,40 +466,40 @@ public abstract class BaseCoopLevel extends Plevel implements NakamaSocket.Event
         }
         ended = true;
         AudioManager.get().playLevelLose(0.95f);
-        if (broadcast && onlineMatchMode && matchState != null && game.getNakamaMatchService().isConnected()) {
+        if (broadcast && onlineMatchMode && matchState != null && services.nakamaMatch().isConnected()) {
             Map<String, String> payload = new LinkedHashMap<>();
             payload.put("type", "abort");
             payload.put("message", message);
-            game.getNakamaMatchService().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_LEVEL_ABORT,
+            services.nakamaMatch().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_LEVEL_ABORT,
                     Serialization.toJson(payload).getBytes(StandardCharsets.UTF_8));
         }
         cleanupConnection();
-        game.setScreen(new CoopStatusScreen(game, LanguageButton.t("CONNECTION_ERROR"), message));
+        services.setScreen(new CoopStatusScreen(services, LanguageButton.t("CONNECTION_ERROR"), message));
     }
 
     private void broadcastLocalDeath() {
-        if (matchState == null || !game.getNakamaMatchService().isConnected()) {
+        if (matchState == null || !services.nakamaMatch().isConnected()) {
             return;
         }
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("type", "death");
         payload.put("userId", matchState.getLocalUserId());
         payload.put("dead", "true");
-        game.getNakamaMatchService().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_PLAYER_DEATH,
+        services.nakamaMatch().sendMatchData(matchState.getMatchId(), CoopProtocol.OP_PLAYER_DEATH,
                 Serialization.toJson(payload).getBytes(StandardCharsets.UTF_8));
     }
 
     private void cleanupConnection() {
-        game.clearCoopMatchState();
-        if (matchState != null && game.getNakamaMatchService().isConnected()) {
+        services.clearCoopMatchState();
+        if (matchState != null && services.nakamaMatch().isConnected()) {
             try {
-                game.getNakamaMatchService().leaveMatch(matchState.getMatchId());
+                services.nakamaMatch().leaveMatch(matchState.getMatchId());
             } catch (Exception ignored) {
             }
             if (!onlineMatchMode) {
-                game.getNakamaMatchService().setEventListener(null);
+                services.nakamaMatch().setEventListener(null);
             }
-            game.getNakamaMatchService().disconnect();
+            services.nakamaMatch().disconnect();
         }
     }
 

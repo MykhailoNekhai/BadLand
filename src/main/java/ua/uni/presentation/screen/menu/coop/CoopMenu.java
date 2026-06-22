@@ -3,9 +3,7 @@ package ua.uni.presentation.screen.menu.coop;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Preferences;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -13,7 +11,6 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -24,45 +21,41 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.heroiclabs.nakama.Error;
 import com.heroiclabs.nakama.Match;
 import com.heroiclabs.nakama.MatchData;
 import com.heroiclabs.nakama.MatchPresenceEvent;
 import com.heroiclabs.nakama.Session;
 import com.heroiclabs.nakama.UserPresence;
-import ua.uni.audio.services.AudioManager;
-import ua.uni.bootstrap.MainGame;
+import ua.uni.bootstrap.GameServices;
 import ua.uni.bootstrap.RuntimeProfile;
 import ua.uni.core.logging.AppLogger;
-import ua.uni.gameplay.levels.CoopRuinsLevel;
-import ua.uni.gameplay.levels.Poligon2Level;
 import ua.uni.platform.online.CoopMatchState;
-import ua.uni.platform.online.CoopProtocol;
 import ua.uni.platform.online.NakamaSocket;
-import ua.uni.utility.serialization.Serialization;
+import ua.uni.platform.online.lobby.CoopLobbyController;
+import ua.uni.platform.online.lobby.LobbyPlayer;
+import ua.uni.presentation.screen.menu.core.PMenu;
+import ua.uni.presentation.screen.menu.factory.FontQuality;
 import ua.uni.presentation.screen.menu.settings.LanguageButton;
-import ua.uni.presentation.screen.menu.main.Menu;
+import ua.uni.presentation.screen.menu.ui.MenuFx;
+import ua.uni.utility.serialization.Serialization;
 
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class CoopMenu implements Screen, NakamaSocket.EventListener {
+public class CoopMenu extends PMenu
+        implements NakamaSocket.EventListener, CoopLobbyController.Listener {
+
     private static final String LOG_TAG = "CoopLobby";
     private static final String DEVICE_PREFS = "badland_online_device";
     private static final String DEVICE_ID_KEY = "device_id";
-    private static final int MAX_LEVELS = 10;
     private static final int TRAIL_LEN = 10;
 
-    private final MainGame game;
-    private final Map<String, LobbyPlayer> players = new LinkedHashMap<>();
     private final float[] trailX = new float[TRAIL_LEN];
     private final float[] trailY = new float[TRAIL_LEN];
     private final Vector2 mouseTmp = new Vector2();
 
-    private Stage stage;
     private Texture bg;
     private Texture fg;
     private Texture panel;
@@ -88,46 +81,36 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     private TextButton levelPrevButton;
     private TextButton levelNextButton;
 
-    private TextButton.TextButtonStyle itemStyle;
-    private TextButton.TextButtonStyle halfItemStyle;
     private TextButton.TextButtonStyle readyOnStyle;
     private TextButton.TextButtonStyle readyOffStyle;
 
+    private CoopLobbyController controller;
     private int trailHead;
     private float elapsed;
-    private int selectedLevel = 1;
-    private String currentMatchId;
-    private String hostUserId;
-    private String selfUserId;
-    private Session currentSession;
-    private boolean isHost;
-    private boolean isReady;
-    private boolean preserveConnectionOnDispose;
-    private boolean gameStarting;
 
-    public CoopMenu(MainGame game) {
-        this.game = game;
+    public CoopMenu(GameServices services) {
+        super(services);
     }
 
     @Override
     public void show() {
-        stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
-        AudioManager.get().enterMenuContext();
+        beginMenuShow();
 
-        bg = new Texture(Gdx.files.internal("game-resourses/menu/coop_bg_generated.png"));
-        fg = new Texture(Gdx.files.internal("game-resourses/menu/coop_fg_generated.png"));
+        controller = new CoopLobbyController(services.nakamaMatch(), this);
+
+        bg = new Texture(Gdx.files.internal("game-resourses/menu/coop_bg_custom.png"));
+        fg = new Texture(Gdx.files.internal("game-resourses/menu/coop_fg_hd.png"));
         bg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
         fg.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 
-        panel = gradientPanel(740, 1000, 48, 18, 12,
+        panel = textures().gradientPanel(740, 1000, 48, 18, 12,
                 new Color(0.06f, 0.08f, 0.13f, 0.95f),
                 new Color(0.04f, 0.12f, 0.06f, 0.95f));
-        panelVignette = panelVignetteTexture(740, 1000, 48, 18, 12);
-        itemBtn = roundedRect(668, 80, 24, new Color(0f, 0f, 0f, 1f));
-        halfItemBtn = roundedRect(329, 76, 22, new Color(0f, 0f, 0f, 1f));
-        fieldTex = roundedRect(668, 76, 24, new Color(0.07f, 0.07f, 0.08f, 0.96f));
-        dotTex = softDotTexture(14);
+        panelVignette = textures().panelVignetteTexture(740, 1000, 48, 18, 12);
+        itemBtn = textures().roundedRect(668, 80, 24, new Color(0f, 0f, 0f, 1f));
+        halfItemBtn = textures().roundedRect(329, 76, 22, new Color(0f, 0f, 0f, 1f));
+        fieldTex = textures().roundedRect(668, 76, 24, new Color(0.07f, 0.07f, 0.08f, 0.96f));
+        dotTex = textures().softDotTexture(14);
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("game-resourses/fonts/american_captain.ttf"));
@@ -138,7 +121,9 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         titleParams.borderWidth = 1.8f;
         titleParams.borderColor = new Color(0.03f, 0.08f, 0.03f, 1f);
         titleParams.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(titleParams);
         titleFont = generator.generateFont(titleParams);
+        FontQuality.fixScale(titleFont);
 
         FreeTypeFontGenerator.FreeTypeFontParameter itemParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         itemParams.size = 52;
@@ -146,7 +131,9 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         itemParams.borderWidth = 1.6f;
         itemParams.borderColor = new Color(0.04f, 0.05f, 0.03f, 1f);
         itemParams.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(itemParams);
         itemFont = generator.generateFont(itemParams);
+        FontQuality.fixScale(itemFont);
 
         FreeTypeFontGenerator.FreeTypeFontParameter smallParams = new FreeTypeFontGenerator.FreeTypeFontParameter();
         smallParams.size = 32;
@@ -154,7 +141,9 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         smallParams.borderWidth = 1.0f;
         smallParams.borderColor = Color.BLACK;
         smallParams.characters = LanguageButton.FONT_CHARACTERS;
+        FontQuality.apply(smallParams);
         smallFont = generator.generateFont(smallParams);
+        FontQuality.fixScale(smallFont);
 
         generator.dispose();
 
@@ -166,7 +155,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleFont.getColor());
         Label.LabelStyle infoStyle = new Label.LabelStyle(smallFont, new Color(0.92f, 0.92f, 0.88f, 1f));
 
-        itemStyle = new TextButton.TextButtonStyle();
+        TextButton.TextButtonStyle itemStyle = new TextButton.TextButtonStyle();
         itemStyle.up = new TextureRegionDrawable(itemBtn);
         itemStyle.down = new TextureRegionDrawable(itemBtn);
         itemStyle.over = new TextureRegionDrawable(itemBtn);
@@ -175,7 +164,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         itemStyle.overFontColor = new Color(0.55f, 1f, 0.55f, 1f);
         itemStyle.downFontColor = new Color(0.55f, 1f, 0.55f, 1f);
 
-        halfItemStyle = new TextButton.TextButtonStyle();
+        TextButton.TextButtonStyle halfItemStyle = new TextButton.TextButtonStyle();
         halfItemStyle.up = new TextureRegionDrawable(halfItemBtn);
         halfItemStyle.down = new TextureRegionDrawable(halfItemBtn);
         halfItemStyle.over = new TextureRegionDrawable(halfItemBtn);
@@ -206,7 +195,7 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         fieldStyle.fontColor = Color.WHITE;
         fieldStyle.messageFont = smallFont;
         fieldStyle.messageFontColor = new Color(0.65f, 0.65f, 0.67f, 1f);
-        fieldStyle.cursor = new TextureRegionDrawable(solidTexture(3, 60, Color.WHITE));
+        fieldStyle.cursor = new TextureRegionDrawable(textures().solidTexture(3, 60, Color.WHITE));
         fieldStyle.background = new TextureRegionDrawable(fieldTex);
 
         Label titleLabel = new Label(LanguageButton.t("COOP_LOBBY"), titleStyle);
@@ -237,61 +226,40 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         levelNextButton = new TextButton(LanguageButton.t("LEVEL_NEXT"), halfItemStyle);
 
         createButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playStart(0.8f);
-                createMatch();
-            }
+            @Override public void changed(ChangeEvent e, Actor a) { audio().playStart(0.8f); doCreateMatch(); }
         });
         joinButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.72f);
-                joinMatch();
-            }
+            @Override public void changed(ChangeEvent e, Actor a) { audio().playSelect(0.72f); doJoinMatch(); }
         });
         leaveButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.70f);
+            @Override public void changed(ChangeEvent e, Actor a) {
+                audio().playSelect(0.70f);
                 leaveMatchAndDisconnect(LanguageButton.t("LEFT_LOBBY"));
             }
         });
         backButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.72f);
-                leaveMatchAndDisconnect(LanguageButton.t("CLOSED_COOP_LOBBY"));
-                game.setScreen(new Menu(game));
+            @Override public void changed(ChangeEvent e, Actor a) {
+                audio().playSelect(0.72f);
+                MenuFx.runAfterGoldButtonPress(a, () -> {
+                    leaveMatchAndDisconnect(LanguageButton.t("CLOSED_COOP_LOBBY"));
+                    navigator().goToMainMenu();
+                });
             }
         });
         readyButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.68f);
-                toggleReady();
+            @Override public void changed(ChangeEvent e, Actor a) {
+                audio().playSelect(0.68f);
+                MenuFx.runAfterGoldButtonPress(a, () -> controller.toggleReady());
             }
         });
         startButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playStart(0.85f);
-                startMatchIfPossible();
-            }
+            @Override public void changed(ChangeEvent e, Actor a) { audio().playStart(0.85f); controller.startMatch(); }
         });
         levelPrevButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.62f);
-                changeLevel(-1);
-            }
+            @Override public void changed(ChangeEvent e, Actor a) { audio().playSelect(0.62f); controller.changeLevel(-1); }
         });
         levelNextButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                AudioManager.get().playSelect(0.62f);
-                changeLevel(1);
-            }
+            @Override public void changed(ChangeEvent e, Actor a) { audio().playSelect(0.62f); controller.changeLevel(1); }
         });
 
         Table levelRow = new Table();
@@ -331,14 +299,13 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         Actor[] revealList = {titleLabel, infoLabel, matchIdField,
                 createButton, joinButton, readyButton, startButton, leaveButton, backButton};
         for (int i = 0; i < revealList.length; i++) {
-            Actor a = revealList[i];
-            a.getColor().a = 0f;
-            a.addAction(Actions.sequence(
+            Actor actor = revealList[i];
+            actor.getColor().a = 0f;
+            actor.addAction(Actions.sequence(
                     Actions.delay(0.06f * i),
                     Actions.fadeIn(0.30f, Interpolation.fade)
             ));
         }
-
         panelStack.addAction(Actions.sequence(
                 Actions.delay(0.05f),
                 Actions.run(() -> panelStack.setOrigin(panelStack.getWidth() / 2f, panelStack.getHeight() / 2f)),
@@ -349,471 +316,203 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         ));
     }
 
-    private void createMatch() {
+    // — Network operations (need services, stay in UI layer) —
+
+    private void doCreateMatch() {
         try {
             Session session = ensureConnectedSession();
-            Match match = game.getNakamaMatchService().createMatch();
+            Match match = services.nakamaMatch().createMatch();
             if (match == null || match.getMatchId() == null || match.getMatchId().isBlank()) {
                 throw new IllegalStateException("Nakama returned an empty match");
             }
-            currentSession = session;
-            selfUserId = session.getUserId();
-            currentMatchId = match.getMatchId();
-            hostUserId = selfUserId;
-            isHost = true;
-            isReady = false;
-            selectedLevel = 1;
-            gameStarting = false;
-            players.clear();
-            hydratePlayersFromMatch(match);
-            matchIdField.setText(currentMatchId);
-            broadcastLobbySnapshot();
-            AppLogger.info(LOG_TAG, "Created coop match id=" + currentMatchId + " host=" + selfUserId);
-            refreshLobbyUi(LanguageButton.t("MATCH_CREATED_WAITING"));
+            controller.onMatchCreated(session.getUserId(), match);
+            matchIdField.setText(controller.getCurrentMatchId());
+            AppLogger.info(LOG_TAG, "Created match id=" + controller.getCurrentMatchId());
         } catch (Exception e) {
             refreshLobbyUi(userFacingError("create", e));
             AppLogger.error(LOG_TAG, "Failed to create coop match", e);
         }
     }
 
-    private void joinMatch() {
+    private void doJoinMatch() {
         String matchId = matchIdField.getText().trim();
-        if (matchId.isEmpty()) {
-            refreshLobbyUi(LanguageButton.t("ENTER_MATCH_ID_FIRST"));
-            return;
-        }
+        if (matchId.isEmpty()) { refreshLobbyUi(LanguageButton.t("ENTER_MATCH_ID_FIRST")); return; }
         try {
             Session session = ensureConnectedSession();
-            Match match = game.getNakamaMatchService().joinMatch(matchId);
+            Match match = services.nakamaMatch().joinMatch(matchId);
             if (match == null || match.getMatchId() == null || match.getMatchId().isBlank()) {
                 throw new IllegalStateException(LanguageButton.t("INVALID_MATCH_RESPONSE"));
             }
-            currentSession = session;
-            selfUserId = session.getUserId();
-            currentMatchId = match.getMatchId();
-            isHost = false;
-            isReady = false;
-            gameStarting = false;
-            players.clear();
-            hydratePlayersFromMatch(match);
-            matchIdField.setText(currentMatchId);
-            sendReadyState();
-            AppLogger.info(LOG_TAG, "Joined coop match id=" + currentMatchId + " guest=" + selfUserId);
-            refreshLobbyUi(LanguageButton.t("JOINED_MATCH_WAITING"));
+            controller.onMatchJoined(session.getUserId(), match);
+            matchIdField.setText(controller.getCurrentMatchId());
+            AppLogger.info(LOG_TAG, "Joined match id=" + controller.getCurrentMatchId());
         } catch (Exception e) {
             refreshLobbyUi(userFacingError("join", e));
             AppLogger.error(LOG_TAG, "Failed to join coop match", e);
         }
     }
 
-    private void hydratePlayersFromMatch(Match match) {
-        addPresence(match.getSelf(), false);
-        if (match.getPresences() == null) {
-            return;
-        }
-        for (UserPresence presence : match.getPresences()) {
-            addPresence(presence, false);
-        }
-    }
-
-    private Session ensureConnectedSession() {
-        if (!game.getOnlineConfig().isEnabled()) {
-            throw new IllegalStateException("Online mode is disabled in nakama.properties");
-        }
-
-        Session session = game.getNakamaSessionService().restoreSession();
-        if (session == null) {
-            session = createFallbackSession();
-        }
-        game.getNakamaSessionService().refreshIfNeeded(session);
-
-        if (!game.getNakamaMatchService().isConnected()) {
-            game.getNakamaMatchService().connect(session, this);
-        }
-        currentSession = session;
-        selfUserId = session.getUserId();
-        return session;
-    }
-
-    private Session createFallbackSession() {
-        String uid = game.getSessionManager().getUid().trim();
-        if (!uid.isEmpty()) {
-            String email = game.getSessionManager().getEmail().trim();
-            return game.getNakamaSessionService().authenticateFirebaseUser(uid, usernameFromEmailOrUid(email, uid));
-        }
-
-        String deviceId = getOrCreateDeviceId();
-        return game.getNakamaSessionService().authenticateDevice(deviceId, "guest-" + deviceId.substring(0, 8));
-    }
-
-    private void toggleReady() {
-        if (currentMatchId == null || selfUserId == null) {
-            refreshLobbyUi(LanguageButton.t("JOIN_OR_CREATE_FIRST"));
-            return;
-        }
-        isReady = !isReady;
-        LobbyPlayer self = players.get(selfUserId);
-        if (self != null) {
-            self.ready = isReady;
-        }
-        sendReadyState();
-        if (isHost) {
-            broadcastLobbySnapshot();
-        } else {
-            refreshLobbyUi(LanguageButton.t("READY_SENT_TO_HOST"));
-        }
-        refreshLobbyUi(null);
-    }
-
-    private void changeLevel(int delta) {
-        if (!isHost || currentMatchId == null) {
-            refreshLobbyUi(LanguageButton.t("ONLY_HOST_SELECT"));
-            return;
-        }
-        selectedLevel += delta;
-        if (selectedLevel < 1) selectedLevel = MAX_LEVELS;
-        if (selectedLevel > MAX_LEVELS) selectedLevel = 1;
-        broadcastLobbySnapshot();
-        refreshLobbyUi(LanguageButton.tf("HOST_SELECTED_LEVEL_FMT", String.format("%02d", selectedLevel)));
-    }
-
-    private void startMatchIfPossible() {
-        if (!isHost) {
-            refreshLobbyUi(LanguageButton.t("ONLY_HOST_START"));
-            return;
-        }
-        if (players.isEmpty()) {
-            refreshLobbyUi(LanguageButton.t("JOIN_OR_CREATE_FIRST"));
-            return;
-        }
-        if (players.size() > 1 && !allPlayersReady()) {
-            refreshLobbyUi(LanguageButton.t("EVERYONE_READY"));
-            return;
-        }
-        Map<String, String> message = new LinkedHashMap<>();
-        message.put("type", "start");
-        message.put("level", String.valueOf(selectedLevel));
-        game.getNakamaMatchService().sendMatchData(currentMatchId, CoopProtocol.OP_START_GAME,
-                Serialization.toJson(message).getBytes(StandardCharsets.UTF_8));
-        startSelectedLevel(selectedLevel);
-    }
-
-    private boolean allPlayersReady() {
-        if (players.isEmpty()) {
-            return false;
-        }
-        for (LobbyPlayer player : players.values()) {
-            if (!player.ready) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void sendReadyState() {
-        if (currentMatchId == null || selfUserId == null) {
-            return;
-        }
-        Map<String, String> message = new LinkedHashMap<>();
-        message.put("type", "ready");
-        message.put("userId", selfUserId);
-        message.put("ready", String.valueOf(isReady));
-        game.getNakamaMatchService().sendMatchData(currentMatchId, CoopProtocol.OP_READY,
-                Serialization.toJson(message).getBytes(StandardCharsets.UTF_8));
-    }
-
-    private void broadcastLobbySnapshot() {
-        if (!isHost || currentMatchId == null || hostUserId == null) {
-            return;
-        }
-        Map<String, String> message = new LinkedHashMap<>();
-        message.put("type", "snapshot");
-        message.put("hostUserId", hostUserId);
-        message.put("selectedLevel", String.valueOf(selectedLevel));
-        message.put("players", encodePlayers());
-        game.getNakamaMatchService().sendMatchData(currentMatchId, CoopProtocol.OP_LOBBY_SNAPSHOT,
-                Serialization.toJson(message).getBytes(StandardCharsets.UTF_8));
-    }
-
-    private String encodePlayers() {
-        StringBuilder builder = new StringBuilder();
-        boolean first = true;
-        for (LobbyPlayer player : players.values()) {
-            if (!first) {
-                builder.append(';');
-            }
-            builder.append(player.userId).append(',')
-                    .append(player.username.replace(",", "_").replace(";", "_")).append(',')
-                    .append(player.ready);
-            first = false;
-        }
-        return builder.toString();
-    }
-
-    private void applySnapshot(Map<String, String> snapshot) {
-        String snapshotHost = snapshot.get("hostUserId");
-        if (snapshotHost != null && !snapshotHost.isBlank()) {
-            hostUserId = snapshotHost;
-        }
-        String levelValue = snapshot.get("selectedLevel");
-        if (levelValue != null && !levelValue.isBlank()) {
-            try {
-                selectedLevel = Integer.parseInt(levelValue);
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        String playersValue = snapshot.get("players");
-        if (playersValue != null) {
-            players.clear();
-            if (!playersValue.isBlank()) {
-                String[] rows = playersValue.split(";");
-                for (String row : rows) {
-                    String[] parts = row.split(",", 3);
-                    if (parts.length < 3) {
-                        continue;
-                    }
-                    LobbyPlayer player = new LobbyPlayer(parts[0], parts[1]);
-                    player.ready = Boolean.parseBoolean(parts[2]);
-                    players.put(player.userId, player);
-                }
-            }
-        }
-        isHost = selfUserId != null && selfUserId.equals(hostUserId);
-        LobbyPlayer self = players.get(selfUserId);
-        if (self != null) {
-            isReady = self.ready;
-        }
-    }
-
-    private void addPresence(UserPresence presence, boolean ready) {
-        if (presence == null || presence.getUserId() == null) {
-            return;
-        }
-        LobbyPlayer existing = players.get(presence.getUserId());
-        String username = presence.getUsername();
-        if (username == null || username.isBlank()) {
-            username = shortId(presence.getUserId());
-        }
-        if (existing == null) {
-            existing = new LobbyPlayer(presence.getUserId(), username);
-            players.put(existing.userId, existing);
-        }
-        existing.username = username;
-        existing.ready = ready;
-    }
-
     private void leaveMatchAndDisconnect(String message) {
-        preserveConnectionOnDispose = false;
-        gameStarting = false;
-        game.clearCoopMatchState();
-        if (currentMatchId != null && game.getNakamaMatchService().isConnected()) {
-            try {
-                game.getNakamaMatchService().leaveMatch(currentMatchId);
-            } catch (Exception e) {
-                AppLogger.error(LOG_TAG, "Failed to leave coop match cleanly", e);
-            }
+        String matchId = controller.getCurrentMatchId();
+        if (matchId != null && services.nakamaMatch().isConnected()) {
+            try { services.nakamaMatch().leaveMatch(matchId); }
+            catch (Exception e) { AppLogger.error(LOG_TAG, "Failed to leave coop match cleanly", e); }
         }
-        if (game.getNakamaMatchService().isConnected()) {
-            game.getNakamaMatchService().disconnect();
-        }
-        currentMatchId = null;
-        hostUserId = null;
-        isHost = false;
-        isReady = false;
-        players.clear();
+        if (services.nakamaMatch().isConnected()) services.nakamaMatch().disconnect();
+        services.clearCoopMatchState();
+        controller.reset();
         matchIdField.setText("");
         refreshLobbyUi(message);
     }
 
-    private void startSelectedLevel(int level) {
-        if (level == 1) {
-            preserveConnectionOnDispose = false;
-            gameStarting = true;
-            game.clearCoopMatchState();
-            handoffLobbyConnection();
-            game.setScreen(new Poligon2Level(game));
-            return;
-        }
-
-        boolean useLiveCoopLevel = level == 2;
-        boolean soloSkipStart = useLiveCoopLevel && players.size() <= 1;
-        preserveConnectionOnDispose = useLiveCoopLevel && !soloSkipStart;
-        gameStarting = true;
-        game.setCoopMatchState(new CoopMatchState(currentMatchId, selfUserId, hostUserId, level, players.size()));
-        if (soloSkipStart) {
-            handoffLobbyConnection();
-        }
-        if (level == 2) {
-            game.setScreen(new CoopRuinsLevel(game));
-            return;
-        }
-        handoffLobbyConnection();
-        game.setScreen(new CoopLevelPlayScreen(game, level));
-    }
-
     private void handoffLobbyConnection() {
-        if (currentMatchId != null && game.getNakamaMatchService().isConnected()) {
-            try {
-                game.getNakamaMatchService().leaveMatch(currentMatchId);
-            } catch (Exception e) {
-                AppLogger.error(LOG_TAG, "Failed to leave lobby during dedicated server handoff", e);
-            }
+        String matchId = controller.getCurrentMatchId();
+        if (matchId != null && services.nakamaMatch().isConnected()) {
+            try { services.nakamaMatch().leaveMatch(matchId); }
+            catch (Exception e) { AppLogger.error(LOG_TAG, "Failed to leave lobby during server handoff", e); }
         }
-        if (game.getNakamaMatchService().isConnected()) {
-            try {
-                game.getNakamaMatchService().disconnect();
-            } catch (Exception e) {
-                AppLogger.error(LOG_TAG, "Failed to disconnect Nakama during dedicated server handoff", e);
-            }
+        if (services.nakamaMatch().isConnected()) {
+            try { services.nakamaMatch().disconnect(); }
+            catch (Exception e) { AppLogger.error(LOG_TAG, "Failed to disconnect Nakama during handoff", e); }
         }
     }
 
-    private void refreshLobbyUi(String message) {
-        String roleValue = currentMatchId == null
-                ? LanguageButton.t("ROLE_NONE")
-                : (isHost ? LanguageButton.t("ROLE_HOST") : LanguageButton.t("ROLE_GUEST"));
-        String role = LanguageButton.tf("ROLE_FMT", roleValue);
-        String session = LanguageButton.tf("SESSION_FMT",
-                selfUserId == null ? LanguageButton.t("SESSION_DISCONNECTED") : shortId(selfUserId));
-        String match = LanguageButton.tf("MATCH_FMT",
-                currentMatchId == null ? LanguageButton.t("MATCH_NONE") : currentMatchId);
-        String level = LanguageButton.tf("LEVEL_FMT", String.format("%02d", selectedLevel),
-                isHost ? LanguageButton.t("LEVEL_HOST_SELECTS") : LanguageButton.t("LEVEL_HOST_CONTROLS"));
-        StringBuilder playersText = new StringBuilder(LanguageButton.t("PLAYERS_HEADER"));
-        if (players.isEmpty()) {
-            playersText.append(LanguageButton.t("WAITING_FOR_LOBBY"));
-        } else {
-            boolean first = true;
-            for (LobbyPlayer player : players.values()) {
-                if (!first) {
-                    playersText.append('\n');
-                }
-                playersText.append(player.userId.equals(hostUserId)
-                                ? LanguageButton.t("PLAYER_HOST_PREFIX")
-                                : LanguageButton.t("PLAYER_GUEST_PREFIX"))
-                        .append(player.username)
-                        .append(" - ")
-                        .append(player.ready ? LanguageButton.t("PLAYER_READY") : LanguageButton.t("PLAYER_NOT_READY"));
-                first = false;
-            }
+    private Session ensureConnectedSession() {
+        if (!services.onlineConfig().isEnabled()) {
+            throw new IllegalStateException("Online mode is disabled in nakama.properties");
         }
-
-        roleLabel.setText(role);
-        sessionLabel.setText(session);
-        matchLabel.setText(match);
-        levelLabel.setText(level);
-        playersLabel.setText(playersText.toString());
-        readyButton.setText(isReady ? LanguageButton.t("READY_ON") : LanguageButton.t("READY_OFF"));
-        readyButton.setStyle(isReady ? readyOnStyle : readyOffStyle);
-        readyButton.setDisabled(currentMatchId == null);
-        levelPrevButton.setDisabled(!isHost || currentMatchId == null);
-        levelNextButton.setDisabled(!isHost || currentMatchId == null);
-        startButton.setDisabled(!canStartMatch());
-        if (message != null) {
-            statusLabel.setText(message);
+        Session session = services.nakamaSession().restoreSession();
+        if (session == null) session = createFallbackSession();
+        services.nakamaSession().refreshIfNeeded(session);
+        if (!services.nakamaMatch().isConnected()) {
+            services.nakamaMatch().connect(session, this);
         }
+        return session;
     }
 
-    private boolean canStartMatch() {
-        if (!isHost || currentMatchId == null || players.isEmpty()) {
-            return false;
+    private Session createFallbackSession() {
+        String uid = services.session().getUid().trim();
+        if (!uid.isEmpty()) {
+            String email = services.session().getEmail().trim();
+            return services.nakamaSession().authenticateFirebaseUser(uid, usernameFromEmailOrUid(email, uid));
         }
-        return players.size() == 1 || allPlayersReady();
+        String deviceId = getOrCreateDeviceId();
+        return services.nakamaSession().authenticateDevice(deviceId, "guest-" + deviceId.substring(0, 8));
+    }
+
+    // — CoopLobbyController.Listener —
+
+    @Override
+    public void onStateChanged(String statusMessage) {
+        refreshLobbyUi(statusMessage);
     }
 
     @Override
+    public void onStartLevel(int level, boolean keepConnection) {
+        services.setCoopMatchState(new CoopMatchState(
+                controller.getCurrentMatchId(), controller.getSelfUserId(),
+                controller.getHostUserId(), level, controller.getPlayers().size()));
+        if (!keepConnection) handoffLobbyConnection();
+        navigator().goToCoopLevel(level);
+    }
+
+    @Override
+    public void onHostLeft() {
+        leaveMatchAndDisconnect(LanguageButton.t("HOST_DISCONNECTED"));
+    }
+
+    // — NakamaSocket.EventListener —
+
+    @Override
     public void onDisconnect(Throwable throwable) {
-        if (gameStarting) {
-            return;
-        }
+        if (controller.isGameStarting()) return;
         Gdx.app.postRunnable(() -> refreshLobbyUi(LanguageButton.t("DISCONNECTED_FROM_LOBBY")));
     }
 
     @Override
     public void onError(Error error) {
-        if (error == null) {
-            return;
-        }
+        if (error == null) return;
         Gdx.app.postRunnable(() -> refreshLobbyUi(LanguageButton.tf("SOCKET_ERROR_FMT", error.getMessage())));
     }
 
     @Override
     public void onMatchData(MatchData matchData) {
-        if (matchData == null || currentMatchId == null || !currentMatchId.equals(matchData.getMatchId())) {
-            return;
-        }
+        if (matchData == null || !matchData.getMatchId().equals(controller.getCurrentMatchId())) return;
         Map<String, String> data = Serialization.fromJson(new String(matchData.getData(), StandardCharsets.UTF_8));
-        if (data == null) {
-            return;
-        }
-        if (matchData.getOpCode() == CoopProtocol.OP_LOBBY_SNAPSHOT) {
-            Gdx.app.postRunnable(() -> {
-                applySnapshot(data);
-                refreshLobbyUi(LanguageButton.t("LOBBY_UPDATED"));
-            });
-            return;
-        }
-        if (matchData.getOpCode() == CoopProtocol.OP_READY && isHost) {
-            String userId = data.get("userId");
-            boolean ready = Boolean.parseBoolean(data.getOrDefault("ready", "false"));
-            Gdx.app.postRunnable(() -> {
-                LobbyPlayer player = players.get(userId);
-                if (player != null) {
-                    player.ready = ready;
-                    broadcastLobbySnapshot();
-                    refreshLobbyUi(LanguageButton.tf("READY_CHANGED_FMT", player.username));
-                }
-            });
-            return;
-        }
-        if (matchData.getOpCode() == CoopProtocol.OP_START_GAME) {
-            String levelValue = data.get("level");
-            int level = selectedLevel;
-            if (levelValue != null) {
-                try {
-                    level = Integer.parseInt(levelValue);
-                } catch (NumberFormatException ignored) {
-                }
-            }
-            int finalLevel = level;
-            Gdx.app.postRunnable(() -> startSelectedLevel(finalLevel));
-        }
+        if (data != null) Gdx.app.postRunnable(() -> controller.handleMatchData(matchData.getOpCode(), data));
     }
 
     @Override
-    public void onMatchPresence(MatchPresenceEvent presenceEvent) {
-        if (presenceEvent == null || currentMatchId == null || !currentMatchId.equals(presenceEvent.getMatchId())) {
-            return;
-        }
+    public void onMatchPresence(MatchPresenceEvent event) {
+        if (event == null || !event.getMatchId().equals(controller.getCurrentMatchId())) return;
         Gdx.app.postRunnable(() -> {
-            if (presenceEvent.getJoins() != null) {
-                for (UserPresence join : presenceEvent.getJoins()) {
-                    addPresence(join, false);
+            if (event.getJoins() != null) {
+                for (UserPresence p : event.getJoins()) controller.handlePresenceJoined(p);
+            }
+            if (event.getLeaves() != null) {
+                for (UserPresence p : event.getLeaves()) {
+                    if (controller.handlePresenceLeft(p.getUserId())) return;
                 }
             }
-            if (presenceEvent.getLeaves() != null) {
-                for (UserPresence leave : presenceEvent.getLeaves()) {
-                    players.remove(leave.getUserId());
-                    if (leave.getUserId() != null && leave.getUserId().equals(hostUserId) && !isHost) {
-                        leaveMatchAndDisconnect(LanguageButton.t("HOST_DISCONNECTED"));
-                        return;
-                    }
-                }
-            }
-            if (isHost) {
-                broadcastLobbySnapshot();
-            }
-            refreshLobbyUi(LanguageButton.t("LOBBY_PRESENCE_UPDATED"));
         });
+    }
+
+    // — UI rendering —
+
+    private void refreshLobbyUi(String message) {
+        String matchId = controller.getCurrentMatchId();
+        String selfId = controller.getSelfUserId();
+        String hostId = controller.getHostUserId();
+        boolean host = controller.isHost();
+        boolean ready = controller.isReady();
+        int level = controller.getSelectedLevel();
+        Map<String, LobbyPlayer> lobbyPlayers = controller.getPlayers();
+
+        String roleValue = matchId == null
+                ? LanguageButton.t("ROLE_NONE")
+                : (host ? LanguageButton.t("ROLE_HOST") : LanguageButton.t("ROLE_GUEST"));
+        roleLabel.setText(LanguageButton.tf("ROLE_FMT", roleValue));
+        sessionLabel.setText(LanguageButton.tf("SESSION_FMT",
+                selfId == null ? LanguageButton.t("SESSION_DISCONNECTED") : shortId(selfId)));
+        matchLabel.setText(LanguageButton.tf("MATCH_FMT",
+                matchId == null ? LanguageButton.t("MATCH_NONE") : matchId));
+        levelLabel.setText(LanguageButton.tf("LEVEL_FMT", String.format("%02d", level),
+                host ? LanguageButton.t("LEVEL_HOST_SELECTS") : LanguageButton.t("LEVEL_HOST_CONTROLS")));
+
+        StringBuilder playersText = new StringBuilder(LanguageButton.t("PLAYERS_HEADER"));
+        if (lobbyPlayers.isEmpty()) {
+            playersText.append(LanguageButton.t("WAITING_FOR_LOBBY"));
+        } else {
+            boolean first = true;
+            for (LobbyPlayer player : lobbyPlayers.values()) {
+                if (!first) playersText.append('\n');
+                playersText.append(player.userId.equals(hostId)
+                                ? LanguageButton.t("PLAYER_HOST_PREFIX")
+                                : LanguageButton.t("PLAYER_GUEST_PREFIX"))
+                        .append(player.username).append(" - ")
+                        .append(player.ready ? LanguageButton.t("PLAYER_READY") : LanguageButton.t("PLAYER_NOT_READY"));
+                first = false;
+            }
+        }
+        playersLabel.setText(playersText.toString());
+
+        readyButton.setText(ready ? LanguageButton.t("READY_ON") : LanguageButton.t("READY_OFF"));
+        readyButton.setStyle(ready ? readyOnStyle : readyOffStyle);
+        readyButton.setDisabled(!controller.isInMatch());
+        levelPrevButton.setDisabled(!host || !controller.isInMatch());
+        levelNextButton.setDisabled(!host || !controller.isInMatch());
+        startButton.setDisabled(!controller.canStartMatch());
+
+        if (message != null) statusLabel.setText(message);
     }
 
     @Override
     public void render(float delta) {
         elapsed += delta;
-        AudioManager.get().updateMenuAmbience(delta);
+        audio().updateMenuAmbience(delta);
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             leaveMatchAndDisconnect(LanguageButton.t("CLOSED_COOP_LOBBY"));
-            game.setScreen(new Menu(game));
+            navigator().goToMainMenu();
             return;
         }
 
@@ -826,8 +525,8 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         batch.begin();
         batch.setColor(1f, 1f, 1f, 1f);
         batch.draw(bg, 0f, 0f, w, h);
-        batch.setColor(1f, 1f, 1f, 0.95f);
-        batch.draw(fg, 0f, 0f, w, h);
+        batch.setColor(1f, 1f, 1f, 0.96f);
+        batch.draw(fg, -32f, -20f, w + 96f, h + 36f);
         batch.setColor(1f, 1f, 1f, 1f);
         batch.end();
 
@@ -855,25 +554,11 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
     }
 
     @Override
-    public void resize(int width, int height) {
-        stage.getViewport().update(width, height, true);
-    }
-
-    @Override
-    public void pause() {}
-
-    @Override
-    public void resume() {}
-
-    @Override
-    public void hide() {
-        AudioManager.get().leaveMenuContext();
-        Gdx.input.setInputProcessor(null);
-    }
+    public void hide() { endMenuHide(); }
 
     @Override
     public void dispose() {
-        if (!preserveConnectionOnDispose) {
+        if (!controller.isPreserveConnectionOnDispose()) {
             leaveMatchAndDisconnect("Disposed coop lobby.");
         }
         if (stage != null) stage.dispose();
@@ -890,12 +575,12 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
         if (smallFont != null) smallFont.dispose();
     }
 
+    // — Helpers —
+
     private String getOrCreateDeviceId() {
         Preferences preferences = Gdx.app.getPreferences(RuntimeProfile.prefsName(DEVICE_PREFS));
         String stored = preferences.getString(DEVICE_ID_KEY, "").trim();
-        if (!stored.isEmpty()) {
-            return stored;
-        }
+        if (!stored.isEmpty()) return stored;
         String created = UUID.randomUUID().toString();
         preferences.putString(DEVICE_ID_KEY, created);
         preferences.flush();
@@ -904,201 +589,43 @@ public class CoopMenu implements Screen, NakamaSocket.EventListener {
 
     private String usernameFromEmailOrUid(String email, String uid) {
         if (!email.isBlank()) {
-            int atIndex = email.indexOf('@');
-            String prefix = atIndex > 0 ? email.substring(0, atIndex) : email;
+            int at = email.indexOf('@');
+            String prefix = at > 0 ? email.substring(0, at) : email;
             return sanitizeUsername(prefix, uid);
         }
         return sanitizeUsername("player-" + uid.substring(0, Math.min(8, uid.length())), uid);
     }
 
     private String sanitizeUsername(String candidate, String fallbackSeed) {
-        String sanitized = candidate.toLowerCase().replaceAll("[^a-z0-9_\\-]", "_");
-        sanitized = sanitized.replaceAll("_+", "_");
-        if (sanitized.length() < 3) {
-            sanitized = "player_" + fallbackSeed.substring(0, Math.min(6, fallbackSeed.length())).toLowerCase();
-        }
-        if (sanitized.length() > 24) {
-            sanitized = sanitized.substring(0, 24);
-        }
-        return sanitized;
+        String s = candidate.toLowerCase().replaceAll("[^a-z0-9_\\-]", "_").replaceAll("_+", "_");
+        if (s.length() < 3) s = "player_" + fallbackSeed.substring(0, Math.min(6, fallbackSeed.length())).toLowerCase();
+        if (s.length() > 24) s = s.substring(0, 24);
+        return s;
     }
 
     private String shortId(String value) {
-        if (value == null || value.isBlank()) {
-            return "unknown";
-        }
+        if (value == null || value.isBlank()) return "unknown";
         return value.length() <= 8 ? value : value.substring(0, 8);
     }
 
-    private String rootMessage(Throwable throwable) {
-        Throwable current = throwable;
-        while (current.getCause() != null) {
-            current = current.getCause();
-        }
-        String message = current.getMessage();
-        return message == null || message.isBlank() ? current.getClass().getSimpleName() : message;
-    }
-
     private String userFacingError(String action, Throwable throwable) {
-        String message = rootMessage(throwable);
+        Throwable current = throwable;
+        while (current.getCause() != null) current = current.getCause();
+        String message = current.getMessage();
+        if (message == null || message.isBlank()) message = current.getClass().getSimpleName();
         String normalized = message.toLowerCase();
-
         if (normalized.contains("unavailable") || normalized.contains("connection refused")
-                || normalized.contains("failed to connect") || normalized.contains("socket")) {
+                || normalized.contains("failed to connect") || normalized.contains("socket"))
             return "Cannot connect to the online server. Start Nakama and try again.";
-        }
         if (normalized.contains("not found") || normalized.contains("match id")
-                || normalized.contains("empty joined match")) {
+                || normalized.contains("empty joined match"))
             return "Match not found. Check the match ID and ask the host for a fresh code.";
-        }
-        if (normalized.contains("not connected")) {
+        if (normalized.contains("not connected"))
             return "Online connection was not established. Try reopening the co-op menu.";
-        }
-        if ("join".equals(action)) {
+        if ("join".equals(action))
             return "Failed to join the match. Check the code and make sure the host is still in the lobby.";
-        }
-        if ("create".equals(action)) {
+        if ("create".equals(action))
             return "Failed to create the match. Check the online server and try again.";
-        }
         return message;
-    }
-
-    private Texture gradientPanel(int w, int h, int radius, int padX, int padY, Color topColor, Color bottomColor) {
-        Pixmap p = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-        p.setColor(0f, 0f, 0f, 0f);
-        p.fill();
-        int innerH = h - 2 * padY;
-        for (int y = padY; y < h - padY; y++) {
-            int x0, x1;
-            if (y < padY + radius) {
-                int dy = (padY + radius) - y;
-                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
-                x0 = padX + radius - dx;
-                x1 = w - padX - radius + dx;
-            } else if (y >= h - padY - radius) {
-                int dy = y - (h - padY - radius - 1);
-                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
-                x0 = padX + radius - dx;
-                x1 = w - padX - radius + dx;
-            } else {
-                x0 = padX;
-                x1 = w - padX - 1;
-            }
-            float t = (y - padY) / (float) (innerH - 1);
-            float r = topColor.r + (bottomColor.r - topColor.r) * t;
-            float g = topColor.g + (bottomColor.g - topColor.g) * t;
-            float b = topColor.b + (bottomColor.b - topColor.b) * t;
-            float a = topColor.a + (bottomColor.a - topColor.a) * t;
-            p.setColor(r, g, b, a);
-            p.drawLine(x0, y, x1, y);
-        }
-        Texture tex = new Texture(p);
-        tex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        p.dispose();
-        return tex;
-    }
-
-    private Texture panelVignetteTexture(int w, int h, int radius, int padX, int padY) {
-        Pixmap p = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-        p.setColor(0f, 0f, 0f, 0f);
-        p.fill();
-        int cx = w / 2;
-        int cy = h / 2;
-        float max = (float) Math.sqrt((double) (cx * cx) + (double) (cy * cy));
-        for (int y = padY; y < h - padY; y++) {
-            int x0, x1;
-            if (y < padY + radius) {
-                int dy = (padY + radius) - y;
-                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
-                x0 = padX + radius - dx;
-                x1 = w - padX - radius + dx;
-            } else if (y >= h - padY - radius) {
-                int dy = y - (h - padY - radius - 1);
-                int dx = (int) Math.sqrt((double) (radius * radius) - (double) (dy * dy));
-                x0 = padX + radius - dx;
-                x1 = w - padX - radius + dx;
-            } else {
-                x0 = padX;
-                x1 = w - padX - 1;
-            }
-            for (int x = x0; x <= x1; x++) {
-                float dx2 = x - cx;
-                float dy2 = y - cy;
-                float d = (float) Math.sqrt((double) (dx2 * dx2) + (double) (dy2 * dy2)) / max;
-                float a = Math.max(0f, Math.min(1f, (d - 0.55f) * 1.4f));
-                if (a > 0f) {
-                    p.setColor(0f, 0f, 0f, a * 0.45f);
-                    p.drawPixel(x, y);
-                }
-            }
-        }
-        Texture tex = new Texture(p);
-        tex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        p.dispose();
-        return tex;
-    }
-
-    private Texture roundedRect(int w, int h, int r, Color color) {
-        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0f, 0f, 0f, 0f);
-        pixmap.fill();
-        pixmap.setColor(color);
-        pixmap.fillRectangle(r, 0, w - (r * 2), h);
-        pixmap.fillRectangle(0, r, w, h - (r * 2));
-        pixmap.fillCircle(r, r, r);
-        pixmap.fillCircle(w - r - 1, r, r);
-        pixmap.fillCircle(r, h - r - 1, r);
-        pixmap.fillCircle(w - r - 1, h - r - 1, r);
-        Texture texture = new Texture(pixmap);
-        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        pixmap.dispose();
-        return texture;
-    }
-
-    private Texture solidTexture(int w, int h, Color color) {
-        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-        pixmap.setColor(color);
-        pixmap.fill();
-        Texture texture = new Texture(pixmap);
-        texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        pixmap.dispose();
-        return texture;
-    }
-
-    private Texture softDotTexture(int diameter) {
-        Pixmap p = new Pixmap(diameter, diameter, Pixmap.Format.RGBA8888);
-        p.setColor(0f, 0f, 0f, 0f);
-        p.fill();
-        float cx = diameter / 2f;
-        float cy = diameter / 2f;
-        float maxR = diameter / 2f;
-        for (int y = 0; y < diameter; y++) {
-            for (int x = 0; x < diameter; x++) {
-                float dx = x - cx;
-                float dy = y - cy;
-                float d = (float) Math.sqrt(dx * dx + dy * dy);
-                float t = Math.min(1f, d / maxR);
-                float a = (1f - t) * (1f - t);
-                if (a > 0f) {
-                    p.setColor(1f, 1f, 1f, a);
-                    p.drawPixel(x, y);
-                }
-            }
-        }
-        Texture tex = new Texture(p);
-        tex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-        p.dispose();
-        return tex;
-    }
-
-    private static final class LobbyPlayer {
-        private final String userId;
-        private String username;
-        private boolean ready;
-
-        private LobbyPlayer(String userId, String username) {
-            this.userId = userId;
-            this.username = username;
-        }
     }
 }

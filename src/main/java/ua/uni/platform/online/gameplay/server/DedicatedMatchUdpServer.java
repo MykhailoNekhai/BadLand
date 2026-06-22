@@ -29,6 +29,7 @@ public class DedicatedMatchUdpServer {
     private final Map<String, ServerMatch> matches = new ConcurrentHashMap<>();
     private volatile boolean running;
     private volatile long lastPacketAtMs;
+    private volatile DatagramSocket activeSocket;
 
     public DedicatedMatchUdpServer(OnlineConfig config) {
         this.config = config;
@@ -36,20 +37,41 @@ public class DedicatedMatchUdpServer {
 
     public void start() {
         try (DatagramSocket socket = new DatagramSocket(config.getGameplayUdpPort())) {
+            activeSocket = socket;
             running = true;
             lastPacketAtMs = System.currentTimeMillis();
             AppLogger.info(LOG_TAG, "Listening for gameplay UDP on port " + config.getGameplayUdpPort());
             byte[] buffer = new byte[8192];
-            while (true) {
+            while (running) {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
+                if (!running) break;
                 lastPacketAtMs = System.currentTimeMillis();
                 String json = new String(packet.getData(), packet.getOffset(), packet.getLength(), StandardCharsets.UTF_8);
                 dispatch(socket, packet, json);
             }
+        } catch (java.net.SocketException e) {
+            if (running) {
+                running = false;
+                throw new IllegalStateException("Dedicated gameplay server socket error", e);
+            }
+            // Expected path: socket was closed by stop()
+            AppLogger.info(LOG_TAG, "Server stopped gracefully");
         } catch (Exception e) {
             running = false;
             throw new IllegalStateException("Dedicated gameplay server crashed", e);
+        } finally {
+            running = false;
+            activeSocket = null;
+        }
+    }
+
+    /** Gracefully stops the server. Safe to call from any thread. */
+    public void stop() {
+        running = false;
+        DatagramSocket s = activeSocket;
+        if (s != null && !s.isClosed()) {
+            s.close();
         }
     }
 

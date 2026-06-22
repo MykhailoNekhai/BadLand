@@ -8,11 +8,11 @@ import com.badlogic.gdx.utils.Pool;
 
 public class PlayerComponent implements Component, Pool.Poolable{
 // formula verticalSpeed = 27.33*mass*gravityScale
-    public float verticalSpeed = 27.33f;
-    public float baseSpeed = 5f;
-    public float baseSpeedCap = 8f;
-    public float backwardSpeed = -8f;
-    public float maxFowardSpeed = 8f;
+    public float verticalSpeed = 25.33f;
+    public float baseSpeed = 3f;
+    public float baseSpeedCap = 5f;
+    public float backwardSpeed = -2f;
+    public float maxFowardSpeed = 6f;
     public float maxBackwardSpeed = -2f;
     public float speedModifier = 1.0f;
     public float shadowSizeScale = 1.0f;
@@ -25,14 +25,16 @@ public class PlayerComponent implements Component, Pool.Poolable{
     public boolean moveRight = false;
     public boolean isFinished = false;
     public boolean isSucked = false;
+    public boolean isGrowingFromBonus = false;
+    public boolean ignoreCloneCollision = false;
 
     @Override
     public void reset() {
-        verticalSpeed = 27.33f;
+        verticalSpeed = 25.33f;
         baseSpeed = 5f;
         baseSpeedCap = 8f;
-        backwardSpeed = -8f;
-        maxFowardSpeed = 8f;
+        backwardSpeed = -2f;
+        maxFowardSpeed = 6f;
         maxBackwardSpeed = -2f;
         speedModifier = 1.0f;
         shadowSizeScale = 1.0f;
@@ -45,5 +47,7 @@ public class PlayerComponent implements Component, Pool.Poolable{
         moveRight = false;
         isFinished = false;
         isSucked = false;
+        isGrowingFromBonus = false;
+        ignoreCloneCollision = false;
     }
 }
