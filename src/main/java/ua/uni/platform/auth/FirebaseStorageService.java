@@ -24,6 +24,7 @@ public class FirebaseStorageService {
     }
 
     public String uploadAvatar(String idToken, String uid, byte[] imageBytes) {
+        config.requireConfigured();
         String objectPath = "avatars/" + uid + "/avatar";
         String encodedPath = URLEncoder.encode(objectPath, StandardCharsets.UTF_8);
         String url = "https://firebasestorage.googleapis.com/v0/b/"
@@ -50,6 +51,7 @@ public class FirebaseStorageService {
     }
 
     public byte[] downloadBytes(String url, String idToken) {
+        config.requireConfigured();
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Bearer " + idToken)

@@ -3,6 +3,7 @@ package ua.uni.bootstrap;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import ua.uni.core.logging.AppLogger;
 import ua.uni.gameplay.achievements.AchievementManager;
 import ua.uni.platform.auth.FirebaseAuthService;
 import ua.uni.platform.auth.FirebaseConfig;
@@ -25,6 +26,7 @@ import ua.uni.platform.online.gameplay.StaticGameplayReservationService;
 public final class GameServices {
     private final Game game;
     private final SpriteBatch batch;
+    private final FirebaseConfig firebaseConfig;
     private final FirebaseAuthService authService;
     private final FirestoreService firestoreService;
     private final FirebaseStorageService storageService;
@@ -43,12 +45,19 @@ public final class GameServices {
         this.batch = batch;
 
         FirebaseConfig firebaseConfig = FirebaseConfig.loadFromResources();
+        this.firebaseConfig = firebaseConfig;
+        if (!firebaseConfig.isConfigured()) {
+            AppLogger.info("Config", "Firebase is not configured; cloud auth and sync are disabled.");
+        }
         this.authService = new FirebaseAuthService(firebaseConfig);
         this.firestoreService = new FirestoreService(firebaseConfig);
         this.storageService = new FirebaseStorageService(firebaseConfig);
-        this.sessionManager = new SessionManager();
+        this.sessionManager = new SessionManager(firebaseConfig.isConfigured());
 
         OnlineConfig online = OnlineConfig.loadFromResources();
+        if (!online.isEnabled()) {
+            AppLogger.info("Config", "Nakama is not configured; online co-op is disabled.");
+        }
         this.onlineConfig = online;
         NakamaClient nakamaClient = new NakamaClient(online);
         com.heroiclabs.nakama.Client onlineClient = nakamaClient.createClient();
@@ -101,6 +110,10 @@ public final class GameServices {
         return reservationService;
     }
 
+    public boolean isFirebaseConfigured() {
+        return firebaseConfig.isConfigured();
+    }
+
     public AchievementManager achievements() {
         return achievementManager;
     }
@@ -124,13 +137,16 @@ public final class GameServices {
     public Screen createStartupScreen() {
         return new ua.uni.presentation.screen.LoadingScreen(this,
             () -> {
-                if (sessionManager.hasSession()) {
+                if (isFirebaseConfigured() && sessionManager.hasSession()) {
                     syncService.bootstrapFromCloud();
                     syncService.syncProfileHeartbeat();
                 }
             },
             () -> {
                 if (sessionManager.hasSession()) {
+                    return new ua.uni.presentation.screen.menu.main.Menu(this);
+                }
+                if (!isFirebaseConfigured()) {
                     return new ua.uni.presentation.screen.menu.main.Menu(this);
                 }
                 return new ua.uni.presentation.screen.login.LoginMenu(this);

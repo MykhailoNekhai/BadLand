@@ -11,7 +11,16 @@ public class SessionManager {
     private static final String KEY_UID = "uid";
     private static final String KEY_EMAIL = "email";
 
+    private final boolean enabled;
     private final Preferences preferences = Gdx.app.getPreferences(RuntimeProfile.prefsName(PREFS_NAME));
+
+    public SessionManager() {
+        this(true);
+    }
+
+    public SessionManager(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     public void save(FirebaseAuthService.AuthResult result) {
         preferences.putString(KEY_ID_TOKEN, result.idToken());
@@ -27,7 +36,8 @@ public class SessionManager {
     }
 
     public boolean hasSession() {
-        return !preferences.getString(KEY_ID_TOKEN, "").isBlank()
+        return enabled
+                && !preferences.getString(KEY_ID_TOKEN, "").isBlank()
                 && !preferences.getString(KEY_REFRESH_TOKEN, "").isBlank()
                 && !preferences.getString(KEY_UID, "").isBlank();
     }

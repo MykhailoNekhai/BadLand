@@ -1,25 +1,36 @@
 package ua.uni.platform.auth;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Properties;
+import ua.uni.utility.config.ConfigProperties;
 
 public class FirebaseConfig {
     private static final String RESOURCE_PATH = "game-resourses/config/firebase.properties";
     private static final String LOCAL_RESOURCE_PATH = "src/main/resources/" + RESOURCE_PATH;
+    private static final String MISSING_REQUIRED_MESSAGE =
+            "Firebase API key and project ID must be set via firebase.properties, .env, "
+                    + "or env vars FIREBASE_API_KEY / FIREBASE_PROJECT_ID";
+    private static final String NOT_CONFIGURED_MESSAGE =
+            "Firebase is not configured. Set FIREBASE_API_KEY and FIREBASE_PROJECT_ID "
+                    + "in .env, firebase.properties, or OS environment variables.";
 
     private final String apiKey;
     private final String projectId;
     private final String hostingDomain;
     private final String storageBucket;
+    private final boolean configured;
 
     public FirebaseConfig(String apiKey, String projectId, String hostingDomain, String storageBucket) {
+        this(apiKey, projectId, hostingDomain, storageBucket, true);
+    }
+
+    private FirebaseConfig(String apiKey, String projectId, String hostingDomain, String storageBucket,
+                           boolean configured) {
         this.apiKey = apiKey;
         this.projectId = projectId;
         this.hostingDomain = hostingDomain;
         this.storageBucket = storageBucket;
+        this.configured = configured;
     }
 
     public String getApiKey() {
@@ -38,6 +49,16 @@ public class FirebaseConfig {
         return storageBucket;
     }
 
+    public boolean isConfigured() {
+        return configured;
+    }
+
+    public void requireConfigured() {
+        if (!configured) {
+            throw new IllegalStateException(NOT_CONFIGURED_MESSAGE);
+        }
+    }
+
     public static FirebaseConfig loadFromResources() {
         try {
             Properties properties = loadProperties();
@@ -46,8 +67,10 @@ public class FirebaseConfig {
             String hostingDomain = resolve(properties, "hostingDomain", "FIREBASE_HOSTING_DOMAIN");
             String storageBucket = resolve(properties, "storageBucket", "FIREBASE_STORAGE_BUCKET");
             if (apiKey == null || apiKey.isBlank() || projectId == null || projectId.isBlank()) {
-                throw new IllegalStateException(
-                    "Firebase API key and project ID must be set via firebase.properties or env vars FIREBASE_API_KEY / FIREBASE_PROJECT_ID");
+                if (!hasPartialFirebaseConfig(properties)) {
+                    return disabled();
+                }
+                throw new IllegalStateException(MISSING_REQUIRED_MESSAGE);
             }
             String resolvedHostingDomain = hostingDomain == null || hostingDomain.isBlank()
                     ? projectId.trim() + ".web.app"
@@ -62,29 +85,22 @@ public class FirebaseConfig {
     }
 
     private static Properties loadProperties() throws IOException {
-        Properties properties = new Properties();
-        try (InputStream input = FirebaseConfig.class.getClassLoader().getResourceAsStream(RESOURCE_PATH)) {
-            if (input != null) {
-                properties.load(input);
-                return properties;
-            }
-        }
-
-        Path localPath = Path.of(LOCAL_RESOURCE_PATH);
-        if (Files.isRegularFile(localPath)) {
-            try (InputStream input = Files.newInputStream(localPath)) {
-                properties.load(input);
-            }
-        }
-        return properties;
+        return ConfigProperties.load(RESOURCE_PATH, LOCAL_RESOURCE_PATH);
     }
 
-    // Priority: environment variable, then ignored local properties file.
+    private static FirebaseConfig disabled() {
+        return new FirebaseConfig("", "", "", "", false);
+    }
+
+    private static boolean hasPartialFirebaseConfig(Properties properties) {
+        return ConfigProperties.hasResolvedValue(properties, "apiKey", "FIREBASE_API_KEY")
+                || ConfigProperties.hasResolvedValue(properties, "projectId", "FIREBASE_PROJECT_ID")
+                || ConfigProperties.hasResolvedValue(properties, "hostingDomain", "FIREBASE_HOSTING_DOMAIN")
+                || ConfigProperties.hasResolvedValue(properties, "storageBucket", "FIREBASE_STORAGE_BUCKET");
+    }
+
+    // Priority: environment variable, then .env, then ignored local properties file.
     private static String resolve(Properties props, String propKey, String envKey) {
-        String envVal = System.getenv(envKey);
-        if (envVal != null && !envVal.isBlank()) return envVal.trim();
-        String propVal = props.getProperty(propKey);
-        if (propVal != null && propVal.startsWith("REPLACE_WITH_")) return null;
-        return propVal;
+        return ConfigProperties.resolve(props, propKey, envKey);
     }
 }
