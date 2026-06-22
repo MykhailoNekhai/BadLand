@@ -182,6 +182,7 @@ public class FirestoreService {
     }
 
     private String baseDocumentsUrl() {
+        config.requireConfigured();
         return "https://firestore.googleapis.com/v1/projects/" + config.getProjectId()
                 + "/databases/(default)/documents";
     }

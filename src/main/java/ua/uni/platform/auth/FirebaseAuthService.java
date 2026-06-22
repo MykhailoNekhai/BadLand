@@ -87,6 +87,7 @@ public class FirebaseAuthService {
     }
 
     public AuthResult refreshIdToken(String refreshToken, String fallbackEmail) {
+        config.requireConfigured();
         String url = "https://securetoken.googleapis.com/v1/token?key=" + config.getApiKey();
         String body = "grant_type=refresh_token&refresh_token=" + refreshToken;
         Request request = new Request.Builder()
@@ -148,6 +149,7 @@ public class FirebaseAuthService {
     }
 
     private JsonObject post(String endpoint, JsonObject payload) {
+        config.requireConfigured();
         String url = "https://identitytoolkit.googleapis.com/v1/" + endpoint + "?key=" + config.getApiKey();
         Request request = new Request.Builder()
                 .url(url)
