@@ -42,6 +42,7 @@ public final class SoundService {
     private final Sound[] impactRubberSounds;
     private final Sound squishSound;
     private final Sound sideDeathSound;
+    private final Sound explosionSound;
 
     private float menuAmbientElapsed;
     private float nextMenuAmbientAt = MENU_AMBIENT_FIRST_DELAY;
@@ -181,6 +182,7 @@ public final class SoundService {
 
         squishSound = usedSound("level/player/death/223-squish.wav");
         sideDeathSound = usedSound("level/player/death/222-sidedeath pro tools filt.wav");
+        explosionSound = usedSound("level/impacts/rock/86-rockshort1.wav");
     }
 
     public void playHover() {
@@ -284,10 +286,16 @@ public final class SoundService {
     }
 
     public void playSideDeathSound() {
-        if (isDeathSoundThrottled()) {
-            return;
-        }
-        play(sideDeathSound, 1f);
+        long currentTime = TimeUtils.millis();
+        if (currentTime - lastDeathTime < 50) return;
+        lastDeathTime = currentTime;
+        float v = GameSettings.getMusicVolume();
+        if (v > 0f) sideDeathSound.play(v);
+    }
+
+    public void playExplosionSound(float volume) {
+        float v = GameSettings.getMusicVolume();
+        if (v > 0f) explosionSound.play(volume * v);
     }
 
     public Sound getCircsawLoopSound() {
@@ -353,6 +361,7 @@ public final class SoundService {
         circsawLoopSound.dispose();
         squishSound.dispose();
         sideDeathSound.dispose();
+        explosionSound.dispose();
     }
 
     private Sound sound(String internalPath) {
