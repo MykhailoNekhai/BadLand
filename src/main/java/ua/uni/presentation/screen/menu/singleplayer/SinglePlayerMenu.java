@@ -226,17 +226,17 @@ public class SinglePlayerMenu extends PMenu {
             transitionAlpha = Math.min(1f, transitionAlpha + (delta / 0.45f));
             if (transitionAlpha >= 1f && selectedLevel > 0) {
                 if (selectedLevel == 1) {
-                    game.setScreen(new Poligon2Level(game));
+                    services.setScreen(new Poligon2Level(services));
                 } else if (selectedLevel == 2) {
-                    game.setScreen(new Poligon3Level(game));
+                    services.setScreen(new Poligon3Level(services));
                 } else if (selectedLevel == 3) {
-                    game.setScreen(new Poligon4Level(game));
+                    services.setScreen(new Poligon4Level(services));
                 } else if (selectedLevel == 4) {
-                    game.setScreen(new Poligon5Level(game));
+                    services.setScreen(new Poligon5Level(services));
                 } else if (selectedLevel == 5) {
-                    game.setScreen(new Poligon6Level(game));
+                    services.setScreen(new Poligon6Level(services));
                 } else {
-                    game.setScreen(new LevelPreviewScreen(game, selectedLevel));
+                    services.setScreen(new LevelPreviewScreen(services, selectedLevel));
                 }
                 return;
             }

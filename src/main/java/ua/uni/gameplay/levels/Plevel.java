@@ -270,9 +270,9 @@ public abstract class Plevel implements Screen {
         whiteSmokePool = new ParticleEffectPool(whiteSmokeEffect, 5, 50);
 
         engine.addSystem(new BonusSystem(world, whiteSmokePool));
-        engine.addSystem(new ParticleSystem(game.getBatch()));
+        engine.addSystem(new ParticleSystem(services.batch()));
 
-        pauseMenu = new PauseMenu(game, this::resumeFromPause, this::restartLevel, this::checkpointAction);
+        pauseMenu = new PauseMenu(services, this::resumeFromPause, this::restartLevel, this::checkpointAction);
         backgroundGradient = makeMultiStopGradient(64, 512, new Color[]{
                 new Color(0.03f, 0.03f, 0.03f, 1f),
                 new Color(0.07f, 0.06f, 0.05f, 1f),
