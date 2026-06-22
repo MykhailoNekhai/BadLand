@@ -3,12 +3,16 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .kotlin
+.venv/
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
+.idea/claudeCodeTabState.xml
+.idea/workspace.xml
+.idea/shelf/
 *.iws
 *.iml
 *.ipr
@@ -40,11 +44,16 @@ build/
 **/*.log
 
 ### Secrets — never commit real credentials ###
+.env
+.env.*
+!.env.example
 src/main/resources/game-resourses/config/firebase.properties
 src/main/resources/game-resourses/config/nakama.properties
+nakama/nakama.yml
 *.local.properties
 
 ### Local/temp files ###
+.claude/
 nakama/.cookie
 account_profile.json
 *.tmp

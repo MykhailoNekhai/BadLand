@@ -3,9 +3,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-SERVER_HOST="online.kiamran.uk"
-SERVER_USER="root"
-REMOTE_DIR="/root/badland"
+SERVER_HOST="${BADLAND_SERVER_HOST:?Set BADLAND_SERVER_HOST in the environment}"
+SERVER_USER="${BADLAND_SERVER_USER:-root}"
+REMOTE_DIR="${BADLAND_REMOTE_DIR:-/root/badland}"
 REMOTE_NAKAMA_DIR="${REMOTE_DIR}/nakama"
 
 require_local_files() {

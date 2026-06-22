@@ -3,10 +3,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-SERVER_HOST="online.kiamran.uk"
-#SERVER_HOST="online.kiamran.uk"
-SERVER_USER="root"
-REMOTE_DIR="/root/badland"
+SERVER_HOST="${BADLAND_SERVER_HOST:?Set BADLAND_SERVER_HOST in the environment}"
+SERVER_USER="${BADLAND_SERVER_USER:-root}"
+REMOTE_DIR="${BADLAND_REMOTE_DIR:-/root/badland}"
 JAR_NAME="BadLand-1.0-SNAPSHOT-all.jar"
 LOCAL_JAR="${REPO_ROOT}/target/${JAR_NAME}"
 
