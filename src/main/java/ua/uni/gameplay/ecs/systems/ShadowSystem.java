@@ -6,6 +6,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.utils.Array;
@@ -13,6 +14,7 @@ import ua.uni.gameplay.ecs.components.PhysicsComponent;
 import ua.uni.gameplay.ecs.components.PlayerComponent;
 import ua.uni.gameplay.ecs.components.TextureComponent;
 import ua.uni.gameplay.ecs.components.WingComponent;
+import com.badlogic.gdx.math.MathUtils;
 import ua.uni.core.config.GameSettings;
 import ua.uni.utility.physics.BodyEditorLoader;
 import com.badlogic.gdx.physics.box2d.World;
@@ -53,23 +55,50 @@ public class ShadowSystem extends IteratingSystem {
             player.receivedBonus = null;
 
             // бонуси, спочатку на клони, потім всі інші
-            if ("item-clone".equals(bonusToApply)) {
-                float currentScale = player.shadowSizeScale * 1.2f;
-               float spawnX = phys.body.getPosition().x - 0.8f;
-                float spawnY = phys.body.getPosition().y + 0.8f;
+            if ("item-clone".equals(bonusToApply) || "item-superclone".equals(bonusToApply)) {
+                int clonesToSpawn = "item-superclone".equals(bonusToApply) ? 10 : 1;
                 
-                Entity clone = EntityFactory.createPlayer(getEngine(), world, spawnX, spawnY, currentScale);
-                
-                PlayerComponent cloneP = clone.getComponent(PlayerComponent.class);
-                if (cloneP != null) {
-                    cloneP.shadowSizeScale = player.shadowSizeScale;
-                    cloneP.speedModifier = player.speedModifier;
-                    cloneP.verticalSpeed = player.verticalSpeed;
-                }
-                
-                PhysicsComponent clonePhys = clone.getComponent(PhysicsComponent.class);
-                if (clonePhys != null) {
-                    clonePhys.body.setGravityScale(phys.body.getGravityScale());
+                for (int i = 0; i < clonesToSpawn; i++) {
+                    float currentScale = player.shadowSizeScale * 1.2f;
+                    float angle = MathUtils.random(0f, MathUtils.PI2);
+                    float radius = MathUtils.random(0.0f, 0.5f);
+                    float spawnX = phys.body.getPosition().x + (float)Math.cos(angle) * radius;
+                    float spawnY = phys.body.getPosition().y + (float)Math.sin(angle) * radius;
+                    
+                    Entity clone = EntityFactory.createPlayer(getEngine(), world, spawnX, spawnY, currentScale);
+                    
+                    PlayerComponent cloneP = clone.getComponent(PlayerComponent.class);
+                    if (cloneP != null) {
+                        cloneP.shadowSizeScale = player.shadowSizeScale;
+                        cloneP.speedModifier = player.speedModifier;
+                        cloneP.verticalSpeed = player.verticalSpeed;
+                        cloneP.isGrowingFromBonus = true;
+                        cloneP.ignoreCloneCollision = true;
+                    }
+                    
+                    TextureComponent cloneTex = clone.getComponent(TextureComponent.class);
+                    if (cloneTex != null) {
+                        cloneTex.width = 0.1f;
+                        cloneTex.height = 0.1f;
+                    }
+                    
+                    PhysicsComponent clonePhys = clone.getComponent(PhysicsComponent.class);
+                    if (clonePhys != null && clonePhys.body != null) {
+                        clonePhys.body.setGravityScale(phys.body.getGravityScale());
+                        
+                        Filter ghostFilter = new Filter();
+                        ghostFilter.categoryBits = 0x0004;
+                        ghostFilter.maskBits = (short)(0xFFFF & ~0x0004 & ~0x0002);
+                        for (Fixture f : clonePhys.body.getFixtureList()) {
+                            f.setFilterData(ghostFilter);
+                        }
+                        
+                        clonePhys.body.setLinearVelocity(phys.body.getLinearVelocity());
+                        
+                        float forceX = MathUtils.random(-0.3f, 0.3f);
+                        float forceY = 0.2f + MathUtils.random(0.0f, 0.2f);
+                        clonePhys.body.applyLinearImpulse(new Vector2(forceX * clonePhys.body.getMass(), forceY * clonePhys.body.getMass()), clonePhys.body.getWorldCenter(), true);
+                    }
                 }
 
             } else {
@@ -115,7 +144,7 @@ public class ShadowSystem extends IteratingSystem {
                         }
                         
                     } else if ("item-speed".equals(bonusToApply)) {
-                        playerComponent.speedModifier *= 2.2f;
+                        playerComponent.speedModifier *= 1.2f;
                         if (playerComponent.speedModifier > 10.0f) {
                             playerComponent.speedModifier = 10.0f;
                         }
@@ -126,6 +155,58 @@ public class ShadowSystem extends IteratingSystem {
 
         if (player.needsResize) {
             resizePlayer(entity, player, phys);
+        }
+
+        TextureComponent tex = texMapper.get(entity);
+        if (tex != null) {
+            float targetWidth = 1.2f * player.shadowSizeScale;
+            if (Math.abs(tex.width - targetWidth) > 0.01f) {
+                float speed = player.isGrowingFromBonus ? 5.0f : 15.0f;
+                tex.width += (targetWidth - tex.width) * speed * deltaTime;
+                
+                if (Math.abs(tex.width - targetWidth) < 0.05f) {
+                    tex.width = targetWidth;
+                    player.isGrowingFromBonus = false;
+                }
+                tex.height = tex.width * ((float)tex.texture.getHeight() / tex.texture.getWidth());
+            } else if (player.isGrowingFromBonus) {
+                player.isGrowingFromBonus = false;
+            }
+        }
+        
+        if (player.ignoreCloneCollision) {
+            boolean isOverlapping = false;
+            for (Entity other : getEngine().getEntitiesFor(Family.all(PlayerComponent.class, PhysicsComponent.class).get())) {
+                if (other != entity) {
+                    PhysicsComponent otherPhys = physMapper.get(other);
+                    if (otherPhys != null && otherPhys.body != null) {
+                        float dist = phys.body.getPosition().dst(otherPhys.body.getPosition());
+                        float safeDist = (player.shadowSizeScale + playerMapper.get(other).shadowSizeScale) * 0.6f;
+                        if (dist < safeDist) {
+                            isOverlapping = true;
+                            Vector2 push = phys.body.getPosition().cpy().sub(otherPhys.body.getPosition());
+                            if (push.len2() < 0.0001f) {
+                                float randAngle = MathUtils.random(0f, MathUtils.PI2);
+                                push.set((float)Math.cos(randAngle), (float)Math.sin(randAngle));
+                            }
+                            push.nor();
+                            
+                            Vector2 force1 = push.cpy().scl(0.15f * phys.body.getMass());
+                            phys.body.applyForceToCenter(force1, true);
+                        }
+                    }
+                }
+            }
+            if (!isOverlapping && !player.isGrowingFromBonus) {
+                player.ignoreCloneCollision = false;
+                
+                Filter playerFilter = new Filter();
+                playerFilter.categoryBits = 0x0002;
+                playerFilter.maskBits = (short)0xFFFF;
+                for (Fixture f : phys.body.getFixtureList()) {
+                    f.setFilterData(playerFilter);
+                }
+            }
         }
 
 // зчитування клавіш
@@ -176,23 +257,21 @@ public class ShadowSystem extends IteratingSystem {
 
         WingComponent wings = wingMapper.get(entity);
         if (wings != null) {
-            TextureComponent tex = texMapper.get(entity);
+            TextureComponent wingTex = texMapper.get(entity);
             if (player.moveUp) {
                 wings.isVisible = true;
-                // Трохи повільніший рух (було 35f)
+
                 wings.flapTime += deltaTime * 26f; 
-                // Амплітуда руху крил: вгору стандартно, а вниз - набагато сильніше
-                float amplitude = tex.height * 0.45f;
+
+                float amplitude = wingTex.height * 0.45f;
                 float sinValue = (float)Math.sin(wings.flapTime);
                 if (sinValue < 0) {
-                    sinValue *= 1.6f; // посилюємо рух вниз на 60%
+                    sinValue *= 1.6f;
                 }
                 wings.currentYOffset = sinValue * amplitude;
             } else {
-                // Плавне згортання: крила повертаються в центр тіла (де вони ховаються на чорному фоні)
                 wings.currentYOffset += (0f - wings.currentYOffset) * 12f * deltaTime;
                 
-                // Коли вони вже повністю сховались - відключаємо малювання
                 if (Math.abs(wings.currentYOffset) < 1f) {
                     wings.isVisible = false;
                     wings.flapTime = 0f;
@@ -233,17 +312,21 @@ public class ShadowSystem extends IteratingSystem {
         }
 
         float currentAngle = phys.body.getAngle();
-
         float angleError = targetAngle - currentAngle;
 
-        while (angleError > Math.PI) {
-            angleError -= (float)(Math.PI * 2);
-        }
-        while (angleError < -Math.PI) {
-            angleError += (float)(Math.PI * 2);
+        if (Float.isNaN(angleError) || Float.isInfinite(angleError)) {
+            angleError = 0f;
+            phys.body.setAngularVelocity(0f);
+        } else {
+            angleError = angleError % ((float)Math.PI * 2);
+            if (angleError > Math.PI) {
+                angleError -= (float)(Math.PI * 2);
+            } else if (angleError < -Math.PI) {
+                angleError += (float)(Math.PI * 2);
+            }
         }
 
-        phys.body.applyTorque(angleError * 15f, true);
+        phys.body.applyTorque(angleError * 4f, true);
     }
 // метод, що змінює розмір об'єкту (нюанси рушія)
     private void resizePlayer(Entity entity, PlayerComponent player, PhysicsComponent phys) {
@@ -262,15 +345,19 @@ public class ShadowSystem extends IteratingSystem {
         
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.density = 5.0f;
-        fixtureDef.friction = 0.25f;
+        fixtureDef.friction = 0.7f;
         fixtureDef.restitution = 0.05f;
 
         BodyEditorLoader loader = new BodyEditorLoader(Gdx.files.internal("game-resourses/assetData/avatar-1.json"));
         float realScale = newSize / 208.0f;
         loader.attachFixture(phys.body, "avatar-1", fixtureDef, realScale);
         
-        textureComp.width = newSize;
-        textureComp.height = newSize * ((float)textureComp.texture.getHeight() / textureComp.texture.getWidth());
+        Filter filter = new Filter();
+        filter.categoryBits = player.ignoreCloneCollision ? (short)0x0004 : (short)0x0002;
+        filter.maskBits = player.ignoreCloneCollision ? (short)(0xFFFF & ~0x0004 & ~0x0002) : (short)0xFFFF;
+        for (Fixture f : phys.body.getFixtureList()) {
+            f.setFilterData(filter);
+        }
         
         player.needsResize = false;
     }

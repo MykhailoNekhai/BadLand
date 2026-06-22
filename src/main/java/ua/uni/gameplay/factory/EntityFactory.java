@@ -14,10 +14,14 @@ import ua.uni.utility.config.ConfigLoader;
 import ua.uni.utility.physics.BodyEditorLoader;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 // Клас, який створює об'єкти згідно певному, заданмоу нами алгоритму.
 
-
 public class EntityFactory {
+    private static final Map<String, Texture> textureCache = new HashMap<>();
+    private static final Map<String, BodyEditorLoader> loaderCache = new HashMap<>();
 
     public static Entity createObstacle(Engine engine, World world, String objectName, float x, float y, float angleDegrees, float size) {
         Entity entity = buildBaseEntity(engine, world, objectName, x, y, angleDegrees, size);
@@ -58,7 +62,10 @@ public class EntityFactory {
         entity.add(place);
 
         TextureComponent textureComp = engine.createComponent(TextureComponent.class);
-        textureComp.texture = new Texture(Gdx.files.internal("game-resourses/textures/" + objectName + ".png"));
+        if (!textureCache.containsKey(objectName)) {
+            textureCache.put(objectName, new Texture(Gdx.files.internal("game-resourses/textures/" + objectName + ".png")));
+        }
+        textureComp.texture = textureCache.get(objectName);
         textureComp.width = size;
         textureComp.height = size * ((float)textureComp.texture.getHeight() / textureComp.texture.getWidth());
         entity.add(textureComp);
@@ -94,7 +101,11 @@ public class EntityFactory {
         fixtureDef.friction = config.friction;
         fixtureDef.restitution = config.restitution;
 
-        BodyEditorLoader loader = new BodyEditorLoader(Gdx.files.internal("game-resourses/assetData/" + objectName + ".json"));
+        if (!loaderCache.containsKey(objectName)) {
+            loaderCache.put(objectName, new BodyEditorLoader(Gdx.files.internal("game-resourses/assetData/" + objectName + ".json")));
+        }
+        BodyEditorLoader loader = loaderCache.get(objectName);
+        
         float realScale = size / config.baseWidth;
         loader.attachFixture(physComp.body, objectName, fixtureDef, realScale);
 
@@ -130,6 +141,12 @@ public class EntityFactory {
         if (config.isPlayer) {
             entity.add(engine.createComponent(PlayerComponent.class));
             entity.add(engine.createComponent(WingComponent.class));
+            
+            Filter playerFilter = new Filter();
+            playerFilter.categoryBits = 0x0002;
+            for (Fixture f : physComp.body.getFixtureList()) {
+                f.setFilterData(playerFilter);
+            }
         }
         if (config.isBonus) {
             BonusComponent bonus = engine.createComponent(BonusComponent.class);
@@ -137,8 +154,12 @@ public class EntityFactory {
             entity.add(bonus);
         }
 
+        if (objectName != null && objectName.toLowerCase().contains("mine")) {
+            entity.add(engine.createComponent(ua.uni.gameplay.ecs.components.MineComponent.class));
+        }
+
         MaterialComponent matComp = engine.createComponent(MaterialComponent.class);
-        String lowerName = objectName.toLowerCase();
+        String lowerName = objectName != null ? objectName.toLowerCase() : "";
         if (lowerName.contains("rock") || lowerName.contains("stone")) {
             matComp.material = "rock";
         } else if (lowerName.contains("pipe") || lowerName.contains("chain") || lowerName.contains("shredder") || lowerName.contains("propeller") || lowerName.contains("gear") || lowerName.contains("lazer") || lowerName.contains("turret") || lowerName.contains("saw") || lowerName.contains("grenade") || lowerName.contains("wire")) {
